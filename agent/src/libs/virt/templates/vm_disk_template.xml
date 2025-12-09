@@ -1,0 +1,8 @@
+<volume>
+    <name>{name}.qcow2</name>
+    <capacity unit="G">{disk_gb}</capacity>
+    <allocation unit="G">0</allocation>
+    <target>
+        <format type="qcow2" />
+    </target>
+</volume>

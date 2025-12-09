@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proj1-libvirt-agent"
+version = "0.1.0"
+description = "Libvirt Agent for VM Management"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "libvirt-python>=10.0.0",
+]
+
+[project.scripts]
+libvirt-agent = "src.server:run"

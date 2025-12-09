@@ -1,0 +1,66 @@
+<!-- domain_template_mac.xml -->
+<domain type='qemu'>
+    <name>{name}</name>
+
+    <memory unit='MiB'>{memory_mib}</memory>
+    <currentMemory unit='MiB'>{memory_mib}</currentMemory>
+
+    <vcpu placement='static'>{vcpus}</vcpu>
+
+    <os>
+        <!-- x86_64 guest; Q35 machine model is fine for Linux -->
+        <type arch='x86_64' machine='pc-q35-7.2'>hvm</type>
+        <boot dev='hd' />
+    </os>
+
+    <features>
+        <acpi />
+        <apic />
+    </features>
+
+    <!-- IMPORTANT: no <cpu mode='host-model'> on macOS/aarch64 -->
+    <!-- Let QEMU pick a safe emulated x86 CPU model -->
+
+    <clock offset='utc' />
+
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>restart</on_crash>
+
+    <devices>
+        <!-- Adjust this if `which qemu-system-x86_64` gives a different path -->
+        <emulator>/opt/homebrew/bin/qemu-system-x86_64</emulator>
+
+        <!-- Main disk (qcow2 volume created in your pool) -->
+        <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2' />
+            <source file='{disk_path}' />
+            <target dev='vda' bus='virtio' />
+        </disk>
+
+        <!-- Simple user-mode networking (works on macOS, no qemu-bridge-helper) -->
+        <interface type='user'>
+            <model type='virtio' />
+            <!-- On macOS these bandwidth limits are effectively ignored,
+           but the XML stays compatible with your Linux target. -->
+            <bandwidth>
+                <inbound average='{net_in_kbps}'
+                    peak='{net_in_peak_kbps}'
+                    burst='{net_in_burst_kb}' />
+                <outbound average='{net_out_kbps}'
+                    peak='{net_out_peak_kbps}'
+                    burst='{net_out_burst_kb}' />
+            </bandwidth>
+        </interface>
+
+        <!-- Serial console (virsh console NAME) -->
+        <console type='pty'>
+            <target type='serial' port='0' />
+        </console>
+
+        <!-- VNC graphics, bound to localhost so it isn't exposed on your LAN -->
+        <graphics type='vnc' port='-1' autoport='yes' listen='127.0.0.1'>
+            <listen type='address' address='127.0.0.1' />
+        </graphics>
+    </devices>
+</domain>

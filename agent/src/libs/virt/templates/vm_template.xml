@@ -1,0 +1,60 @@
+<domain type='kvm'>
+    <name>{name}</name>
+
+    <memory unit='MiB'>{memory_mib}</memory>
+    <currentMemory unit='MiB'>{memory_mib}</currentMemory>
+
+    <vcpu placement='static'>{vcpus}</vcpu>
+
+    <os>
+        <type arch='x86_64' machine='pc-q35-7.2'>hvm</type>
+        <boot dev='hd' />
+    </os>
+
+    <features>
+        <acpi />
+        <apic />
+    </features>
+
+    <cpu mode='host-model'>
+        <model fallback='forbid' />
+    </cpu>
+
+    <clock offset='utc' />
+
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>restart</on_crash>
+
+    <devices>
+        <emulator>/usr/bin/qemu-system-x86_64</emulator>
+
+        <!-- Main disk -->
+        <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2' />
+            <source file='{disk_path}' />
+            <target dev='vda' bus='virtio' />
+        </disk>
+
+        <!-- Network interface on your bridge -->
+        <interface type='bridge'>
+            <source bridge='br-vms' />
+            <model type='virtio' />
+            <bandwidth>
+                <inbound average='{net_in_kbps}' peak='{net_in_peak_kbps}' burst='{net_in_burst_kb}' />
+                <outbound average='{net_out_kbps}' peak='{net_out_peak_kbps}'
+                    burst='{net_out_burst_kb}' />
+            </bandwidth>
+        </interface>
+
+        <!-- Serial console (virsh console NAME) -->
+        <console type='pty'>
+            <target type='serial' port='0' />
+        </console>
+
+        <!-- Optional VNC graphics (disable if you only want serial) -->
+        <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>
+            <listen type='address' address='0.0.0.0' />
+        </graphics>
+    </devices>
+</domain>
