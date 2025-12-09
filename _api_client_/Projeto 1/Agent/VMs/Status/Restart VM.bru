@@ -1,0 +1,16 @@
+meta {
+  name: Restart VM
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{PROTOCOL}}://{{IP}}:{{PORT}}/api/v1/vms/{{Example_UUID}}/status/restart
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

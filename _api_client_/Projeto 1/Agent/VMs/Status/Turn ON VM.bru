@@ -1,0 +1,16 @@
+meta {
+  name: Turn ON VM
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{PROTOCOL}}://{{IP}}:{{PORT}}/api/v1/vms/{{Example_UUID}}/status/start
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

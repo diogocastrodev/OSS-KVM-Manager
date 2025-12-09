@@ -1,0 +1,16 @@
+meta {
+  name: Turn OFF VM
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{PROTOCOL}}://{{IP}}:{{PORT}}/api/v1/vms/{{Example_UUID}}/status/stop
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

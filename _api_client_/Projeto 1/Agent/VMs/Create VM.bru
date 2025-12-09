@@ -1,0 +1,26 @@
+meta {
+  name: Create VM
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{PROTOCOL}}://{{IP}}:{{PORT}}/api/v1/vms
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "131a692d-587c-4911-acd4-67a0714b17d9",
+    "cpu": 1,
+    "memory": 512,
+    "disk_size": 1,
+    "network": 10
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
