@@ -1,5 +1,11 @@
 {
   "hello": {
     "hey": "Olá"
+  },
+  "login": {
+    "username": "Utilizador",
+    "password": "Senha",
+    "forgotPassword": "Esqueceu-se da senha?",
+    "login": "Entrar"
   }
 }

@@ -1,5 +1,11 @@
 {
   "hello": {
     "hey": "Hello"
+  },
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "forgotPassword": "Forgot your password?",
+    "login": "Login"
   }
 }
