@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+src/db/__prisma_generated__/
+prisma/migrations/
+.vscode/
