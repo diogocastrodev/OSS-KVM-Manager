@@ -1,8 +1,14 @@
 meta {
   name: API
-  seq: 2
 }
 
 auth {
   mode: inherit
+}
+
+vars:pre-request {
+  API_HOST: localhost
+  API_PROTOCOL: http
+  API_PORT: 8000
+  API_ENDPOINT: {{API_PROTOCOL}}://{{API_HOST}}:{{API_PORT}}
 }
