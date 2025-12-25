@@ -36,7 +36,6 @@
             <target dev='vda' bus='virtio' />
         </disk>
 
-
         <!-- Network interface on your bridge -->
         <interface type='bridge'>
             <source bridge='br-vms' />
