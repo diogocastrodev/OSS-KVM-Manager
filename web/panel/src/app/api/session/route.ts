@@ -24,8 +24,9 @@ export async function GET() {
 
   try {
     // Fetch user from backend
-    const res = await fetch(`${API_URL}/api/v1/me`, {
+    const res = await fetch(`${API_URL}/api/v1/user`, {
       headers: cookieHeader ? { cookie: cookieHeader } : {},
+      credentials: "include",
       cache: "no-store",
     });
 

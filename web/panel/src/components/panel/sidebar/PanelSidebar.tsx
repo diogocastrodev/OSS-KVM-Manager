@@ -11,13 +11,12 @@ export default function PanelSidebar() {
           isSideBarOpen ? "w-64" : "w-12"
         } bg-zinc-800 rounded-xl flex flex-col p-3 overflow-auto transition-[width] duration-300 ease-in-out`}
       >
-        <div onClick={() => toggleSideBar()}>
-          <ArrowLeftIcon
-            className={`h-6 w-6 text-white transition-transform duration-300 ${
-              isSideBarOpen ? "rotate-0" : "rotate-180"
-            }`}
-          />
-        </div>
+        <ArrowLeftIcon
+          className={`h-6 w-6 text-white transition-transform duration-300 cursor-pointer ${
+            isSideBarOpen ? "rotate-0" : "rotate-180"
+          }`}
+          onClick={() => toggleSideBar()}
+        />
       </div>
     </>
   );

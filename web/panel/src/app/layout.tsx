@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 async function fetchSessionFromServer() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/session`, {
+  const res = await fetch(`/api/session`, {
     cache: "no-store",
   });
   if (!res.ok) return { user: null, error: `http_${res.status}` };

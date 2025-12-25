@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 async function getSession() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/session`, {
+  const res = await fetch(`/api/session`, {
     credentials: "include",
   });
   if (!res.ok) return { user: null, error: `http_${res.status}` };
