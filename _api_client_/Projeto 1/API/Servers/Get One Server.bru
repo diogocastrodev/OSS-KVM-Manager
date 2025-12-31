@@ -1,0 +1,16 @@
+meta {
+  name: Get One Server
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_ENDPOINT}}/api/v1/servers/bbb
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

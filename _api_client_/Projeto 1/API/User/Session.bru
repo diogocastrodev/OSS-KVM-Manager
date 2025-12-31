@@ -1,0 +1,15 @@
+meta {
+  name: Session
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_ENDPOINT}}/api/v1/user/session
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

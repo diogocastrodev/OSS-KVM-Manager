@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --background: var(--color-zinc-100); /* zinc-100 */
+  --background-secondary: var(--color-zinc-50); /* zinc-50 */
+  --foreground: var(--color-zinc-800); /* zinc-800 */
+  --logo-color: #f0aa3d;
+  @variant dark {
+    --background: var(--color-zinc-900); /* zinc-900 */
+    --background-secondary: var(--color-zinc-950); /* zinc-950 */
+    --foreground: var(--color-zinc-100); /* zinc-100 */
+    --logo-color: #f0aa3d;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --logo-color: var(--logo-color);
+}
+
+/* @variant dark {
+  :root {
+    --background: var(--color-zinc-800);
+    --foreground: var(--color-zinc-100);
+  }
+} */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--color-zinc-800);
+    --foreground: var(--color-zinc-100);
+  }
+} */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+main {
+  min-height: 100vh;
+  display: flex;
+  position: relative;
+}

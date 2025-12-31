@@ -1,8 +1,10 @@
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { getMessages, setRequestLocale } from "next-intl/server";
 // @ts-ignore
-import "./global.css";
+import "@/styles/global.css";
+import { ThemeProvider } from "@/components/Providers/ThemeProvider";
 
 type Props = {
   children: React.ReactNode;
@@ -15,12 +17,31 @@ export default async function LocaleLayout({ children, params }: Props) {
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
+  setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     <>
-      <main id="root" lang={locale}>
-        {children}
-      </main>
+      <html lang={locale} suppressHydrationWarning>
+        <body>
+          <NextIntlClientProvider
+            messages={messages}
+            locale={locale}
+            key={locale}
+          >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <main id="root" lang={locale}>
+                {children}
+              </main>
+            </ThemeProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
     </>
   );
 }

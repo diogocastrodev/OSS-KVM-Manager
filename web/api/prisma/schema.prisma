@@ -14,14 +14,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Temporary 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  DEACTIVATED
+}
+
+enum DeactivationReason {
+  USER_REQUEST
+  TERMS_OF_SERVICE_VIOLATION
+  OTHER
+}
+
 model User {
-  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String?
-  email         String         @unique
-  password      String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @default(now()) @updatedAt
-  refreshTokens RefreshToken[]
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String?
+  email                  String                 @unique
+  password               String
+  role                   Role                   @default(USER)
+  status                 UserStatus             @default(PENDING)
+  emailVerified          Boolean                @default(false)
+  emailVerificationToken String?
+  deactivationReason     DeactivationReason?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @default(now()) @updatedAt
+  refreshTokens          RefreshToken[]
+  virtualMachinesUsers   VirtualMachinesUsers[]
 
   @@map("users")
 }
@@ -36,4 +60,76 @@ model RefreshToken {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@map("refresh_tokens")
+}
+
+model Servers {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  publicId        Int      @unique @db.Integer
+  name            String
+  cpus            Int      @db.Integer
+  vcpus           Int      @db.Integer
+  ram             Int      @db.Integer
+  disk            Int      @db.Integer
+  in_link         Float
+  out_link        Float
+  ipLocal         String
+  ipPublic        String?
+  vcpus_max       Int      @db.Integer
+  ram_max         Int      @db.Integer
+  disk_max        Int      @db.Integer
+  vcpus_available Int      @db.Integer
+  ram_available   Int      @db.Integer
+  disk_available  Int      @db.Integer
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  virtualMachines VirtualMachines[]
+
+  @@map("servers")
+}
+
+model VirtualMachines {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  publicId  Int     @unique @db.Integer
+  name      String
+  server    Servers @relation(fields: [serverId], references: [id])
+  serverId  String  @db.Uuid
+  vcpus     Int     @db.Integer
+  ram       Int     @db.Integer
+  disk      Int     @db.Integer
+  in_avg    Float
+  out_avg   Float
+  in_peak   Float
+  out_peak  Float
+  in_burst  Float
+  out_burst Float
+  ipLocal   String
+  ipPublic  String?
+  os        String?
+
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @default(now()) @updatedAt
+  virtualMachinesUsers VirtualMachinesUsers[]
+
+  @@map("virtual_machines")
+}
+
+enum VirtualMachineUsersRole {
+  VIEWER
+  OPERATOR
+  OWNER
+}
+
+model VirtualMachinesUsers {
+  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  virtualMachines   VirtualMachines?        @relation(fields: [virtualMachinesId], references: [id])
+  virtualMachinesId String?                 @db.Uuid
+  user              User?                   @relation(fields: [userId], references: [id])
+  userId            String?                 @db.Uuid
+  role              VirtualMachineUsersRole @default(VIEWER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("virtual_machines_users")
 }

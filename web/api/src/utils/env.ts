@@ -8,8 +8,11 @@ interface EnvironmentVariables {
   DATABASE_URL: string;
   PORT: number;
   JWT_SECRET: string;
-  NODE_ENV?: NodeEnv;
+  NODE_ENV: NodeEnv;
   COOKIE_SECRET: string;
+  JWT_TOKEN_TIME_SECONDS: number;
+  REFRESH_TOKEN_TIME_SECONDS: number;
+  IGNORE_CSRF: boolean;
 }
 
 const parseEnv = (name: string, defaultValue: string, required: boolean) => {
@@ -30,6 +33,19 @@ const env: EnvironmentVariables = {
   JWT_SECRET: parseEnv("JWT_SECRET", "defaultsecret", true),
   NODE_ENV: parseEnv("NODE_ENV", "production", false) as NodeEnv,
   COOKIE_SECRET: parseEnv("COOKIE_SECRET", "defaultcookiesecret", true),
+  JWT_TOKEN_TIME_SECONDS: parseInt(
+    parseEnv("JWT_TOKEN_TIME_SECONDS", (15 * 60).toString(), false),
+    10
+  ),
+  REFRESH_TOKEN_TIME_SECONDS: parseInt(
+    parseEnv(
+      "REFRESH_TOKEN_TIME_SECONDS",
+      (30 * 24 * 60 * 60).toString(),
+      false
+    ),
+    10
+  ),
+  IGNORE_CSRF: parseEnv("IGNORE_CSRF", "false", false) === "true",
 };
 
 export default env;

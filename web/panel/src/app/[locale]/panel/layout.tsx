@@ -1,18 +1,13 @@
 "use client";
 
-import PanelContent from "@/components/panel/content/PanelContent";
-import PanelSidebar from "@/components/panel/sidebar/PanelSidebar";
-import { useSession } from "@/context/SessionContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useSession } from "@/hooks/useSession";
 
 export default function PanelLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data, isLoading } = useSession();
-  const router = useRouter();
+  const session2 = useSession();
 
   // useEffect(() => {
   //   if (!data?.user && !isLoading) {
@@ -27,8 +22,9 @@ export default function PanelLayout({
 
   return (
     <>
-      <PanelSidebar></PanelSidebar>
-      <PanelContent>{children}</PanelContent>
+      {/* <PanelSidebar /> */}
+      {/* <PanelContent>{children}</PanelContent> */}
+      {children}
     </>
   );
 }

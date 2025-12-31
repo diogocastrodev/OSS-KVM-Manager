@@ -1,0 +1,26 @@
+meta {
+  name: Try get Info
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{API_ENDPOINT}}/api/v1/servers/try-info
+  body: json
+  auth: inherit
+}
+
+headers {
+  x-csrf-token: tiF5LlOI-k5PlLdWN-WI0S7_KxBL9jjoN-h81QRYB5dOsKUop5ks
+}
+
+body:json {
+  {
+    "server_endpoint": "127.0.0.1:20256"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

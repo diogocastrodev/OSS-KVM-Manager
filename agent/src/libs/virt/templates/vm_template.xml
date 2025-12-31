@@ -27,6 +27,8 @@
     <on_crash>restart</on_crash>
 
     <devices>
+        <memballoon model='virtio' />
+
         <emulator>/usr/bin/qemu-system-x86_64</emulator>
 
         <!-- Main disk -->

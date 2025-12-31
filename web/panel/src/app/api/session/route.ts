@@ -1,55 +1,46 @@
-import { cookies } from "next/headers";
+// app/api/session/route.ts
 import { NextResponse } from "next/server";
 
-function cookieHeaderFromStore(store: Awaited<ReturnType<typeof cookies>>) {
-  // Serialize cookies into "name=value; name2=value2" format
-  return store
-    .getAll()
-    .map(({ name, value }) => `${name}=${value}`)
-    .join("; ");
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+function forwardSetCookies(from: Response, to: NextResponse) {
+  const h: any = from.headers;
+  const list: string[] = h.getSetCookie?.() ?? [];
+  if (list.length) {
+    for (const c of list) to.headers.append("set-cookie", c);
+  } else {
+    const single = from.headers.get("set-cookie");
+    if (single) to.headers.append("set-cookie", single);
+  }
 }
 
-export async function GET() {
-  //  Get API URL from env
-  const API_URL = process.env.API_URL;
-  if (!API_URL) {
-    return NextResponse.json(
-      { user: null, error: "missing_api_url" },
-      { status: 200 }
-    );
+export async function GET(req: Request) {
+  const cookie = req.headers.get("cookie") ?? "";
+
+  // 1) try session
+  let res = await fetch(`${API}/api/v1/user/session`, {
+    headers: cookie ? { cookie } : undefined,
+    cache: "no-store",
+  });
+
+  if (res.status !== 401) {
+    const data = await res.json().catch(() => ({ user: null }));
+    return NextResponse.json(data, { status: 200 });
   }
-  // Get cookies to forward
-  const store = await cookies();
-  const cookieHeader = cookieHeaderFromStore(store);
 
-  try {
-    // Fetch user from backend
-    const res = await fetch(`${API_URL}/api/v1/user`, {
-      headers: cookieHeader ? { cookie: cookieHeader } : {},
-      credentials: "include",
-      cache: "no-store",
-    });
+  // 2) refresh (IMPORTANT: forward cookie header!)
+  const refreshRes = await fetch(`${API}/api/v1/auth/refresh`, {
+    method: "POST",
+    headers: cookie ? { cookie } : undefined,
+    cache: "no-store",
+  });
 
-    // User is not authenticated
-    if (res.status === 401 || res.status === 403) {
-      return NextResponse.json({ user: null }, { status: 200 });
-    }
-
-    // Some other error
-    if (!res.ok) {
-      return NextResponse.json(
-        { user: null, error: `backend_${res.status}` },
-        { status: 200 }
-      );
-    }
-    // Success
-    const user = await res.json();
-    return NextResponse.json({ user }, { status: 200 });
-  } catch (err: any) {
-    // Network or other error
-    return NextResponse.json(
-      { user: null, error: "backend_unreachable" },
-      { status: 200 }
-    );
+  if (!refreshRes.ok) {
+    return NextResponse.json({ user: null }, { status: 200 });
   }
+
+  // 3) send cookies back to browser so it updates refresh_token/access_token
+  const out = NextResponse.json({ user: null }, { status: 200 });
+  forwardSetCookies(refreshRes, out);
+  return out;
 }

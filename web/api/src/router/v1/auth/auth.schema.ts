@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 /* -------------------------------------------------------------------------- */
 /*                                  Register                                  */
@@ -40,6 +40,22 @@ type loginReplyBodyType =
   | z.infer<typeof loginReplyBodyError>;
 
 /* -------------------------------------------------------------------------- */
+/*                                   Refresh                                  */
+/* -------------------------------------------------------------------------- */
+const refreshReplyBody = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
+});
+
+const refreshReplyBodyError = z.object({
+  message: z.string(),
+});
+
+type refreshReplyBodyType =
+  | z.infer<typeof refreshReplyBody>
+  | z.infer<typeof refreshReplyBodyError>;
+
+/* -------------------------------------------------------------------------- */
 /*                                   Exports                                  */
 /* -------------------------------------------------------------------------- */
 
@@ -49,10 +65,13 @@ export {
   loginRequestBody,
   loginReplyBody,
   loginReplyBodyError,
+  refreshReplyBody,
+  refreshReplyBodyError,
 };
 export type {
   registerRequestBodyType,
   registerReplyBodyType,
   loginRequestBodyType,
   loginReplyBodyType,
+  refreshReplyBodyType,
 };

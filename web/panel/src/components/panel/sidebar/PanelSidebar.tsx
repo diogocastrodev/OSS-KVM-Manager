@@ -1,5 +1,5 @@
 import { PanelSideBarContext } from "@/context/PanelSideBarContext";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { ArrowLeft } from "lucide-react";
 
 export default function PanelSidebar() {
   const { isSideBarOpen, toggleSideBar } = PanelSideBarContext();
@@ -11,7 +11,7 @@ export default function PanelSidebar() {
           isSideBarOpen ? "w-64" : "w-12"
         } bg-zinc-800 rounded-xl flex flex-col p-3 overflow-auto transition-[width] duration-300 ease-in-out`}
       >
-        <ArrowLeftIcon
+        <ArrowLeft
           className={`h-6 w-6 text-white transition-transform duration-300 cursor-pointer ${
             isSideBarOpen ? "rotate-0" : "rotate-180"
           }`}

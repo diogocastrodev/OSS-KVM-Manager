@@ -1,8 +1,14 @@
 meta {
   name: Agent
-  seq: 1
 }
 
 auth {
   mode: inherit
+}
+
+vars:pre-request {
+  AGE_ENDPOINT: {{AGE_PROTOCOL}}://{{AGE_HOST}}:{{AGE_PORT}}
+  AGE_PROTOCOL: http
+  AGE_HOST: localhost
+  AGE_PORT: 20256
 }

@@ -4,3 +4,4 @@ dist/
 src/db/__prisma_generated__/
 prisma/migrations/
 .vscode/
+jwt_keys/
