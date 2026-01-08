@@ -1,15 +1,25 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { importSPKI, exportJWK } from "jose";
 import { calculateJwkThumbprint } from "jose/jwk/thumbprint";
 
 let cached: { kid: string; jwks: { keys: any[] } } | null = null;
 
 export const getPrivatePem = () => {
-  return readFileSync("./jwt_keys/jwt-private.pem", "utf8");
+  const file = "./jwt_keys/jwt-private.pem";
+  // Check if the file exists
+  if (!existsSync(file)) {
+    throw new Error(`Private key file not found: ${file}`);
+  }
+  return readFileSync(file, "utf8");
 };
 
 export const getPublicPem = () => {
-  return readFileSync("./jwt_keys/jwt-public.pem", "utf8");
+  const file = "./jwt_keys/jwt-public.pem";
+  // Check if the file exists
+  if (!existsSync(file)) {
+    throw new Error(`Public key file not found: ${file}`);
+  }
+  return readFileSync(file, "utf8");
 };
 
 export async function initJwks() {

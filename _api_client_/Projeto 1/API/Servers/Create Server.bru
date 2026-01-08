@@ -1,0 +1,37 @@
+meta {
+  name: Create Server
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{API_ENDPOINT}}/api/v1/servers
+  body: json
+  auth: inherit
+}
+
+headers {
+  x-csrf-token: L7rKnnc7-zJJSWHhlvXeSa_s9HRBspfsbJvS3k2ZxSrg29MU2nJU
+}
+
+body:json {
+  {
+    "publicId": 100,
+    "name": "Dell7X",
+    "server_endpoint": "127.0.0.1:20256",
+    "cpus": 8,
+    "vcpus": 8,
+    "memory_mb": 16384,
+    "disk": 50,
+    "in_link_mbps": 1000,
+    "out_link_mbps": 1000,
+    "vcpus_max": 4,
+    "memory_mb_max": 2048,
+    "disk_max": 10
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

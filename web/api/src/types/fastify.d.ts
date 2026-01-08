@@ -8,5 +8,6 @@ declare module "fastify" {
       reply: FastifyReply
     ) => Promise<void>;
     guestOnly: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    adminOnly: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }

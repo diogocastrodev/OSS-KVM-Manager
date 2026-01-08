@@ -40,6 +40,7 @@
 
         <!-- Network interface on your bridge -->
         <interface type='bridge'>
+            <mac address='{mac}' />
             <source bridge='br-vms' />
             <model type='virtio' />
             <bandwidth>
@@ -55,8 +56,8 @@
         </console>
 
         <!-- Optional VNC graphics (disable if you only want serial) -->
-        <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>
-            <listen type='address' address='0.0.0.0' />
+        <graphics type='vnc' port='-1' autoport='yes' websocket='-1' listen='127.0.0.1'>
+            <listen type='address' address='127.0.0.1' />
         </graphics>
     </devices>
 </domain>

@@ -14,6 +14,7 @@ import {
   type registerReplyBodyType,
   type registerRequestBodyType,
 } from "./auth.schema";
+import swaggerTags from "@/types/swaggerTags";
 
 const authRoute: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
@@ -27,7 +28,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
     {
       preValidation: [fastify.guestOnly],
       schema: {
-        tags: ["Auth"],
+        tags: [swaggerTags.AUTH],
         body: registerRequestBody,
         response: {
           201: registerReplyBody,
@@ -51,7 +52,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
       },
       preValidation: [fastify.guestOnly],
       schema: {
-        tags: ["Auth"],
+        tags: [swaggerTags.AUTH],
         summary: "Login user and get JWT access token",
         description: "For API's, check cookies for refresh token",
         body: loginRequestBody,
@@ -73,7 +74,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         csrf: false,
       },
       schema: {
-        tags: ["Auth"],
+        tags: [swaggerTags.AUTH],
       },
     },
     logout
@@ -90,7 +91,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         csrf: false,
       },
       schema: {
-        tags: ["Auth"],
+        tags: [swaggerTags.AUTH],
         response: {
           200: refreshReplyBody,
           401: refreshReplyBodyError,

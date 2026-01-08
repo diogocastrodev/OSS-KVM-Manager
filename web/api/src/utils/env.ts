@@ -4,9 +4,12 @@ dotenv.config();
 
 type NodeEnv = "production" | "development" | "test";
 
+type JWT_MODE_ENUM = "keys" | "secret";
+
 interface EnvironmentVariables {
   DATABASE_URL: string;
   PORT: number;
+  JWT_MODE: JWT_MODE_ENUM;
   JWT_SECRET: string;
   NODE_ENV: NodeEnv;
   COOKIE_SECRET: string;
@@ -30,6 +33,7 @@ const env: EnvironmentVariables = {
     true
   ),
   PORT: parseInt(parseEnv("PORT", "3000", false), 10),
+  JWT_MODE: parseEnv("JWT_MODE", "secret", false) as JWT_MODE_ENUM,
   JWT_SECRET: parseEnv("JWT_SECRET", "defaultsecret", true),
   NODE_ENV: parseEnv("NODE_ENV", "production", false) as NodeEnv,
   COOKIE_SECRET: parseEnv("COOKIE_SECRET", "defaultcookiesecret", true),

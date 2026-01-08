@@ -24,15 +24,45 @@ export enum UserDeactivationReason {
   OTHER = "OTHER",
 }
 
+export enum ServerStatus {
+  ACTIVE = "ACTIVE",
+  MAINTENANCE = "MAINTENANCE",
+  DISABLED = "DISABLED",
+}
+
 export enum VirtualMachineUserRole {
   VIEWER = "VIEWER",
   OPERATOR = "OPERATOR",
   OWNER = "OWNER",
 }
 
+export enum VirtualMachineStatus {
+  CREATING = "CREATING",
+  RUNNING = "RUNNING",
+  STOPPED = "STOPPED",
+  SUSPENDED = "SUSPENDED",
+}
+
+export enum IsoStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
+export enum IsoVisibility {
+  PUBLIC = "PUBLIC",
+  PRIVATE = "PRIVATE",
+}
+export enum IsoArch {
+  X86_64 = "X86_64",
+  ARM64 = "ARM64",
+}
+export enum IsoType {
+  LIVE = "LIVE",
+  CLOUD_IMAGE = "CLOUD_IMAGE",
+}
+
 export interface DatabaseUserSchema {
   id: Generated<string>;
-  name: string | null;
+  name: string;
   email: string;
   password: string;
   role: Generated<UserRole>;
@@ -40,6 +70,7 @@ export interface DatabaseUserSchema {
   emailVerified: Generated<boolean>;
   emailVerificationToken: string | null;
   deactivationReason: UserDeactivationReason | null;
+  authz_version: Generated<number>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -49,6 +80,7 @@ export interface DatabaseRefreshTokenSchema {
   token: string;
   expiresAt: Date;
   userId: string;
+  platform: string | null;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -66,6 +98,11 @@ export interface DatabaseServerSchema {
   in_link: number;
   out_link: number;
   ipLocal: string;
+  agent_port: number;
+  vms_network: Generated<string>;
+  vms_network_mask: Generated<string>;
+  vms_gateway: Generated<string>;
+  vms_mac_prefix: Generated<string>;
   ipPublic: string | null;
   vcpus_max: number;
   ram_max: number;
@@ -73,6 +110,8 @@ export interface DatabaseServerSchema {
   vcpus_available: number;
   ram_available: number;
   disk_available: number;
+  status: ServerStatus;
+  public_key: string | null;
 }
 
 export interface DatabaseVirtualMachineSchema {
@@ -90,8 +129,10 @@ export interface DatabaseVirtualMachineSchema {
   in_burst: number;
   out_burst: number;
   ipLocal: string;
+  mac: string;
   ipPublic: string | null;
-  os: string | null;
+  osId: string | null;
+  status: Generated<VirtualMachineStatus>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -105,6 +146,33 @@ export interface DatabaseVirtualMachineUserSchema {
   updatedAt: Generated<Date>;
 }
 
+export interface DatabaseAuditLogSchema {
+  id: Generated<string>;
+  userId: string | null;
+  action: string;
+  details: string | null;
+  createdAt: Generated<Date>;
+}
+
+export interface DatabaseIsosPathsSchema {
+  id: Generated<string>;
+  osId: string | null;
+  path: string;
+  status: Generated<IsoStatus>;
+  visibility: Generated<IsoVisibility>;
+  arch: Generated<IsoArch>;
+  type: Generated<IsoType>;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+export interface DatabaseOperativeSystemsSchema {
+  id: Generated<string>;
+  os: string;
+  version: string;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
 // Database Schema
 export interface DatabaseSchema {
   users: DatabaseUserSchema;
@@ -112,6 +180,9 @@ export interface DatabaseSchema {
   servers: DatabaseServerSchema;
   virtual_machines: DatabaseVirtualMachineSchema;
   virtual_machines_users: DatabaseVirtualMachineUserSchema;
+  audit_logs: DatabaseAuditLogSchema;
+  isos_paths: DatabaseIsosPathsSchema;
+  operative_systems: DatabaseOperativeSystemsSchema;
 }
 
 // Combined Database Schema

@@ -1,0 +1,20 @@
+meta {
+  name: Gey My Servers
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_ENDPOINT}}/api/v1/servers/my-servers?include_virtual_machines=true
+  body: none
+  auth: inherit
+}
+
+params:query {
+  include_virtual_machines: true
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

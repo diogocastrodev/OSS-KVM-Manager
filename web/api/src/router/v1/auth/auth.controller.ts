@@ -23,7 +23,7 @@ const register = async (
   req: FastifyRequest<{ Body: registerRequestBodyType }>,
   reply: FastifyReply<{ Reply: registerReplyBodyType }>
 ): Promise<void> => {
-  const { email, password, name } = req.body as registerRequestBodyType;
+  const { email, password, name } = req.body;
 
   const hash = await argon2.hash(password, {
     type: argon2.argon2id,
@@ -64,7 +64,7 @@ const login = async (
   req: FastifyRequest<{ Body: loginRequestBodyType }>,
   reply: FastifyReply<{ Reply: loginReplyBodyType }>
 ): Promise<void> => {
-  const { email, password: passwordAttempt } = req.body as loginRequestBodyType;
+  const { email, password: passwordAttempt } = req.body;
 
   const user = await db
     .selectFrom("users")
@@ -93,6 +93,7 @@ const login = async (
       token: refresh,
       userId: user.id,
       expiresAt: expiresAt,
+      platform: req.headers["user-agent"] || null,
     })
     .execute();
   // Access Token
@@ -105,6 +106,7 @@ const login = async (
     email: user.email,
     name: user.name,
     role: user.role as UserRole,
+    av: user.authz_version,
   });
   reply.setCookie("access_token", jwt, generateJwtCookieSettings());
   return reply.status(200).send({ accessToken: jwt });
@@ -153,24 +155,31 @@ const refresh = async (
 ) => {
   const refreshToken = req.cookies.refresh_token;
   if (!refreshToken) {
-    return reply.status(401).send({ message: "No refresh token provided" });
+    return reply.status(401).send({ message: "No refresh token provided1" });
   }
 
   const tokenRecord = await db
     .selectFrom("refresh_tokens")
-    .selectAll()
+    .select(["userId", "expiresAt"])
     .where("token", "=", refreshToken)
     .executeTakeFirst();
 
   if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+    console.log(tokenRecord);
+    console.log(tokenRecord?.expiresAt);
+    if (!tokenRecord) {
+      console.log("No token record found");
+    } else if (tokenRecord.expiresAt < new Date()) {
+      console.log("Token expired at:", tokenRecord.expiresAt);
+    }
     return reply
       .status(401)
-      .send({ message: "Invalid or expired refresh token" });
+      .send({ message: "Invalid or expired refresh token2" });
   }
 
   const user = await db
     .selectFrom("users")
-    .selectAll()
+    .select(["email", "name", "role", "authz_version"])
     .where("id", "=", tokenRecord.userId)
     .executeTakeFirst();
 
@@ -183,18 +192,11 @@ const refresh = async (
   const expiresAt = new Date();
   expiresAt.setSeconds(expiresAt.getSeconds() + env.REFRESH_TOKEN_TIME_SECONDS);
 
+  // Update the refresh token in the database
   await db
-    .insertInto("refresh_tokens")
-    .values({
-      token: newRefreshToken,
-      userId: user.id,
-      expiresAt: expiresAt,
-    })
-    .execute();
-
-  // Delete old refresh token
-  await db
-    .deleteFrom("refresh_tokens")
+    .updateTable("refresh_tokens")
+    .set({ expiresAt: expiresAt })
+    .set({ token: newRefreshToken })
     .where("token", "=", refreshToken)
     .execute();
 
@@ -212,6 +214,7 @@ const refresh = async (
     email: user.email,
     name: user.name,
     role: user.role as UserRole,
+    av: user.authz_version,
   });
   reply.setCookie("access_token", jwt, generateJwtCookieSettings());
 

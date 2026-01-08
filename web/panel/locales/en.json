@@ -7,5 +7,10 @@
     "password": "Password",
     "forgotPassword": "Forgot your password?",
     "login": "Login"
+  },
+  "panel": {
+    "panel": "Panel",
+    "admin": "Admin",
+    "datacenters": "Datacenters"
   }
 }

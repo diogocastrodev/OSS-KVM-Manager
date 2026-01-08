@@ -1,25 +1,22 @@
+"use client";
 import Logo from "@/components/Icon/Logo";
+import { useRouter as useLocaleRouter, usePathname } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { useLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { useTheme } from "next-themes";
 
 export default function Page() {
+  const locale = useLocaleRouter();
+  const l = useLocale();
+  const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  // const t = await getTranslations("panel");
+
   return (
     <>
       <div className="flex-1 flex flex-col p-2 pb-0">
-        {/* <div className="flex flex-row w-full h-16">
-          <div className="w-60 h-full flex flex-row items-center justify-center gap-x-1.5">
-            <Logo props={{ className: "size-14" }} />
-            <span className="font-semibold text-2xl">Serverseer</span>
-          </div>
-          <div className="flex-1 flex flex-row px-2">
-            <div className="w-full flex flex-row gap-x-3 items-center font-semibold">
-              <div>Dashboard</div>
-              <div>Dashboard</div>
-              <div>Dashboard</div>
-            </div>
-            <div className="ml-auto flex flex-row gap-x-2 items-center">
-              <div className="bg-zinc-500 w-10 h-10 rounded-full"></div>
-            </div>
-          </div>
-        </div> */}
         <div className="flex-1 flex flex-row">
           <div className="w-60 h-full flex flex-col gap-y-2 p-1 pr-3 pb-3">
             <div className="flex flex-row items-center justify-center gap-x-1.5 mb-4">
@@ -32,7 +29,7 @@ export default function Page() {
               <div className="my-4"></div>
               <div className="text-sm font-semibold">Datacenters</div>
               <div className="flex flex-col gap-y-2">
-                <div>EU-UK-1</div>
+                <div>Home</div>
                 <div className="pl-4 flex flex-col gap-y-2">
                   <div className="flex flex-col gap-y-1">
                     <div>Server 1</div>
@@ -51,10 +48,40 @@ export default function Page() {
                 </div>
               </div>
             </div>
-            <div className="flex mt-auto">
-              <div className="w-full h-12 bg-zinc-800 flex flex-row rounded-lg">
+            <div className="flex flex-col mt-auto gap-y-2">
+              <div className="flex flex-row px-1 items-center gap-x-2">
+                {/* Change Themes */}
+                <div className="flex items-center justify-center p-2 bg-(--color-background-secondary) rounded-full">
+                  {theme === "light" ? (
+                    <MoonIcon onClick={() => setTheme("dark")}></MoonIcon>
+                  ) : (
+                    <SunIcon onClick={() => setTheme("light")}></SunIcon>
+                  )}
+                </div>
+                {/* Change Locales */}
+                <div className="ml-auto flex items-center justify-center flex-row bg-(--color-background-secondary) rounded-md gap-x-2">
+                  {routing.locales.map((lo) => (
+                    <div
+                      key={lo}
+                      className={`${
+                        lo === l
+                          ? "bg-(--color-background-selected) px-2 py-1 rounded-md cursor-default"
+                          : "bg-transparent cursor-pointer"
+                      } px-1`}
+                      onClick={(e) => {
+                        locale.replace(pathname, {
+                          locale: lo,
+                        });
+                      }}
+                    >
+                      {lo}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="w-full h-12 bg-(--color-background-secondary) flex flex-row rounded-lg">
                 <div className="p-2 flex items-center justify-center">
-                  <div className="w-8 h-8 bg-zinc-600 rounded-full"></div>
+                  <div className="w-8 h-8 dark:bg-zinc-600 bg-zinc-700 rounded-full"></div>
                 </div>
                 <div className="flex flex-col justify-center pl-1">
                   <span className="text-base text-zinc-300 ">Diogo</span>

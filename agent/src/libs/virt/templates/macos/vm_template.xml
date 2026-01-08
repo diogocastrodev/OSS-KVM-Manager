@@ -40,7 +40,9 @@
 
         <!-- Simple user-mode networking (works on macOS, no qemu-bridge-helper) -->
         <interface type='user'>
+            <mac address='{mac}' />
             <model type='virtio' />
+
             <!-- On macOS these bandwidth limits are effectively ignored,
            but the XML stays compatible with your Linux target. -->
             <bandwidth>
@@ -59,7 +61,7 @@
         </console>
 
         <!-- VNC graphics, bound to localhost so it isn't exposed on your LAN -->
-        <graphics type='vnc' port='-1' autoport='yes' listen='127.0.0.1'>
+        <graphics type='vnc' port='-1' autoport='yes' websocket='-1' listen='127.0.0.1'>
             <listen type='address' address='127.0.0.1' />
         </graphics>
     </devices>

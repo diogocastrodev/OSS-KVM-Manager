@@ -1,0 +1,24 @@
+#cloud-config
+hostname: {hostname}
+manage_etc_hosts: true
+
+users:
+  - name: {username}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [sudo, adm]
+    shell: /bin/bash
+    lock_passwd: false
+
+ssh_pwauth: true
+disable_root: true
+
+chpasswd:
+  expire: false
+  list: |
+    {username}:{password}
+
+# Grow filesystem after qemu-img resize
+growpart:
+  mode: auto
+  devices: ["/"]
+resize_rootfs: true

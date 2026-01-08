@@ -19,6 +19,7 @@ export function useSession() {
     queryFn: fetchSession,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     refetchInterval: 60_000,
   });
 }

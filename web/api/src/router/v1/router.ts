@@ -3,27 +3,41 @@ import type { FastifyPluginAsync } from "fastify";
 import authRoute from "./auth/auth.route";
 import serversRoute from "./servers/servers.route";
 import usersRoute from "./user/user.route";
+import z from "zod";
+import vmsRoute from "./virtual_machines/vm.route";
+import adminRouter from "./admin/router";
+import swaggerTags from "@/types/swaggerTags";
+import agentRoute from "./agent/router";
 
 const v1Router: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
   /*                               CSRF Protection                              */
   /* -------------------------------------------------------------------------- */
-  fastify.get("/csrf", async (req, reply) => {
-    const token = reply.generateCsrf(); // sets secret cookie if missing
-    return { token };
-  });
+  fastify.get(
+    "/csrf",
+    {
+      schema: {
+        tags: [swaggerTags.CSRF],
+        summary: "Get CSRF Token",
+        description:
+          "Generates and returns a CSRF token. Sets a secret cookie if missing.",
+        response: {
+          200: z.object({
+            token: z.string(),
+          }),
+        },
+      },
+    },
+    async (req, reply) => {
+      const token = reply.generateCsrf(); // sets secret cookie if missing
+      return { token };
+    }
+  );
   /* -------------------------------------------------------------------------- */
   /*                                 Auth Route                                 */
   /* -------------------------------------------------------------------------- */
   fastify.register(authRoute, {
     prefix: "/auth",
-  });
-
-  /* -------------------------------------------------------------------------- */
-  /*                                Servers Route                               */
-  /* -------------------------------------------------------------------------- */
-  fastify.register(serversRoute, {
-    prefix: "/servers",
   });
   /* -------------------------------------------------------------------------- */
   /*                                    Users                                   */
@@ -32,42 +46,29 @@ const v1Router: FastifyPluginAsync = async (fastify) => {
     prefix: "/user",
   });
   /* -------------------------------------------------------------------------- */
-  /*                                    Tests                                   */
+  /*                                Servers Route                               */
   /* -------------------------------------------------------------------------- */
-  fastify.get("/userall", async () => {
-    return await db
-      .selectFrom("users")
-      .select("users.email")
-      .select("users.name")
-      .execute();
+  fastify.register(serversRoute, {
+    prefix: "/servers",
   });
-  fastify.get(
-    "/usera",
-    { preValidation: [fastify.authRequired] },
-    async (req, reply) => {
-      console.log("Authenticated user:", req.user);
-      const a = await db
-        .selectFrom("users")
-        .select(["users.email", "users.name as userName"])
-        .execute();
-
-      const b = await db
-        .selectFrom("refresh_tokens")
-        .innerJoin("users", "users.id", "refresh_tokens.userId")
-        .select([
-          "users.createdAt as userCreatedAt",
-          "refresh_tokens.createdAt as tokenCreatedAt",
-        ])
-        // .where("refresh_tokens.userId", "=", "a")
-        .execute()
-        .catch((err) => {
-          console.error("Error fetching refresh tokens:", err);
-          return [];
-        });
-
-      return reply.send({ a, b });
-    }
-  );
+  /* -------------------------------------------------------------------------- */
+  /*                              Virtual Machines                              */
+  /* -------------------------------------------------------------------------- */
+  fastify.register(vmsRoute, {
+    prefix: "/vms",
+  });
+  /* -------------------------------------------------------------------------- */
+  /*                                Admin Router                                */
+  /* -------------------------------------------------------------------------- */
+  fastify.register(adminRouter, {
+    prefix: "/admin",
+  });
+  /* -------------------------------------------------------------------------- */
+  /*                                Agent Router                                */
+  /* -------------------------------------------------------------------------- */
+  fastify.register(agentRoute, {
+    prefix: "/agent",
+  });
 };
 
 export default v1Router;

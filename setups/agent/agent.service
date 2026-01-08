@@ -1,0 +1,23 @@
+[Unit]
+Description=VM Agent (FastAPI)
+After=network-online.target libvirtd.service
+Wants=network-online.target
+Requires=libvirtd.service
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+WorkingDirectory=/var/lib/agent
+
+EnvironmentFile=/etc/agent/agent.env
+# Example: agent reads config yaml
+ExecStart=/usr/local/bin/agent --config /etc/agent/agent_config.yaml
+
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

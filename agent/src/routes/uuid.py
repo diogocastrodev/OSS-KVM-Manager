@@ -5,4 +5,4 @@ router = APIRouter(prefix="/uuid", tags=["UUID Gen"])
 
 @router.get("/")
 async def random_uuid():
-    return {"uuid": str(uuid.uuid4())}
+    return {"uuid": str(uuid.uuid4())}, 200

@@ -553,4 +553,4 @@ async def info(sample_interval: float = 1.0, include_tc: bool = False) -> Dict[s
     if include_tc:
         result["traffic_control"] = _tc_json()
 
-    return result
+    return result, 200

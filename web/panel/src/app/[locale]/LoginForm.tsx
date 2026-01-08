@@ -82,7 +82,7 @@ export default function LoginForm({ translation: t }: LoginFormProps) {
       </Link> */}
 
       <div className="flex-1 flex justify-center items-center">
-        <div className="w-92 h-96 bg-zinc-800 rounded-lg p-2 flex flex-col justify-center items-center gap-4">
+        <div className="w-92 h-96 bg-(--color-background-selected) rounded-lg p-2 flex flex-col justify-center items-center gap-4">
           <h1 className="text-2xl text-gray-200">Please Login</h1>
           <form
             action=""
@@ -175,6 +175,7 @@ export default function LoginForm({ translation: t }: LoginFormProps) {
                 </button>
               )}
             />
+            {/* Testing purposes */}
             <div onClick={logout}>Bye</div>
             <select
               onChange={(e) =>

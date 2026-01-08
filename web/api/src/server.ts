@@ -27,7 +27,7 @@ const fastify = Fastify({
   .withTypeProvider<ZodTypeProvider>();
 fastify.setValidatorCompiler(validatorCompiler);
 fastify.setSerializerCompiler(serializerCompiler);
-await initJwks();
+env.JWT_MODE === "keys" && (await initJwks());
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
@@ -121,10 +121,11 @@ fastify.register(async (instance) => {
 /* -------------------------------------------------------------------------- */
 /*                               JWT Public Key                               */
 /* -------------------------------------------------------------------------- */
-fastify.get("/.well-known/jwks.json", async (req, reply) => {
-  const jwks = getJwks();
-  return reply.send(jwks);
-});
+env.JWT_MODE === "keys" &&
+  fastify.get("/.well-known/jwks.json", async (req, reply) => {
+    const jwks = getJwks();
+    return reply.send(jwks);
+  });
 /* -------------------------------------------------------------------------- */
 /*                               Invalid Routes                               */
 /* -------------------------------------------------------------------------- */
@@ -173,4 +174,8 @@ fastify.listen({ port: env.PORT }, (err, address) => {
   env.NODE_ENV === "development" &&
     fastify.log.info(`📚 API docs available at ${address}/docs`);
   fastify.log.info(`🔧 Running in ${env.NODE_ENV}`);
+  fastify.log.info(`\t 🚨 JWT using ${env.JWT_MODE} mode`);
+  fastify.log.info(
+    `\t 🚨 Currently ${env.IGNORE_CSRF ? "ignoring" : "enforcing"} CSRF`
+  );
 });

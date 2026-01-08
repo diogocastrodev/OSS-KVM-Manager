@@ -34,7 +34,7 @@ enum DeactivationReason {
 
 model User {
   id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                   String?
+  name                   String
   email                  String                 @unique
   password               String
   role                   Role                   @default(USER)
@@ -42,6 +42,7 @@ model User {
   emailVerified          Boolean                @default(false)
   emailVerificationToken String?
   deactivationReason     DeactivationReason?
+  authz_version          Int                    @default(0)
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @default(now()) @updatedAt
   refreshTokens          RefreshToken[]
@@ -56,60 +57,83 @@ model RefreshToken {
   expiresAt DateTime
   userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id])
+  platform  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   @@map("refresh_tokens")
 }
 
+enum ServerStatus {
+  ACTIVE
+  MAINTENANCE
+  DISABLED
+}
+
 model Servers {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  publicId        Int      @unique @db.Integer
-  name            String
-  cpus            Int      @db.Integer
-  vcpus           Int      @db.Integer
-  ram             Int      @db.Integer
-  disk            Int      @db.Integer
-  in_link         Float
-  out_link        Float
-  ipLocal         String
-  ipPublic        String?
-  vcpus_max       Int      @db.Integer
-  ram_max         Int      @db.Integer
-  disk_max        Int      @db.Integer
-  vcpus_available Int      @db.Integer
-  ram_available   Int      @db.Integer
-  disk_available  Int      @db.Integer
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @default(now()) @updatedAt
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  publicId         Int          @unique @db.Integer
+  name             String
+  cpus             Int          @db.Integer
+  vcpus            Int          @db.Integer
+  ram              Int          @db.Integer
+  disk             Int          @db.Integer
+  in_link          Float
+  out_link         Float
+  ipLocal          String
+  agent_port       Int          @db.Integer
+  vms_network      String?
+  vms_network_mask String?
+  vms_gateway      String?
+  vms_mac_prefix   String?
+  ipPublic         String?
+  vcpus_max        Int          @db.Integer
+  ram_max          Int          @db.Integer
+  disk_max         Int          @db.Integer
+  vcpus_available  Int          @db.Integer
+  ram_available    Int          @db.Integer
+  disk_available   Int          @db.Integer
+  status           ServerStatus @default(MAINTENANCE)
+  public_key       String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @default(now()) @updatedAt
 
   virtualMachines VirtualMachines[]
 
   @@map("servers")
 }
 
-model VirtualMachines {
-  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  publicId  Int     @unique @db.Integer
-  name      String
-  server    Servers @relation(fields: [serverId], references: [id])
-  serverId  String  @db.Uuid
-  vcpus     Int     @db.Integer
-  ram       Int     @db.Integer
-  disk      Int     @db.Integer
-  in_avg    Float
-  out_avg   Float
-  in_peak   Float
-  out_peak  Float
-  in_burst  Float
-  out_burst Float
-  ipLocal   String
-  ipPublic  String?
-  os        String?
+enum VirtualMachineStatus {
+  CREATING
+  RUNNING
+  STOPPED
+  SUSPENDED
+}
 
+model VirtualMachines {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  publicId             Int                    @unique @db.Integer
+  name                 String
+  server               Servers                @relation(fields: [serverId], references: [id])
+  serverId             String                 @db.Uuid
+  vcpus                Int                    @db.Integer
+  ram                  Int                    @db.Integer
+  disk                 Int                    @db.Integer
+  in_avg               Float
+  out_avg              Float
+  in_peak              Float
+  out_peak             Float
+  in_burst             Float
+  out_burst            Float
+  ipLocal              String
+  mac                  String                 @unique
+  ipPublic             String?
+  osId                 String?                @db.Uuid
+  status               VirtualMachineStatus   @default(CREATING)
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @default(now()) @updatedAt
   virtualMachinesUsers VirtualMachinesUsers[]
+  os                   OpeartiveSystems?      @relation(fields: [osId], references: [id])
 
   @@map("virtual_machines")
 }
@@ -132,4 +156,63 @@ model VirtualMachinesUsers {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@map("virtual_machines_users")
+}
+
+model AuditLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String?  @db.Uuid
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model OpeartiveSystems {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  os              String            @unique
+  version         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+  IsosPaths       IsosPaths[]
+  VirtualMachines VirtualMachines[]
+
+  @@map("operative_systems")
+}
+
+enum IsoStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum IsoVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum IsoArch {
+  X86_64
+  ARM64
+}
+
+enum IsoType {
+  LIVE
+  CLOUD_IMAGE
+}
+
+model IsosPaths {
+  id   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  osId String?           @db.Uuid
+  os   OpeartiveSystems? @relation(fields: [osId], references: [id])
+  path String            @unique
+
+  status     IsoStatus     @default(ACTIVE)
+  visibility IsoVisibility @default(PUBLIC)
+  arch       IsoArch       @default(X86_64)
+  type       IsoType       @default(CLOUD_IMAGE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("isos_paths")
 }

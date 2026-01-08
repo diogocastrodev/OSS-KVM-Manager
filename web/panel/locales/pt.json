@@ -7,5 +7,10 @@
     "password": "Senha",
     "forgotPassword": "Esqueceu-se da senha?",
     "login": "Entrar"
+  },
+  "panel": {
+    "panel": "Painel",
+    "admin": "Admin",
+    "datacenters": "Datacenters"
   }
 }
