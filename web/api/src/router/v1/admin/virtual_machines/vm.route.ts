@@ -19,8 +19,12 @@ import swaggerTags from "@/types/swaggerTags";
 import {
   adminCreateVirtualMachineBodySchema,
   adminCreateVirtualMachineReplySchema,
+  AdminDeleteVirtualMachineParamsSchema,
+  AdminDeleteVirtualMachineReplySchema,
   type AdminCreateVirtualMachineBody,
   type AdminCreateVirtualMachineReply,
+  type AdminDeleteVirtualMachineParams,
+  type AdminDeleteVirtualMachineReply,
 } from "./vm.schema";
 
 const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
@@ -30,6 +34,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   fastify.get(
     "/",
     {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
       schema: {
         description: "Get all virtual machines",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
@@ -46,6 +51,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   fastify.get(
     "/:vmPublicId",
     {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
       schema: {
         description: "Get a virtual machine by ID",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
@@ -70,6 +76,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   }>(
     "/",
     {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
       schema: {
         description: "Create a new virtual machine",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
@@ -91,6 +98,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   fastify.put(
     "/:vmPublicId",
     {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
       schema: {
         description: "Update a virtual machine by ID",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
@@ -105,13 +113,19 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
   /*                           Delete Virtual Machine                           */
   /* -------------------------------------------------------------------------- */
-  fastify.delete(
+  fastify.delete<{
+    Params: AdminDeleteVirtualMachineParams;
+    Reply: AdminDeleteVirtualMachineReply | NotFoundErrorType;
+  }>(
     "/:vmPublicId",
     {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
       schema: {
         description: "Delete a virtual machine by ID",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
+        params: AdminDeleteVirtualMachineParamsSchema,
         response: {
+          200: AdminDeleteVirtualMachineReplySchema,
           401: UnauthorizedError,
           404: NotFoundError,
         },

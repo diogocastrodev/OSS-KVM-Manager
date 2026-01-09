@@ -1,0 +1,16 @@
+meta {
+  name: Get My Virtual machines
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_ENDPOINT}}/api/v1/vms
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

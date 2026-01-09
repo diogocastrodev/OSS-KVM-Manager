@@ -33,7 +33,10 @@ export const adminCreateVirtualMachineBodySchema = z.object({
   publicId: z.int().min(1),
   name: z.string().min(3).max(50),
   vcpus: z.number().min(1).max(256),
-  memory_mib: z.number().min(1).max(256),
+  memory_mib: z
+    .number()
+    .min(1)
+    .max(256 * 1024),
   disk_gb: z.number().min(1).max(2000),
   network: z.object({
     in_avg_mbps: z.number().min(0),
@@ -53,6 +56,7 @@ export const adminCreateVirtualMachineBodySchema = z.object({
     .optional(),
   ip_local: z.ipv4(),
   ip_public: z.ipv4().optional(),
+  dns_servers: z.array(z.string().ipv4()).optional(),
   os: z.string().min(1).max(100).optional(),
 });
 
@@ -75,3 +79,21 @@ export type AdminCreateVirtualMachineReply = z.infer<
 /* -------------------------------------------------------------------------- */
 /*                                Delete Server                               */
 /* -------------------------------------------------------------------------- */
+export const AdminDeleteVirtualMachineParamsSchema = z.object({
+  vmPublicId: z
+    .string()
+    .regex(/^\d+$/, "publicId must be a number")
+    .transform(Number),
+});
+
+export type AdminDeleteVirtualMachineParams = z.infer<
+  typeof AdminDeleteVirtualMachineParamsSchema
+>;
+
+export const AdminDeleteVirtualMachineReplySchema = z.object({
+  message: z.string(),
+});
+
+export type AdminDeleteVirtualMachineReply = z.infer<
+  typeof AdminDeleteVirtualMachineReplySchema
+>;

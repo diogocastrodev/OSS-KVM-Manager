@@ -2,6 +2,8 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type {
   AdminCreateVirtualMachineBody,
   AdminCreateVirtualMachineReply,
+  AdminDeleteVirtualMachineParams,
+  AdminDeleteVirtualMachineReply,
 } from "./vm.schema";
 import db from "@/db/database";
 import {
@@ -12,6 +14,7 @@ import {
 import genMac from "@/utils/genMac";
 import type { CreateVMBody, PreparedRequest } from "@/utils/agentRoutes";
 import type { AgentRoutes } from "@/utils/agentRoutes";
+import { pollFinalizeUntilOperational } from "@/utils/pool";
 
 export const adminGetAllVirtualMachines = async (
   req: FastifyRequest,
@@ -41,6 +44,7 @@ export const adminCreateVirtualMachine = async (
       "ipLocal",
       "agent_port",
       "vms_mac_prefix",
+      "vms_gateway",
     ])
     .where("publicId", "=", req.body.serverPublicId)
     .executeTakeFirst();
@@ -108,6 +112,7 @@ export const adminCreateVirtualMachine = async (
       });
     }
   } catch (error) {
+    console.log(error);
     return reply
       .status(500)
       .send({ message: "Failed to generate MAC address for VM" });
@@ -141,34 +146,26 @@ export const adminCreateVirtualMachine = async (
       .send({ message: "Failed to create virtual machine" });
   }
 
-  const hostProvided = req.body.host && {
-    hostname: req.body.host.hostname,
-    username: req.body.host.username,
-    password: req.body.host.password,
-    public_key: req.body.host.public_key,
-  };
-
   const prepareRoute: PreparedRequest<AgentRoutes["createVM"]> = {
     method: "POST",
     path: "/api/v1/vms",
     body: {
       vm_id: newVM.id,
-      ...hostProvided,
       vm: {
         vcpus: req.body.vcpus,
         memory: req.body.memory_mib,
         disk_size: req.body.disk_gb,
         network: req.body.network,
-        ip_local: req.body.ip_local,
         mac: vmMac,
       },
-      os_path: req.body.os || "", // Which OS image to use
     },
   };
 
   try {
+    // AGENT FETCH
+    const time_now = Date.now();
     const createVM = await fetch(
-      `${server.ipLocal}:${server.agent_port}${prepareRoute.path}`,
+      `http://${server.ipLocal}:${server.agent_port}${prepareRoute.path}`,
       {
         method: prepareRoute.method,
         body: JSON.stringify(prepareRoute.body),
@@ -177,6 +174,8 @@ export const adminCreateVirtualMachine = async (
         },
       }
     );
+    const time_end = Date.now();
+    console.log(`VM Create fetch took ${time_end - time_now} milliseconds`);
 
     if (!createVM.ok) {
       // Rollback DB insert
@@ -188,6 +187,138 @@ export const adminCreateVirtualMachine = async (
       return reply
         .status(500)
         .send({ message: "Failed to create virtual machine on agent" });
+    }
+
+    // VM created on agent, update server resources
+    await db
+      .updateTable("servers")
+      .set({
+        ram_available: server.ram_available - req.body.memory_mib,
+        disk_available: server.disk_available - req.body.disk_gb,
+        vcpus_available: server.vcpus_available - req.body.vcpus,
+      })
+      .where("id", "=", server.id)
+      .execute();
+
+    if (req.body.os) {
+      const os = await db
+        .selectFrom("isos_paths")
+        .selectAll()
+        .where("path", "=", req.body.os)
+        .executeTakeFirst();
+
+      if (!os) {
+        return reply.status(404).send({ message: "OS path not found" });
+      }
+
+      const hostProvided = req.body.host && {
+        host: {
+          hostname: req.body.host.hostname,
+          username: req.body.host.username,
+          password: req.body.host.password,
+          public_key: req.body.host.public_key,
+        },
+      };
+
+      // Send format request to agent
+      const formatPrepareRoute: PreparedRequest<AgentRoutes["formatVM"]> = {
+        method: "POST",
+        path: `/api/v1/vms/:vm_id/format`,
+        params: {
+          vm_id: newVM.id,
+        },
+        body: {
+          mode: hostProvided ? "cloud" : "iso",
+          vm_id: newVM.id,
+          ...hostProvided,
+          network: {
+            mac_address: vmMac,
+            ip_cidr: req.body.ip_local,
+            gateway: server.vms_gateway || "",
+            dns_servers: req.body.dns_servers || [],
+          },
+          os: {
+            os_name: os.path,
+            // TODO: Use proper URL construction
+            os_url: `http://localhost:8000/api/v1/agent/os/${os.path}/download`,
+          },
+        },
+      };
+
+      await db
+        .updateTable("virtual_machines")
+        .set({
+          status: "FORMATTING",
+          osId: os.osId,
+          format_started_at: new Date(),
+          format_completed_at: null,
+          errorMessage: null,
+        })
+        .where("id", "=", newVM.id)
+        .execute();
+
+      const time_now = Date.now();
+      // AGENT FETCH
+      const formatVM = await fetch(
+        `http://${server.ipLocal}:${server.agent_port}${formatPrepareRoute.path}`.replace(
+          ":vm_id",
+          newVM.id
+        ),
+        {
+          method: formatPrepareRoute.method,
+          body: JSON.stringify(formatPrepareRoute.body),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const time_end = Date.now();
+      console.log(`VM Format fetch took ${time_end - time_now} milliseconds`);
+
+      console.log("\n\n");
+      console.log("Format VM response:", formatVM);
+      console.log("\n\n");
+
+      if (!formatVM.ok) {
+        const deleteVMResponse = await fetch(
+          `http://${server.ipLocal}:${server.agent_port}/api/v1/vms/${newVM.id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        // Rollback DB insert
+        await db
+          .deleteFrom("virtual_machines")
+          .where("id", "=", newVM.id)
+          .execute();
+
+        if (deleteVMResponse.ok) {
+          // Update server resources
+          await db
+            .updateTable("servers")
+            .set({
+              ram_available: server.ram_available + req.body.memory_mib,
+              disk_available: server.disk_available + req.body.disk_gb,
+              vcpus_available: server.vcpus_available + req.body.vcpus,
+            })
+            .where("id", "=", server.id)
+            .execute();
+        }
+
+        return reply
+          .status(500)
+          .send({ message: "Failed to format virtual machine on agent" });
+      }
+
+      pollFinalizeUntilOperational(
+        `http://${server.ipLocal}:${server.agent_port}`,
+        newVM.id
+      );
+
+      return reply.status(202).send({
+        message: "Virtual machine created, formatting in progress",
+      });
     }
 
     return reply.status(201).send({
@@ -203,6 +334,74 @@ export const adminUpdateVirtualMachine = async (
 ) => {};
 
 export const adminDeleteVirtualMachine = async (
-  req: FastifyRequest,
-  reply: FastifyReply
-) => {};
+  req: FastifyRequest<{
+    Params: AdminDeleteVirtualMachineParams;
+  }>,
+  reply: FastifyReply<{
+    Reply: AdminDeleteVirtualMachineReply | NotFoundErrorType;
+  }>
+) => {
+  const { vmPublicId } = req.params;
+
+  const vm = await db
+    .selectFrom("virtual_machines as vm")
+    .innerJoin("servers", "vm.serverId", "servers.id")
+    .select([
+      "vm.id as vmId",
+      "vm.ram as vmRam",
+      "vm.disk as vmDisk",
+      "vm.vcpus as vmVcpus",
+      "servers.id as serverId",
+      "servers.ipLocal as serversIpLocal",
+      "servers.agent_port as serversAgentPort",
+      "servers.vcpus_available as serversVcpusAvailable",
+      "servers.ram_available as serversRamAvailable",
+      "servers.disk_available as serversDiskAvailable",
+    ])
+    .where("vm.publicId", "=", vmPublicId)
+    .executeTakeFirst();
+
+  if (!vm) {
+    return reply.status(404).send({ message: "Virtual machine not found" });
+  }
+
+  // Send delete request to agent
+  try {
+    // AGENT FETCH
+    const deleteVMResponse = await fetch(
+      `http://${vm.serversIpLocal}:${vm.serversAgentPort}/api/v1/vms/${vm.vmId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!deleteVMResponse.ok) {
+      return reply
+        .status(500)
+        .send({ message: "Failed to delete virtual machine on agent" });
+    }
+
+    // Update server resources
+    await db
+      .updateTable("servers")
+      .set({
+        ram_available: vm.serversRamAvailable + vm.vmRam,
+        disk_available: vm.serversDiskAvailable + vm.vmDisk,
+        vcpus_available: vm.serversVcpusAvailable + vm.vmVcpus,
+      })
+      .where("id", "=", vm.serverId)
+      .execute();
+
+    // Delete VM from DB
+    await db.deleteFrom("virtual_machines").where("id", "=", vm.vmId).execute();
+
+    return reply
+      .status(200)
+      .send({ message: "Virtual machine deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    return reply
+      .status(500)
+      .send({ message: "Failed to communicate with agent" });
+  }
+};

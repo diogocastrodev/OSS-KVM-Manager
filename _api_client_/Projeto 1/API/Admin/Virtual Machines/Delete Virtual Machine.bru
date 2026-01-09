@@ -1,0 +1,20 @@
+meta {
+  name: Delete Virtual Machine
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{API_ENDPOINT}}/api/v1/admin/vms/120
+  body: none
+  auth: inherit
+}
+
+headers {
+  x-csrf-token: rAd5qsMH-9wR4_Ow-Rwil9lBtWisulro5jDKje067DM_qfgyvJ20
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

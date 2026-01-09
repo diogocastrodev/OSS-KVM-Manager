@@ -1,15 +1,16 @@
 meta {
-  name: Get All Servesr
+  name: Get Metadata
   type: http
   seq: 1
 }
 
 get {
-  url: {{API_ENDPOINT}}/api/v1/servers
+  url: {{API_ENDPOINT}}/api/v1/agent/os/ubuntu-24.04-amd64
   body: none
   auth: inherit
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

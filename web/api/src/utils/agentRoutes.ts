@@ -32,12 +32,6 @@ export type PreparedRequest<R extends { method: any; path: string }> = {
 // --- Domain models ---
 export interface CreateVMBody {
   vm_id: string;
-  host?: {
-    hostname: string;
-    username: string;
-    password: string | undefined;
-    public_key: string | undefined;
-  };
   vm: {
     vcpus: number;
     memory: number;
@@ -50,10 +44,35 @@ export interface CreateVMBody {
       out_peak_mbps: number;
       out_burst_mbps: number;
     };
-    ip_local: string;
     mac: string;
   };
-  os_path: string;
+}
+
+export interface FormatVMBody {
+  mode: "cloud" | "iso";
+  vm_id: string;
+  host?: {
+    hostname: string;
+    username: string;
+    password?: string | undefined;
+    public_key?: string | undefined;
+  };
+  network?: {
+    mac_address: string;
+    ip_cidr: string;
+    gateway: string;
+    dns_servers: string[];
+  };
+  os: {
+    os_name: string;
+    os_url: string;
+    os_checksum?: string;
+  };
+}
+
+export interface FinalizeVMBody {
+  seed_iso_path?: string;
+  delete_iso?: boolean; // Default true
 }
 
 // --- Route types ---
@@ -116,6 +135,20 @@ export namespace VMs {
     "/api/v1/vms/:vm_id/kill",
     { message: string }
   >;
+
+  export type Format = RouteDef<
+    "POST",
+    "/api/v1/vms/:vm_id/format",
+    { message: string },
+    FormatVMBody
+  >;
+
+  export type Finalize = RouteDef<
+    "POST",
+    "/api/v1/vms/:vm_id/finalize",
+    { message: string },
+    FinalizeVMBody
+  >;
 }
 
 export type AgentRoutes = {
@@ -131,6 +164,9 @@ export type AgentRoutes = {
   stopVM: VMs.Stop;
   restartVM: VMs.Restart;
   killVM: VMs.Kill;
+
+  formatVM: VMs.Format;
+  finalizeVM: VMs.Finalize;
 };
 
 type AnyRoute = RouteDef<Method, string, any, any>;

@@ -6,3 +6,5 @@ src/proj1_libvirt_agent.egg-info
 .vscode/
 .env
 build/
+keys/
+.cache/

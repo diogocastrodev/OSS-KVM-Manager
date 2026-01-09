@@ -31,6 +31,7 @@ DEBIAN_FRONTEND=noninteractive apt install -y \
   bridge-utils \
   iptables-persistent \
   python3-libvirt \
+  python3-venv \
   curl \
   qemu-utils \
   genisoimage
@@ -97,6 +98,10 @@ mkdir -p /var/lib/agent
 chown -R agent:agent /var/lib/agent
 mkdir -p /etc/agent
 chown -R agent:agent /etc/agent
+# Permissions
+chmod 600 /etc/agent/agent_private.pem
+chmod 644 /etc/agent/agent_public.pem
+chown agent:agent /etc/agent/agent_private.pem /etc/agent/agent_public.pem
 
 ####### Fetch Agent #######
 echo "[*] Fetching Agent Software ..."

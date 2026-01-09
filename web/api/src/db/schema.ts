@@ -41,6 +41,10 @@ export enum VirtualMachineStatus {
   RUNNING = "RUNNING",
   STOPPED = "STOPPED",
   SUSPENDED = "SUSPENDED",
+  FORMATTING = "FORMATTING",
+  DELETING = "DELETING",
+  FAILED = "FAILED",
+  OPERATIONAL = "OPERATIONAL",
 }
 
 export enum IsoStatus {
@@ -133,6 +137,9 @@ export interface DatabaseVirtualMachineSchema {
   ipPublic: string | null;
   osId: string | null;
   status: Generated<VirtualMachineStatus>;
+  errorMessage: string | null;
+  format_started_at: Date | null;
+  format_completed_at: Date | null;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }

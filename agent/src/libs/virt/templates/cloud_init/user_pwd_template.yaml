@@ -22,3 +22,9 @@ growpart:
   mode: auto
   devices: ["/"]
 resize_rootfs: true
+
+power_state:
+  mode: poweroff
+  message: "Cloud-init finished; powering off"
+  timeout: 30
+  condition: true

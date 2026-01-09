@@ -17,27 +17,49 @@ def get_vda_path(domain) -> str:
     raise RuntimeError("Could not find vda disk path in domain XML")
 
 
-def detach_seed_iso(domain, target_dev="sda"):
-    minimal = f"""
-<disk device='cdrom'>
-  <target dev='{target_dev}' bus='sata'/>
-</disk>
-""".strip()
-    try:
-        domain.detachDeviceFlags(minimal, libvirt.VIR_DOMAIN_AFFECT_CONFIG)
-    except libvirt.libvirtError:
-        pass
+def detach_seed_iso(domain, seed_iso_path: str | None = None, target_dev: str | None = None):
+    """
+    Detach the seed ISO CDROM. If seed_iso_path is provided, detach only that one.
+    If target_dev is provided, detach cdroms that match that target dev.
+    """
+    cdroms = list_cdrom_devices(domain)
 
-def attach_seed_iso(domain, seed_iso_path: str, target_dev="sda"):
+    if seed_iso_path is not None:
+        cdroms = [d for d in cdroms if d["source_file"] == seed_iso_path]
+
+    if target_dev is not None:
+        cdroms = [d for d in cdroms if d["target_dev"] == target_dev]
+
+    if not cdroms:
+        return []
+
+    flags = libvirt.VIR_DOMAIN_AFFECT_CONFIG
+    if domain.isActive():
+        flags |= libvirt.VIR_DOMAIN_AFFECT_LIVE
+
+    detached = []
+    for d in cdroms:
+        domain.detachDeviceFlags(d["xml"], flags)
+        detached.append(d)
+    return detached
+
+
+def attach_seed_iso(domain, seed_iso_path: str, target_dev="sda", bus="sata", live_if_running: bool = True):
     cdrom_xml = f"""
 <disk type='file' device='cdrom'>
   <driver name='qemu' type='raw'/>
   <source file='{seed_iso_path}'/>
-  <target dev='{target_dev}' bus='sata'/>
+  <target dev='{target_dev}' bus='{bus}'/>
   <readonly/>
 </disk>
 """.strip()
-    domain.attachDeviceFlags(cdrom_xml, libvirt.VIR_DOMAIN_AFFECT_CONFIG)
+
+    flags = libvirt.VIR_DOMAIN_AFFECT_CONFIG
+    if live_if_running and domain.isActive():
+        flags |= libvirt.VIR_DOMAIN_AFFECT_LIVE
+
+    domain.attachDeviceFlags(cdrom_xml, flags)
+
 
 def list_cdrom_devices(domain) -> List[Dict[str, Optional[str]]]:
     """

@@ -26,14 +26,8 @@ const genMac = ({ prefixs }: GenMacParams): string => {
       if (prefixs.pre3 && isValidMacPrefix(prefixs.pre3)) {
         macAddress += ":" + prefixs.pre3;
         octetsToGenerate--;
-      } else {
-        throw new Error("Invalid MAC prefix 3");
       }
-    } else {
-      throw new Error("Invalid MAC prefix 2");
     }
-  } else {
-    throw new Error("Invalid MAC prefix 1");
   }
 
   for (let i = 0; i < octetsToGenerate; i++) {

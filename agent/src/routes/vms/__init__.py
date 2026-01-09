@@ -1,3 +1,4 @@
+import traceback
 from typing import Optional
 from fastapi import APIRouter, HTTPException
 from src.libs.virt.list import list_virtual_machines, get_virtual_machine_read, get_virtual_machine_changes, __domain_to_dict__
@@ -14,10 +15,11 @@ from src.libs.virt.cloud_init import (
     NetworkingTemplate,
     UserKeyTemplate,
     UserPasswordTemplate,
-    generate_cloud_init_iso_alt
+    generate_cloud_init_iso_alt,
+    vm_uses_user_network
 )
 from src.libs.virt.create import get_connection
-from src.libs.cloudimgs.check import ensure_cloudimg
+from src.libs.cloudimgs.check import CLOUDIMG_DIR, ensure_cloudimg
 from src.libs.virt.clone_cloudimg import full_clone_cloud_image_into_volume
 from pathlib import Path
 
@@ -36,10 +38,7 @@ async def get_vm(vm_id: str):
 
 @router.post("/")
 async def create_vm(body: VMCreateRequest):
-    status: Optional[libvirt.virDomain] = create_virtual_machine(
-        vm_id=body.vm_id,
-        vm=body.vm,
-    )
+    status: Optional[libvirt.virDomain] = create_virtual_machine(body)
     if status is None:
         # Send 500 error
         raise HTTPException(status_code=500, detail="New Error Found")
@@ -78,20 +77,30 @@ async def format_vm_disk(vm_id: str, body: VMFormatBody):
                 raise HTTPException(404, f"Domain not found for '{vm_id}' (or hostname '{body.host.hostname}')")
 
         # 1) stop it
-        ensure_shutoff(domain)
+        if domain.isActive():
+            domain.destroy()
+        print("Step 1: done")
 
         # 2) find current vda disk path + current size
         vda_path = get_vda_path(domain)
         current_disk_gb = get_virtual_size_gb(vda_path)
+        print("Step 2: done")
 
-        # 3) ensure base cloud image exists locally (download from Fastify if needed)
-        base_path = ensure_cloudimg(body.os.os_name, body.os.os_url, body.os.os_checksum)
+        print("Step 3: ensuring image", body.os.os_name, body.os.os_url, "into", CLOUDIMG_DIR)
+        try:
+            base_path = ensure_cloudimg(body.os.os_name, body.os.os_url, body.os.os_checksum)
+        except Exception as e:
+            print("Step 3 ERROR:", type(e).__name__, str(e))
+            raise
+        print("Step 3: done", base_path)
 
         # 4) overwrite vda with a full clone, keeping current disk size
         full_clone_cloud_image_into_volume(str(base_path), vda_path, current_disk_gb)
+        print("Step 4: done")
 
         # 5) create seed ISO
         seed_iso_path = f"/tmp/{vm_id}-seed.iso"
+        print("Step 5: generating cloud-init ISO at", seed_iso_path)
 
         meta = MetaTemplate(vm_id=vm_id, hostname=body.host.hostname)
         net = NetworkingTemplate(
@@ -100,6 +109,10 @@ async def format_vm_disk(vm_id: str, body: VMFormatBody):
             gateway=body.network.gateway,
             dns_servers=body.network.dns_servers,
         )
+        net_for_iso = net
+        if vm_uses_user_network(domain):
+            print("User-mode networking detected (macOS): forcing DHCP (skipping network-config)")
+            net_for_iso = None
 
         if has_key:
             user = UserKeyTemplate(
@@ -114,14 +127,17 @@ async def format_vm_disk(vm_id: str, body: VMFormatBody):
                 password=body.host.password,
             )
 
-        generate_cloud_init_iso_alt(meta, net, user, seed_iso_path)
+        generate_cloud_init_iso_alt(meta, net_for_iso, user, seed_iso_path)
+        print("Step 5: done")
 
         # 6) attach seed ISO (replace old one if any)
         detach_seed_iso(domain, "sda")
         attach_seed_iso(domain, seed_iso_path, "sda")
+        print("Step 6: done")
 
         # 7) boot
         domain.create()
+        print("Step 7: done")
 
         return {
             "found": True,
@@ -136,66 +152,88 @@ async def format_vm_disk(vm_id: str, body: VMFormatBody):
     except HTTPException:
         raise
     except Exception as e:
-        return {"found": True, "error": str(e)}
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
     finally:
         conn.close()
 
 @router.post("/{vm_id}/finalize")
-async def finalize_vm(vm_id: str, body: FinalizeRequest):
+async def finalize_vm(vm_id: str):
     conn = get_connection()
     try:
-        try:
-            domain = conn.lookupByName(vm_id)
-        except libvirt.libvirtError:
-            raise HTTPException(404, f"Domain '{vm_id}' not found")
+        domain = conn.lookupByName(vm_id)
 
-        seed_path = body.seed_iso_path or f"/tmp/{vm_id}-seed.iso"
+        # not ready yet
+        if domain.isActive():
+            raise HTTPException(409, "VM still running; cloud-init likely not finished yet")
 
-        # Detach only that seed iso if it matches; if it doesn't match, detach nothing.
-        detached = detach_cdroms(domain, only_source_file=seed_path)
+        seed_iso = f"/tmp/{vm_id}-seed.iso"
 
-        # If you want “detach any cdrom no matter what”, use:
-        # detached = detach_cdroms(domain, only_source_file=None)
+        # detach seed
+        detach_seed_iso(domain, seed_iso_path=seed_iso)  # your robust detach-by-source
+        # boot again
+        domain.create()
 
-        deleted = False
-        if body.delete_iso:
-            p = Path(seed_path).resolve()
-
-            # Safety: only allow deleting files under /tmp
-            if str(p).startswith("/tmp/") and p.exists():
-                p.unlink()
-                deleted = True
-
-        return {
-            "found": True,
-            "vm": {
-                "status": "finalized",
-                "detached_cdroms": [
-                    {
-                        "target_dev": d["target_dev"],
-                        "target_bus": d["target_bus"],
-                        "source_file": d["source_file"],
-                    }
-                    for d in detached
-                ],
-                "seed_iso_deleted": deleted,
-                "seed_iso_path": seed_path,
-            }
-        }
-
+        return {"status": "finalized"}
     finally:
         conn.close()
 
 @router.delete("/{vm_id}")
 async def delete_vm(vm_id: str):
-    vm = get_virtual_machine_changes(vm_id)
-    if vm is None:
-        return {"found": False, "vm": None}
+    conn = get_connection()
     try:
-        vm.undefineFlags(libvirt.VIR_DOMAIN_UNDEFINE_MANAGED_SAVE | libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA)
-        return {"found": True, "vm": {"status": "deleted"}}
+        try:
+            dom = conn.lookupByName(vm_id)
+        except libvirt.libvirtError:
+            raise HTTPException(404, f"Domain '{vm_id}' not found")
+
+        # Capture paths before undefine
+        disk_path = get_vda_path(dom)
+        seed_iso_path = f"/tmp/{vm_id}-seed.iso"
+
+        # Hard power-off (fast)
+        if dom.isActive():
+            dom.destroy()
+
+        # Undefine (remove from libvirt)
+        flags = 0
+        # add flags only if your libvirt supports them
+        try:
+            flags |= libvirt.VIR_DOMAIN_UNDEFINE_MANAGED_SAVE
+        except AttributeError:
+            pass
+        try:
+            flags |= libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA
+        except AttributeError:
+            pass
+        try:
+            flags |= libvirt.VIR_DOMAIN_UNDEFINE_NVRAM
+        except AttributeError:
+            pass
+
+        if flags:
+            dom.undefineFlags(flags)
+        else:
+            dom.undefine()
+
+        # Delete disk + seed ISO files (optional but usually desired for temporary VMs)
+        if disk_path:
+            try:
+                Path(disk_path).unlink()
+            except FileNotFoundError:
+                pass
+
+        try:
+            Path(seed_iso_path).unlink()
+        except FileNotFoundError:
+            pass
+
+        return {"found": True, "vm": {"status": "deleted", "disk_deleted": bool(disk_path)}}
+
     except libvirt.libvirtError as e:
-        return {"found": True, "error": str(e)}
+        raise HTTPException(500, f"Error deleting VM: {str(e)}")
+    finally:
+        conn.close()
     
 
 router.include_router(vm_status_router)

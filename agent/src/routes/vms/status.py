@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from src.libs.virt.list import get_virtual_machine_read, get_virtual_machine_changes, __domain_to_dict__
 import libvirt
@@ -19,7 +19,7 @@ async def start_vm(vm_id: str):
         vm.create()
         return {"found": True, "vm": {"status": "started"}}, 200
     except libvirt.libvirtError as e:
-        return {"found": True, "error": str(e)}, 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/stop")
 async def stop_vm(vm_id: str):
@@ -30,7 +30,7 @@ async def stop_vm(vm_id: str):
         vm.shutdown()
         return {"found": True, "vm": {"status": "stopped"}}, 200
     except libvirt.libvirtError as e:
-        return {"found": True, "error": str(e)}, 500
+        raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/restart")
 async def restart_vm(vm_id: str):
@@ -41,7 +41,7 @@ async def restart_vm(vm_id: str):
         vm.reboot(0)
         return {"found": True, "vm": {"status": "restarted"}}, 200
     except libvirt.libvirtError as e:
-        return {"found": True, "error": str(e)}, 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/kill")
 async def kill_vm(vm_id: str):
@@ -52,4 +52,4 @@ async def kill_vm(vm_id: str):
         vm.destroy()
         return {"found": True, "vm": {"status": "killed"}}, 200
     except libvirt.libvirtError as e:
-        return {"found": True, "error": str(e)}, 500
+        raise HTTPException(status_code=500, detail=str(e))

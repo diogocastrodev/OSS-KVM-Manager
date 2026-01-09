@@ -1,11 +1,11 @@
 meta {
-  name: Get One Server
+  name: Download OS
   type: http
-  seq: 3
+  seq: 2
 }
 
 get {
-  url: {{API_ENDPOINT}}/api/v1/servers/100
+  url: {{API_ENDPOINT}}/api/v1/agent/os/ubuntu-24.04-amd64/download
   body: none
   auth: inherit
 }

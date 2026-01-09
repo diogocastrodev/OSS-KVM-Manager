@@ -1,0 +1,46 @@
+meta {
+  name: Create Virtual Machine
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_ENDPOINT}}/api/v1/admin/vms
+  body: json
+  auth: inherit
+}
+
+headers {
+  x-csrf-token: rAd5qsMH-9wR4_Ow-Rwil9lBtWisulro5jDKje067DM_qfgyvJ20
+}
+
+body:json {
+  {
+    "serverPublicId": 100,
+    "publicId": 120,
+    "name": "VM Ubuntu",
+    "vcpus": 1,
+    "memory_mib": 2048,
+    "disk_gb": 5,
+    "network": {
+      "in_avg_mbps": 100,
+      "in_peak_mbps": 100,
+      "in_burst_mbps": 100,
+      "out_avg_mbps": 100,
+      "out_peak_mbps": 100,
+      "out_burst_mbps": 100
+    },
+    "host": {
+      "hostname": "new-vm-ubuntu",
+      "username": "diogo",
+      "password": "123123"
+    },
+    "ip_local": "10.10.10.100",
+    "os": "ubuntu-24.04-amd64"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

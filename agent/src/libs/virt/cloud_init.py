@@ -1,9 +1,11 @@
 import os
+import shutil
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
 import tempfile
 import subprocess
+import xml.etree.ElementTree as ET
 
 @dataclass
 class MetaTemplate:
@@ -52,7 +54,7 @@ def generate_networking_data(template: NetworkingTemplate) -> str:
     )
 
 def generate_user_data_key(template: UserKeyTemplate) -> str:
-    template_str = load_template('user_data_key_template.yaml')
+    template_str = load_template('user_keys_template.yaml')
     return template_str.format(
         hostname=template.hostname,
         username=template.username,
@@ -60,31 +62,36 @@ def generate_user_data_key(template: UserKeyTemplate) -> str:
     )
 
 def generate_user_data_password(template: UserPasswordTemplate) -> str:
-    template_str = load_template('user_data_password_template.yaml')
+    template_str = load_template('user_pwd_template.yaml')
     return template_str.format(
         hostname=template.hostname,
         username=template.username,
         password=template.password
     )
 
-def generate_cloud_init_iso(meta_data: str, networking_data: str, user_data: str, iso_path: str) -> bool:
+def vm_uses_user_network(domain) -> bool:
+    root = ET.fromstring(domain.XMLDesc(0))
+    iface = root.find("./devices/interface")
+    return iface is not None and iface.get("type") == "user"
+
+def generate_cloud_init_iso(meta_data: str, networking_data: Optional[str], user_data: str, iso_path: str) -> bool:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
         (tmp / "meta-data").write_text(meta_data)
-        (tmp / "network-config").write_text(networking_data)
         (tmp / "user-data").write_text(user_data)
 
+        files = ["meta-data", "user-data"]
+
+        if networking_data is not None:
+            (tmp / "network-config").write_text(networking_data)
+            files.insert(1, "network-config")
+
+        iso_tool = shutil.which("genisoimage") or shutil.which("mkisofs")
+        if not iso_tool:
+            raise FileNotFoundError("Need genisoimage or mkisofs in PATH to build seed ISO")
+
         subprocess.run(
-            [
-                "genisoimage",
-                "-output", iso_path,
-                "-volid", "cidata",
-                "-joliet",
-                "-rock",
-                "meta-data",
-                "network-config",
-                "user-data",
-            ],
+            [iso_tool, "-output", iso_path, "-volid", "cidata", "-joliet", "-rock", *files],
             check=True,
             cwd=tmpdir,
         )
@@ -93,17 +100,17 @@ def generate_cloud_init_iso(meta_data: str, networking_data: str, user_data: str
 
 def generate_cloud_init_iso_alt(
     meta_data: MetaTemplate,
-    networking_data: NetworkingTemplate,
+    networking_data: Optional[NetworkingTemplate],
     user_data: UserKeyTemplate | UserPasswordTemplate,
-    iso_path: str,
+    iso_path: str
 ) -> bool:
     meta_str = generate_meta_data(meta_data)
 
-    # FIX: keep dns_servers as list[str]
-    if not networking_data.dns_servers:
-        networking_data.dns_servers = ["1.1.1.1", "8.8.8.8"]
-
-    network_str = generate_networking_data(networking_data)
+    network_str = None
+    if networking_data is not None:
+        if not networking_data.dns_servers:
+            networking_data.dns_servers = ["1.1.1.1", "8.8.8.8"]
+        network_str = generate_networking_data(networking_data)
 
     if isinstance(user_data, UserKeyTemplate):
         user_str = generate_user_data_key(user_data)

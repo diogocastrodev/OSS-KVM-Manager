@@ -14,6 +14,7 @@ const vmsRoute: FastifyPluginAsync = async (fastify) => {
   fastify.get<{}>(
     "/",
     {
+      preValidation: [fastify.authRequired],
       schema: {
         tags: [swaggerTags.VIRTUAL_MACHINES],
         summary: "Get My Virtual Machines",
@@ -31,6 +32,7 @@ const vmsRoute: FastifyPluginAsync = async (fastify) => {
   }>(
     "/:vmPublicId",
     {
+      preValidation: [fastify.authRequired],
       schema: {
         tags: [swaggerTags.VIRTUAL_MACHINES],
         summary: "Get Virtual Machine",

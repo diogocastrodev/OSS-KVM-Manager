@@ -4,14 +4,19 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import requests
+from src.libs.crypto.crypto import agent_get
 
-CLOUDIMG_DIR = Path(os.getenv("CLOUDIMG_DIR", "/var/lib/cloudimgs")).resolve()
+CLOUDIMG_DIR = Path(os.getenv("CLOUDIMG_DIR", "./.cache/cloudimgs")).resolve()
 _SAFE_NAME = re.compile(r"^[a-zA-Z0-9._-]+$")
 
 
 def ensure_cloudimg_dir() -> None:
-    CLOUDIMG_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        CLOUDIMG_DIR.mkdir(parents=True, exist_ok=True)
+    except PermissionError as e:
+        raise PermissionError(
+            f"Cannot create CLOUDIMG_DIR={CLOUDIMG_DIR}. Set CLOUDIMG_DIR to a writable path."
+        ) from e
 
 
 def _validate_name(os_name: str) -> str:
@@ -30,22 +35,6 @@ def get_cloudimg_path(os_name: str) -> Path:
     if not p.exists():
         raise FileNotFoundError(f"Cloud image '{os_name}' not found at {p}")
     return p
-
-
-def list_available_cloudimgs() -> list[str]:
-    if not CLOUDIMG_DIR.exists():
-        return []
-    return [f.stem for f in CLOUDIMG_DIR.glob("*.qcow2")]
-
-
-def cloudimg_exists(os_name: str) -> bool:
-    return _img_path(os_name).exists()
-
-
-def remove_cloudimg(os_name: str) -> None:
-    p = _img_path(os_name)
-    if p.exists():
-        p.unlink()
 
 
 def _acquire_lock(lock_path: Path, timeout_s: int = 300) -> None:
@@ -69,10 +58,6 @@ def _release_lock(lock_path: Path) -> None:
 
 
 def download_cloudimg(os_name: str, url: str, sha256: Optional[str] = None) -> Path:
-    """
-    Downloads to CLOUDIMG_DIR/{os_name}.qcow2 atomically.
-    If sha256 provided, verifies after download.
-    """
     ensure_cloudimg_dir()
 
     dst = _img_path(os_name)
@@ -81,15 +66,19 @@ def download_cloudimg(os_name: str, url: str, sha256: Optional[str] = None) -> P
 
     _acquire_lock(lock)
     try:
-        # If already present, keep it (optional: verify sha here)
         if dst.exists():
             return dst
 
         if part.exists():
             part.unlink()
 
-        with requests.get(url, stream=True, timeout=(10, 300)) as r:
+        with agent_get(url, stream=True, timeout=(10, 300)) as r:
             r.raise_for_status()
+
+            ct = (r.headers.get("Content-Type") or "").lower()
+            if "application/json" in ct:
+                raise ValueError(f"URL returned JSON (did you forget /download?): {url}")
+
             h = None
             if sha256:
                 import hashlib
@@ -103,7 +92,7 @@ def download_cloudimg(os_name: str, url: str, sha256: Optional[str] = None) -> P
                     if h:
                         h.update(chunk)
 
-        if sha256:
+        if sha256 and h:
             got = h.hexdigest().lower()
             if got != sha256.lower():
                 part.unlink(missing_ok=True)
@@ -116,11 +105,8 @@ def download_cloudimg(os_name: str, url: str, sha256: Optional[str] = None) -> P
         part.unlink(missing_ok=True)
         _release_lock(lock)
 
+
 def ensure_cloudimg(os_name: str, url: str, sha256: Optional[str] = None) -> Path:
-    """
-    Ensures the cloud image is present, downloading if necessary.
-    If sha256 provided, verifies after download.
-    """
     try:
         return get_cloudimg_path(os_name)
     except FileNotFoundError:

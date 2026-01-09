@@ -31,6 +31,9 @@
         <!-- Adjust this if `which qemu-system-x86_64` gives a different path -->
         <emulator>/opt/homebrew/bin/qemu-system-x86_64</emulator>
 
+        <controller type='sata' index='0' />
+
+
         <!-- Main disk (qcow2 volume created in your pool) -->
         <disk type='file' device='disk'>
             <driver name='qemu' type='qcow2' />

@@ -28,11 +28,12 @@ const agentOsRoute: FastifyPluginAsync = async (fastify) => {
     getOSMetadata
   );
 
-  fastify.post<{
+  fastify.get<{
     Params: DownloadOSParamsType;
   }>(
-    "/:osName",
+    "/:osName/download",
     {
+      preValidation: [],
       schema: {
         tags: [swaggerTags.AGENT.IMAGES],
         params: downloadOSParamsSchema,

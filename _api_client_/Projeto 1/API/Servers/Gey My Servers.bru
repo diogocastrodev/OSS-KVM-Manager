@@ -1,11 +1,11 @@
 meta {
   name: Gey My Servers
   type: http
-  seq: 2
+  seq: 1
 }
 
 get {
-  url: {{API_ENDPOINT}}/api/v1/servers/my-servers?include_virtual_machines=true
+  url: {{API_ENDPOINT}}/api/v1/servers?include_virtual_machines=true
   body: none
   auth: inherit
 }
