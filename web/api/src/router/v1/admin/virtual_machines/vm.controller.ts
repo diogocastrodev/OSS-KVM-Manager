@@ -4,6 +4,8 @@ import type {
   AdminCreateVirtualMachineReply,
   AdminDeleteVirtualMachineParams,
   AdminDeleteVirtualMachineReply,
+  AdminGetVirtualMachineByIdParams,
+  AdminGetVirtualMachineByIdReply,
 } from "./vm.schema";
 import db from "@/db/database";
 import {
@@ -19,12 +21,42 @@ import { pollFinalizeUntilOperational } from "@/utils/pool";
 export const adminGetAllVirtualMachines = async (
   req: FastifyRequest,
   reply: FastifyReply
-) => {};
+) => {
+  const vms = await db.selectFrom("virtual_machines").selectAll().execute();
+  return { vms };
+};
 
 export const adminGetVirtualMachineById = async (
-  req: FastifyRequest,
-  reply: FastifyReply
-) => {};
+  req: FastifyRequest<{
+    Params: AdminGetVirtualMachineByIdParams;
+  }>,
+  reply: FastifyReply<{
+    Reply:
+      | AdminGetVirtualMachineByIdReply
+      | NotFoundErrorType
+      | UnauthorizedErrorType;
+  }>
+) => {
+  const { vmPublicId } = req.params;
+
+  const vm = await db
+    .selectFrom("virtual_machines")
+    .selectAll()
+    .where("publicId", "=", vmPublicId)
+    .executeTakeFirst();
+
+  if (!vm) {
+    return reply.status(404).send({ message: "Virtual machine not found" });
+  }
+
+  return reply.status(200).send({
+    publicId: vm.publicId,
+    name: vm.name,
+    status: vm.status,
+    createdAt: vm.createdAt.toISOString(),
+    updatedAt: vm.updatedAt.toISOString(),
+  });
+};
 
 export const adminCreateVirtualMachine = async (
   req: FastifyRequest<{
@@ -319,13 +351,33 @@ export const adminCreateVirtualMachine = async (
       return reply.status(202).send({
         message: "Virtual machine created, formatting in progress",
       });
+    } else {
+      // No OS install, set VM to OPERATIONAL directly
+      await db
+        .updateTable("virtual_machines")
+        .set({
+          status: "OPERATIONAL",
+        })
+        .where("id", "=", newVM.id)
+        .execute();
     }
 
     return reply.status(201).send({
       publicId: newVM.publicId,
       name: newVM.name,
     });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    // Rollback DB insert
+    await db
+      .deleteFrom("virtual_machines")
+      .where("id", "=", newVM.id)
+      .execute();
+
+    return reply
+      .status(500)
+      .send({ message: "Failed to communicate with agent" });
+  }
 };
 
 export const adminUpdateVirtualMachine = async (

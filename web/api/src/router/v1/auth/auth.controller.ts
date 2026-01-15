@@ -5,6 +5,14 @@ import type {
   loginRequestBodyType,
   loginReplyBodyType,
   refreshReplyBodyType,
+  confirmEmailParamsType,
+  confirmEmailGetReplyBodyType,
+  confirmEmailPostReplyBodyType,
+  confirmEmailPostRequestBodyType,
+  passwordResetBodyType,
+  passwordResetReplyBodyType,
+  passwordResetRequestBodyType,
+  passwordResetRequestReplyBodyType,
 } from "./auth.schema";
 import db from "@/db/database";
 import argon2 from "argon2";
@@ -14,53 +22,220 @@ import generateRefreshToken, {
 import env from "@/utils/env";
 import { generateJwtCookieSettings, generateJwtToken } from "@/utils/jwtToken";
 import { UserRole } from "@/db/schema";
+import { passwordHash, passwordVerify } from "@/utils/password";
+import { sendPasswordResetEmail } from "@/utils/email";
 
 /* -------------------------------------------------------------------------- */
 /*                                  Register                                  */
 /* -------------------------------------------------------------------------- */
 
-const register = async (
-  req: FastifyRequest<{ Body: registerRequestBodyType }>,
-  reply: FastifyReply<{ Reply: registerReplyBodyType }>
-): Promise<void> => {
-  const { email, password, name } = req.body;
+// const register = async (
+//   req: FastifyRequest<{ Body: registerRequestBodyType }>,
+//   reply: FastifyReply<{ Reply: registerReplyBodyType }>
+// ): Promise<void> => {
+//   const { email, password, name } = req.body;
 
-  const hash = await argon2.hash(password, {
-    type: argon2.argon2id,
-    memoryCost: 8 * 1024, // 8 MiB
-    timeCost: 2,
-    parallelism: 1,
-  });
+//   const hash = await passwordHash(password);
 
-  try {
-    await db
-      .insertInto("users")
-      .values({
-        email,
-        name,
-        password: hash,
-      })
-      .execute();
-  } catch (err: any) {
-    if (err.code === "23505") {
-      // Unique violation
-      reply.status(400).send({ message: "Email already exists" });
-      return;
-    }
-    console.error("Error inserting user:", err);
-    reply.status(500).send({ message: "Internal Server Error" });
-    return;
+//   try {
+//     await db
+//       .insertInto("users")
+//       .values({
+//         email,
+//         name,
+//         password: hash,
+//       })
+//       .execute();
+//   } catch (err: any) {
+//     if (err.code === "23505") {
+//       // Unique violation
+//       reply.status(400).send({ message: "Email already exists" });
+//       return;
+//     }
+//     console.error("Error inserting user:", err);
+//     reply.status(500).send({ message: "Internal Server Error" });
+//     return;
+//   }
+
+//   reply.status(201).send({ message: "User registered successfully" });
+//   return;
+// };
+
+/* -------------------------------------------------------------------------- */
+/*                              Confirm Email GET                             */
+/* -------------------------------------------------------------------------- */
+export const confirmEmailGet = async (
+  req: FastifyRequest<{
+    Params: confirmEmailParamsType;
+  }>,
+  reply: FastifyReply<{
+    Reply: confirmEmailGetReplyBodyType;
+  }>
+) => {
+  const { token } = req.params;
+
+  const found = await db
+    .selectFrom("users")
+    .where("emailVerificationToken", "=", token)
+    .select(["id", "emailVerified"])
+    .executeTakeFirst();
+
+  if (!found) {
+    return reply.status(401).send({ message: "Invalid or expired token" });
   }
 
-  reply.status(201).send({ message: "User registered successfully" });
-  return;
+  // Already verified (reusing field for password resets)
+  if (found && found.emailVerified) {
+    return reply.status(401).send({ message: "Invalid or expired token" });
+  }
+
+  return reply.status(200).send({ message: "Token is valid" });
+};
+
+/* -------------------------------------------------------------------------- */
+/*                             Confirm Email POST                             */
+/* -------------------------------------------------------------------------- */
+export const confirmEmailPost = async (
+  req: FastifyRequest<{
+    Body: confirmEmailPostRequestBodyType;
+  }>,
+  reply: FastifyReply<{
+    Reply: confirmEmailPostReplyBodyType;
+  }>
+) => {
+  const { token, name, password } = req.body;
+
+  const user = await db
+    .selectFrom("users")
+    .where("emailVerificationToken", "=", token)
+    .select(["id", "emailVerified"])
+    .executeTakeFirst();
+
+  if (!user) {
+    return reply.status(401).send({ message: "Invalid or expired token" });
+  }
+
+  // Already verified (reusing field for password resets)
+  if (user.emailVerified) {
+    return reply.status(401).send({ message: "Invalid or expired token" });
+  }
+
+  const hash = await passwordHash(password);
+
+  await db
+    .updateTable("users")
+    .set({
+      name,
+      password: hash,
+      emailVerificationToken: null,
+      emailVerified: true,
+      status: "ACTIVE",
+    })
+    .where("id", "=", user.id)
+    .execute();
+
+  return reply.status(200).send({ message: "Email confirmed successfully" });
+};
+/* -------------------------------------------------------------------------- */
+/*                           Password Reset Request                           */
+/* -------------------------------------------------------------------------- */
+export const requestPasswordReset = async (
+  req: FastifyRequest<{ Body: passwordResetRequestBodyType }>,
+  reply: FastifyReply<{ Reply: passwordResetRequestReplyBodyType }>
+) => {
+  const { email } = req.body;
+
+  const user = await db
+    .selectFrom("users")
+    .where("email", "=", email)
+    .select(["id", "emailVerified"])
+    .executeTakeFirst();
+
+  if (!user) {
+    return reply.status(200).send({
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
+    });
+  }
+
+  if (user && !user.emailVerified) {
+    return reply.status(200).send({
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
+    });
+  }
+
+  if (user) {
+    // Generate a password reset token
+    const resetToken = crypto.randomUUID();
+
+    // Set token and expiration (e.g., 1 hour from now)
+    const expiresAt = new Date();
+    // TODO: Make Password Reset expiration configurable
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    await db
+      .updateTable("users")
+      .set({
+        emailVerificationToken: resetToken,
+      })
+      .where("id", "=", user.id)
+      .execute();
+
+    // Send password reset email
+    await sendPasswordResetEmail(email, resetToken);
+  }
+
+  // Always respond with success message to prevent email enumeration
+  return reply.status(200).send({
+    message:
+      "If an account with that email exists, a password reset link has been sent.",
+  });
+};
+/* -------------------------------------------------------------------------- */
+/*                               Password Reset                               */
+/* -------------------------------------------------------------------------- */
+export const resetPassword = async (
+  req: FastifyRequest<{ Body: passwordResetBodyType }>,
+  reply: FastifyReply<{ Reply: passwordResetReplyBodyType }>
+) => {
+  const { token, password } = req.body;
+
+  const user = await db
+    .selectFrom("users")
+    .where("emailVerificationToken", "=", token)
+    .select(["id", "emailVerified"])
+    .executeTakeFirst();
+
+  if (!user) {
+    return reply.status(401).send({ message: "Invalid or expired token" });
+  }
+
+  if (user && !user.emailVerified) {
+    return reply.status(401).send({ message: "Invalid or expired token" });
+  }
+
+  const hash = await passwordHash(password);
+
+  await db
+    .updateTable("users")
+    .set({
+      password: hash,
+      emailVerificationToken: null,
+    })
+    .where("id", "=", user.id)
+    .execute();
+
+  return reply
+    .status(200)
+    .send({ message: "Password has been reset successfully" });
 };
 
 /* -------------------------------------------------------------------------- */
 /*                                    Login                                   */
 /* -------------------------------------------------------------------------- */
 
-const login = async (
+export const login = async (
   req: FastifyRequest<{ Body: loginRequestBodyType }>,
   reply: FastifyReply<{ Reply: loginReplyBodyType }>
 ): Promise<void> => {
@@ -68,19 +243,30 @@ const login = async (
 
   const user = await db
     .selectFrom("users")
-    .selectAll()
+    .select([
+      "id",
+      "email",
+      "name",
+      "password",
+      "role",
+      "authz_version",
+      "status",
+    ])
     .where("email", "=", email)
     .executeTakeFirst();
 
   if (!user) {
-    reply.status(401).send({ message: "Invalid email or password" });
-    return;
+    return reply.status(401).send({ message: "Invalid email or password" });
   }
-  const ok = await argon2.verify(user.password, passwordAttempt);
+
+  if (user.status !== "ACTIVE") {
+    return reply.status(401).send({ message: "Invalid email or password" });
+  }
+
+  const ok = await passwordVerify(passwordAttempt, user.password);
 
   if (!ok) {
-    reply.status(401).send({ message: "Invalid email or password" });
-    return;
+    return reply.status(401).send({ message: "Invalid email or password" });
   }
 
   const expiresAt = new Date();
@@ -115,7 +301,7 @@ const login = async (
 /* -------------------------------------------------------------------------- */
 /*                                   Logout                                   */
 /* -------------------------------------------------------------------------- */
-const logout = async (req: FastifyRequest, reply: FastifyReply) => {
+export const logout = async (req: FastifyRequest, reply: FastifyReply) => {
   const refreshToken = req.cookies.refresh_token;
   // clear the old path variants
   reply.clearCookie("refresh_token", { path: "/api/v1/auth/refresh" });
@@ -147,7 +333,7 @@ const logout = async (req: FastifyRequest, reply: FastifyReply) => {
 /* -------------------------------------------------------------------------- */
 /*                                   Refresh                                  */
 /* -------------------------------------------------------------------------- */
-const refresh = async (
+export const refresh = async (
   req: FastifyRequest,
   reply: FastifyReply<{
     Reply: refreshReplyBodyType;
@@ -179,12 +365,26 @@ const refresh = async (
 
   const user = await db
     .selectFrom("users")
-    .select(["email", "name", "role", "authz_version"])
+    .select(["email", "name", "role", "authz_version", "status"])
     .where("id", "=", tokenRecord.userId)
     .executeTakeFirst();
 
   if (!user) {
     return reply.status(401).send({ message: "User not found" });
+  }
+
+  if (user.status !== "ACTIVE") {
+    reply.clearCookie("refresh_token", { path: "/" });
+    reply.clearCookie("access_token", { path: "/" });
+
+    await db
+      .deleteFrom("refresh_tokens")
+      .where("token", "=", refreshToken)
+      .execute();
+
+    return reply
+      .status(403)
+      .send({ message: "This user has been deactivated" });
   }
 
   // Generate new Refresh Token
@@ -222,5 +422,3 @@ const refresh = async (
     .code(200)
     .send({ accessToken: jwt, refreshToken: newRefreshToken });
 };
-
-export { register, login, logout, refresh };

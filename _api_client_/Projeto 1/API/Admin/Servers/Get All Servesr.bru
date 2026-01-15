@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{API_ENDPOINT}}/api/v1/admin/servers
+  url: {{API_ENDPOINT}}/api/v1/admin/servers?include_virtual_machines=true
   body: none
   auth: inherit
+}
+
+params:query {
+  include_virtual_machines: true
 }
 
 settings {

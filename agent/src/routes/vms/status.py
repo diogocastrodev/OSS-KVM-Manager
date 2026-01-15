@@ -14,10 +14,10 @@ async def get_vm_status(vm_id: str):
 async def start_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}, 404
+        return {"found": False, "vm": None}
     try:
         vm.create()
-        return {"found": True, "vm": {"status": "started"}}, 200
+        return {"found": True, "vm": {"status": "started"}}
     except libvirt.libvirtError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -25,10 +25,10 @@ async def start_vm(vm_id: str):
 async def stop_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}, 404
+        return {"found": False, "vm": None}
     try:
         vm.shutdown()
-        return {"found": True, "vm": {"status": "stopped"}}, 200
+        return {"found": True, "vm": {"status": "stopped"}}
     except libvirt.libvirtError as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -36,10 +36,10 @@ async def stop_vm(vm_id: str):
 async def restart_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}, 404
+        return {"found": False, "vm": None}
     try:
         vm.reboot(0)
-        return {"found": True, "vm": {"status": "restarted"}}, 200
+        return {"found": True, "vm": {"status": "restarted"}}
     except libvirt.libvirtError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -47,9 +47,9 @@ async def restart_vm(vm_id: str):
 async def kill_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}, 404
+        return {"found": False, "vm": None}
     try:
         vm.destroy()
-        return {"found": True, "vm": {"status": "killed"}}, 200
+        return {"found": True, "vm": {"status": "killed"}}
     except libvirt.libvirtError as e:
         raise HTTPException(status_code=500, detail=str(e))

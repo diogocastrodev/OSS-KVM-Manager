@@ -2,28 +2,38 @@ import { z } from "zod";
 /* -------------------------------------------------------------------------- */
 /*                               Get all Servers                              */
 /* -------------------------------------------------------------------------- */
-
+export const adminGetAllServersReplySchema = z.object({
+  servers: z.array(
+    z.object({
+      publicId: z.string(),
+      name: z.string(),
+      status: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+    })
+  ),
+});
 /* -------------------------------------------------------------------------- */
-/*                              Get Server By ID                              */
+/*                              Get VM By ID                              */
 /* -------------------------------------------------------------------------- */
-export const adminGetServerByIdParamsSchema = z.object({
+export const adminGetVirtualMachineByIdParamsSchema = z.object({
   vmPublicId: z.int(),
 });
 
-export type AdminGetServerByIdParams = z.infer<
-  typeof adminGetServerByIdParamsSchema
+export type AdminGetVirtualMachineByIdParams = z.infer<
+  typeof adminGetVirtualMachineByIdParamsSchema
 >;
 
-export const adminGetServerByIdReplySchema = z.object({
-  publicId: z.string(),
+export const adminGetVirtualMachineByIdReplySchema = z.object({
+  publicId: z.int(),
   name: z.string(),
   status: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-export type AdminGetServerByIdReply = z.infer<
-  typeof adminGetServerByIdReplySchema
+export type AdminGetVirtualMachineByIdReply = z.infer<
+  typeof adminGetVirtualMachineByIdReplySchema
 >;
 /* -------------------------------------------------------------------------- */
 /*                           Create Virtual machine                           */

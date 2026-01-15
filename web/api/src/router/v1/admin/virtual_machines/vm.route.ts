@@ -21,10 +21,14 @@ import {
   adminCreateVirtualMachineReplySchema,
   AdminDeleteVirtualMachineParamsSchema,
   AdminDeleteVirtualMachineReplySchema,
+  adminGetVirtualMachineByIdParamsSchema,
+  adminGetVirtualMachineByIdReplySchema,
   type AdminCreateVirtualMachineBody,
   type AdminCreateVirtualMachineReply,
   type AdminDeleteVirtualMachineParams,
   type AdminDeleteVirtualMachineReply,
+  type AdminGetVirtualMachineByIdParams,
+  type AdminGetVirtualMachineByIdReply,
 } from "./vm.schema";
 
 const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
@@ -46,16 +50,38 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
     adminGetAllVirtualMachines
   );
   /* -------------------------------------------------------------------------- */
-  /*                        Get One Virtual Machine By ID                       */
+  /*                        Get all Virtual Machines tiny                       */
   /* -------------------------------------------------------------------------- */
   fastify.get(
+    "/tiny",
+    {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
+      schema: {
+        description: "Get all virtual machines (tiny)",
+        tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
+        response: {
+          401: UnauthorizedError,
+        },
+      },
+    },
+    () => {}
+  );
+  /* -------------------------------------------------------------------------- */
+  /*                        Get One Virtual Machine By ID                       */
+  /* -------------------------------------------------------------------------- */
+  fastify.get<{
+    Params: AdminGetVirtualMachineByIdParams;
+    Reply: AdminGetVirtualMachineByIdReply | NotFoundErrorType;
+  }>(
     "/:vmPublicId",
     {
       preValidation: [fastify.authRequired, fastify.adminOnly],
       schema: {
         description: "Get a virtual machine by ID",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
+        params: adminGetVirtualMachineByIdParamsSchema,
         response: {
+          200: adminGetVirtualMachineByIdReplySchema,
           401: UnauthorizedError,
           404: NotFoundError,
         },

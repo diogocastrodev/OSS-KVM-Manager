@@ -1,0 +1,26 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{API_ENDPOINT}}/api/v1/admin/users/register
+  body: json
+  auth: inherit
+}
+
+headers {
+  x-csrf-token: fdbQZ4wI-jq1TwI9Omuai3p3WJaY7mZMErVIIgQgWAzg0w-t-WQk
+}
+
+body:json {
+  {
+    "email": "zbluezinnpvp@gmail.com"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

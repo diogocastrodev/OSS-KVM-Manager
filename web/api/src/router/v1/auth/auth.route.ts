@@ -1,41 +1,149 @@
 import type { FastifyPluginAsync } from "fastify";
-import { register, login, logout, refresh } from "./auth.controller";
 import {
+  confirmEmailGet,
+  confirmEmailPost,
+  login,
+  logout,
+  refresh,
+  requestPasswordReset,
+  resetPassword,
+} from "./auth.controller";
+import {
+  confirmEmailGetReplyBody,
+  confirmEmailParams,
+  confirmEmailPostReplyBody,
+  confirmEmailPostRequestBody,
   loginReplyBody,
   loginReplyBodyError,
   loginRequestBody,
+  passwordResetBody,
+  passwordResetReplyBody,
+  passwordResetRequestBody,
+  passwordResetRequestReplyBody,
   refreshReplyBody,
   refreshReplyBodyError,
-  registerReplyBody,
-  registerRequestBody,
+  type confirmEmailGetReplyBodyType,
+  type confirmEmailParamsType,
+  type confirmEmailPostReplyBodyType,
+  type confirmEmailPostRequestBodyType,
   type loginReplyBodyType,
   type loginRequestBodyType,
+  type passwordResetBodyType,
+  type passwordResetReplyBodyType,
+  type passwordResetRequestBodyType,
+  type passwordResetRequestReplyBodyType,
   type refreshReplyBodyType,
-  type registerReplyBodyType,
-  type registerRequestBodyType,
 } from "./auth.schema";
 import swaggerTags from "@/types/swaggerTags";
+import { NotFoundError, type NotFoundErrorType } from "@/types/errorSchema";
 
 const authRoute: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
   /*                                  Register                                  */
   /* -------------------------------------------------------------------------- */
-  fastify.post<{
-    Body: registerRequestBodyType;
-    Reply: registerReplyBodyType;
+  // fastify.post<{
+  //   Body: registerRequestBodyType;
+  //   Reply: registerReplyBodyType;
+  // }>(
+  //   "/register",
+  //   {
+  //     preValidation: [fastify.guestOnly],
+  //     schema: {
+  //       tags: [swaggerTags.AUTH],
+  //       body: registerRequestBody,
+  //       response: {
+  //         201: registerReplyBody,
+  //       },
+  //     },
+  //   },
+  //   register
+  // );
+  /* -------------------------------------------------------------------------- */
+  /*                                Confirm Email                               */
+  /* -------------------------------------------------------------------------- */
+  // Check if token is valid
+  fastify.get<{
+    Params: confirmEmailParamsType;
+    Reply: confirmEmailGetReplyBodyType;
   }>(
-    "/register",
+    "/confirm-email/:token",
     {
       preValidation: [fastify.guestOnly],
       schema: {
         tags: [swaggerTags.AUTH],
-        body: registerRequestBody,
+        description:
+          "Confirm user's email using the token sent to their email address",
+        params: confirmEmailParams,
         response: {
-          201: registerReplyBody,
+          200: confirmEmailGetReplyBody,
+          401: NotFoundError,
         },
       },
     },
-    register
+    confirmEmailGet
+  );
+  // Verify Token
+  fastify.post<{
+    Body: confirmEmailPostRequestBodyType;
+    Reply: confirmEmailPostReplyBodyType;
+  }>(
+    "/confirm-email",
+    {
+      preValidation: [fastify.guestOnly],
+      schema: {
+        tags: [swaggerTags.AUTH],
+        description:
+          "Confirm user's email using the token sent to their email address",
+        body: confirmEmailPostRequestBody,
+        response: {
+          200: confirmEmailPostReplyBody,
+          401: NotFoundError,
+        },
+      },
+    },
+    confirmEmailPost
+  );
+  /* -------------------------------------------------------------------------- */
+  /*                               Password Reset                               */
+  /* -------------------------------------------------------------------------- */
+  /* --------------------------------- Request -------------------------------- */
+  fastify.post<{
+    Body: passwordResetRequestBodyType;
+    Reply: passwordResetRequestReplyBodyType;
+  }>(
+    "/password-reset",
+    {
+      preValidation: [fastify.guestOnly],
+      schema: {
+        tags: [swaggerTags.AUTH],
+        description: "Request a password reset link via email",
+        body: passwordResetRequestBody,
+        response: {
+          200: passwordResetRequestReplyBody,
+        },
+      },
+    },
+    requestPasswordReset
+  );
+  /* ---------------------------------- Reset --------------------------------- */
+  fastify.put<{
+    Body: passwordResetBodyType;
+    Reply: passwordResetReplyBodyType | NotFoundErrorType;
+  }>(
+    "/password-reset",
+    {
+      preValidation: [fastify.guestOnly],
+      schema: {
+        tags: [swaggerTags.AUTH],
+        description: "Reset password using the token sent via email",
+        body: passwordResetBody,
+        response: {
+          200: passwordResetReplyBody,
+          401: NotFoundError,
+        },
+      },
+    },
+    resetPassword
   );
   /* -------------------------------------------------------------------------- */
   /*                                    Login                                   */

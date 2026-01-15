@@ -16,6 +16,9 @@ interface EnvironmentVariables {
   JWT_TOKEN_TIME_SECONDS: number;
   REFRESH_TOKEN_TIME_SECONDS: number;
   IGNORE_CSRF: boolean;
+  MAILGUN_API_KEY: string;
+  MAILGUN_DOMAIN: string;
+  WEB_PANEL_URL: string;
 }
 
 const parseEnv = (name: string, defaultValue: string, required: boolean) => {
@@ -50,6 +53,9 @@ const env: EnvironmentVariables = {
     10
   ),
   IGNORE_CSRF: parseEnv("IGNORE_CSRF", "false", false) === "true",
+  MAILGUN_API_KEY: parseEnv("MAILGUN_API_KEY", "", true),
+  MAILGUN_DOMAIN: parseEnv("MAILGUN_DOMAIN", "", true),
+  WEB_PANEL_URL: parseEnv("WEB_PANEL_URL", "http://localhost:3000", false),
 };
 
 export default env;

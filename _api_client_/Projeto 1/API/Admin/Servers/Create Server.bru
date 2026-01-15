@@ -5,13 +5,13 @@ meta {
 }
 
 post {
-  url: {{API_ENDPOINT}}/api/v1/servers
+  url: {{API_ENDPOINT}}/api/v1/admin/servers
   body: json
   auth: inherit
 }
 
 headers {
-  x-csrf-token: L7rKnnc7-zJJSWHhlvXeSa_s9HRBspfsbJvS3k2ZxSrg29MU2nJU
+  x-csrf-token: {{CSRF_TOKEN}}
 }
 
 body:json {
