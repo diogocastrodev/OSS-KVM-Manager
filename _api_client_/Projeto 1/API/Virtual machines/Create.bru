@@ -1,0 +1,20 @@
+meta {
+  name: Create
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{API_ENDPOINT}}/api/v1/vms/120/console
+  body: none
+  auth: inherit
+}
+
+headers {
+  x-csrf-token: {{CSRF_TOKEN}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

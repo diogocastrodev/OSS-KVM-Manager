@@ -8,6 +8,7 @@ import vmsRoute from "./virtual_machines/vm.route";
 import adminRouter from "./admin/router";
 import swaggerTags from "@/types/swaggerTags";
 import agentRoute from "./agent/router";
+import wsRouter from "./ws/ws.route";
 
 const v1Router: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
@@ -68,6 +69,12 @@ const v1Router: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
   fastify.register(agentRoute, {
     prefix: "/agent",
+  });
+  /* -------------------------------------------------------------------------- */
+  /*                                  WS Router                                 */
+  /* -------------------------------------------------------------------------- */
+  fastify.register(wsRouter, {
+    prefix: "/ws",
   });
 };
 

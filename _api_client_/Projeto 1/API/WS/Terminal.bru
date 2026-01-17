@@ -1,0 +1,19 @@
+meta {
+  name: Terminal
+  type: ws
+  seq: 1
+}
+
+ws {
+  url: {{API_ENDPOINT}}/api/v1/ws/sshterm?token=eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIn0.GZcYjwW3l96jaEgVk2PlZP9onBoYxLrvpmmashc8zr9y4XkENpfrx1FcqbWOwuqUqiXddz7fNAwY0nMBSgycb5s0SqXEarXhygleZpAKuHGMvObsQrbYxdNumSVOG9OKSdWfPPRfmEAgSW7wiErscD4rw_bi6Zm3-Ir5ZrH3nr147Y9t4HEwtwFHNQ4QleIZmeIz5PIjn-mLw87RziM5bmxx4hb7M4qM6r21uQN9gP4QUCHHjNjVmErRJGDD5OZrPhqYKuI-XGbxVhLOM_4duDFVIjxB4ujYRpRsE7ekk7-ZyyqfL83rH3GwvqRY_cjnwnPokN1cHPs-kuzjZCaGIA.cMwJrBzeRrRfxZzs.OjtVM46DdliMxa6tssMgKoUgxSDzWSrUXibRqguGrCPIsL2NoC_xO39A2q-Ez4wSuKHpOk7Y5hF_cxqm0aKH-DCeBFQ3wXK2W5_GqY71AOIUYlLybNz-Ne2j8e2ZeGF6TCkShw_auLFvmtuhaGf2RrUG39FluucwIuWIIlTgOVjHBRmai5hKErARawK96Oo-ibHLla0.AHmh21rRzoZFSyqoV3vdEg
+  body: ws
+  auth: inherit
+}
+
+body:ws {
+  name: message 1
+  type: json
+  content: '''
+    {}
+  '''
+}

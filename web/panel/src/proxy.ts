@@ -190,6 +190,5 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  // Keep your matcher; next-intl recommends excluding api/_next/etc.
-  matcher: "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
+  matcher: "/((?!api|trpc|_next|_vercel|sshterm|.*\\..*).*)",
 };

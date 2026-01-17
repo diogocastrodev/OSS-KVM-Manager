@@ -2,7 +2,7 @@ import fp from "fastify-plugin";
 import fastifyJwt, { type Secret } from "@fastify/jwt";
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
 import env from "@/utils/env";
-import { getPrivatePem, getPublicPem } from "./jose";
+import { getPrivatePemString, getPublicPemString } from "./jose";
 import { UserRole } from "@/db/schema";
 import db from "@/db/database";
 import crypto from "crypto";
@@ -18,8 +18,8 @@ const s: Secret | { private: Secret; public: Secret } =
   env.JWT_MODE === "secret"
     ? env.JWT_SECRET
     : {
-        private: getPrivatePem(),
-        public: getPublicPem(),
+        private: getPrivatePemString(),
+        public: getPublicPemString(),
       };
 
 export enum Algorithms {

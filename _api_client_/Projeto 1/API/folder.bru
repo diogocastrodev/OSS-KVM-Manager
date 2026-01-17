@@ -14,27 +14,32 @@ vars:pre-request {
 }
 
 script:pre-request {
-  const axios = require('axios');
-  const apiURL = bru.getFolderVar("API_ENDPOINT")
-  const jar = bru.cookies.jar();
-  const rfs = await jar.getCookie(apiURL, "refresh_token")
-  const act = await jar.getCookie(apiURL, "access_token")
-  const csrfEnv = bru.getGlobalEnvVar("CSRF")
-  const csrf = await jar.getCookie(apiURL, "_csrf")
-  let isActValid = false;
-  if (act) {
-    isActValid = new Date(act.expires) > new Date()
-  }
-  if(!isActValid && rfs) {
-    //console.log("AAA")
-    //const c = await axios.post(apiURL + '/api/v1/auth/refresh', { withCredentials: true });
-    //console.log(c)
-  }
+  if (!bru.getEnvVar("CSRF_TOKEN")) {
   
-  if (!csrf) {
-    bru.deleteEnvVar("CSRF_TOKEN")
-    const b = await axios.get(apiURL + "/api/v1/csrf");
-    bru.setEnvVar("CSRF_TOKEN", b.data.token)
+    // Step 1: refresh session (cookies only)
+    bru.sendRequest({
+      method: 'POST',
+      url: bru.getFolderVar("API_ENDPOINT") + '/api/v1/auth/refresh'
+    }, function (err, res) {
+  
+      if (err || res.status !== 200) {
+        throw new Error('Auth refresh failed');
+      }
+  
+      // Step 2: fetch CSRF token
+      bru.sendRequest({
+        method: 'GET',
+        url: bru.getFolderVar("API_ENDPOINT") + '/api/v1/csrf'
+      }, function (err2, res2) {
+  
+        if (err2 || res2.status !== 200) {
+          throw new Error('CSRF fetch failed');
+        }
+  
+        // SINGLE source of truth
+        bru.setEnvVar("CSRF_TOKEN", res2.body.token || res2.body.csrfToken);
+      });
+    });
   }
   
 }

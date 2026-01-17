@@ -8,6 +8,12 @@ function isMutation(method?: string) {
   return m !== "GET" && m !== "HEAD" && m !== "OPTIONS";
 }
 
+export async function getCsrfToken() {
+  let csrf = useCsrfStore.getState().token;
+  if (!csrf) csrf = await fetchCsrfToken();
+  return csrf;
+}
+
 export async function apiFetch(path: string, init: RequestInit = {}) {
   const doFetch = async () => {
     const headers = new Headers(init.headers);

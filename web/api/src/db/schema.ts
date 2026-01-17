@@ -73,6 +73,8 @@ export interface DatabaseUserSchema {
   status: Generated<UserStatus>;
   emailVerified: Generated<boolean>;
   emailVerificationToken: string | null;
+  passwordResetToken: string | null;
+  passwordResetTokenExpiresAt: Date | null;
   deactivationReason: UserDeactivationReason | null;
   authz_version: Generated<number>;
   createdAt: Generated<Date>;

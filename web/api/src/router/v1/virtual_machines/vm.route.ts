@@ -1,10 +1,20 @@
 import type { FastifyPluginAsync } from "fastify";
 import {
   getVirtualMachineByIdParamsSchema,
+  type CreateVirtualSessionBody,
+  type CreateVirtualSessionResponse,
   type GetVirtualMachineByIdParams,
 } from "./vm.schema";
-import { getMyVirtualMachines, getVirtualMachineById } from "./vm.controller";
-import { NotFoundError, UnauthorizedError } from "@/types/errorSchema";
+import {
+  createVirtualSession,
+  getMyVirtualMachines,
+  getVirtualMachineById,
+} from "./vm.controller";
+import {
+  NotFoundError,
+  UnauthorizedError,
+  type NotFoundErrorType,
+} from "@/types/errorSchema";
 import swaggerTags from "@/types/swaggerTags";
 
 const vmsRoute: FastifyPluginAsync = async (fastify) => {
@@ -62,6 +72,27 @@ const vmsRoute: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
   /*                     Virtual Session to Virtual Machine                     */
   /* -------------------------------------------------------------------------- */
+  fastify.post<{
+    Params: CreateVirtualSessionBody;
+    Reply: CreateVirtualSessionResponse | NotFoundErrorType;
+  }>(
+    "/:vmPublicId/console",
+    {
+      preValidation: [fastify.authRequired],
+      schema: {
+        tags: [swaggerTags.VIRTUAL_MACHINES],
+        summary: "Virtual Session to Virtual Machine",
+        description:
+          "Creates a virtual session to access the virtual machine's console.",
+        params: getVirtualMachineByIdParamsSchema,
+        response: {
+          401: UnauthorizedError,
+          404: NotFoundError,
+        },
+      },
+    },
+    createVirtualSession
+  );
 };
 
 export default vmsRoute;

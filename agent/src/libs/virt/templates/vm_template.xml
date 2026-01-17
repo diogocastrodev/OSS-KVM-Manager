@@ -52,6 +52,12 @@
             </bandwidth>
         </interface>
 
+        <!-- Serial port for logging -->
+        <serial type='pty'>
+            <target port='0' />
+        </serial>
+
+
         <!-- Serial console (virsh console NAME) -->
         <console type='pty'>
             <target type='serial' port='0' />

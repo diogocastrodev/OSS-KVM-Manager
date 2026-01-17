@@ -15,6 +15,7 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyCSRF from "@fastify/csrf-protection";
 import { initJwks, getJwks } from "./plugins/jose";
 import cors from "@fastify/cors";
+import websocket from "@fastify/websocket";
 /* -------------------------------------------------------------------------- */
 /*                                   Fastify                                  */
 /* -------------------------------------------------------------------------- */
@@ -49,6 +50,9 @@ await fastify.register(fastifyCSRF, {
   },
 });
 await fastify.register(authPlugin);
+await fastify.register(websocket, {
+  options: { perMessageDeflate: false },
+});
 /* -------------------------------------------------------------------------- */
 /*                               Swagger / Docs                               */
 /* -------------------------------------------------------------------------- */

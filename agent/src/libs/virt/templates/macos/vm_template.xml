@@ -1,5 +1,5 @@
 <!-- domain_template_mac.xml -->
-<domain type='qemu'>
+<domain type='qemu' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
     <name>{name}</name>
 
     <memory unit='MiB'>{memory_mib}</memory>
@@ -42,12 +42,9 @@
         </disk>
 
         <!-- Simple user-mode networking (works on macOS, no qemu-bridge-helper) -->
-        <interface type='user'>
+        <!-- <interface type='user'>
             <mac address='{mac}' />
             <model type='virtio' />
-
-            <!-- On macOS these bandwidth limits are effectively ignored,
-           but the XML stays compatible with your Linux target. -->
             <bandwidth>
                 <inbound average='{net_in_kbps}'
                     peak='{net_in_peak_kbps}'
@@ -56,7 +53,13 @@
                     peak='{net_out_peak_kbps}'
                     burst='{net_out_burst_kb}' />
             </bandwidth>
-        </interface>
+        </interface> -->
+
+        <!-- Serial port for logging -->
+        <serial type='pty'>
+            <target port='0' />
+        </serial>
+
 
         <!-- Serial console (virsh console NAME) -->
         <console type='pty'>
@@ -68,4 +71,10 @@
             <listen type='address' address='127.0.0.1' />
         </graphics>
     </devices>
+    <qemu:commandline>
+        <qemu:arg value='-netdev' />
+        <qemu:arg value='user,id=net0,hostfwd=tcp:127.0.0.1:22222-:22' />
+        <qemu:arg value='-device' />
+        <qemu:arg value='virtio-net-pci,netdev=net0,mac={mac},bus=pcie.0,addr=0x05' />
+    </qemu:commandline>
 </domain>

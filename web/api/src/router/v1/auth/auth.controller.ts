@@ -148,7 +148,12 @@ export const requestPasswordReset = async (
   const user = await db
     .selectFrom("users")
     .where("email", "=", email)
-    .select(["id", "emailVerified"])
+    .select([
+      "id",
+      "passwordResetToken",
+      "passwordResetTokenExpiresAt",
+      "emailVerified",
+    ])
     .executeTakeFirst();
 
   if (!user) {
@@ -169,15 +174,15 @@ export const requestPasswordReset = async (
     // Generate a password reset token
     const resetToken = crypto.randomUUID();
 
-    // Set token and expiration (e.g., 1 hour from now)
+    // Set token and expiration (1 hour from now)
     const expiresAt = new Date();
-    // TODO: Make Password Reset expiration configurable
     expiresAt.setHours(expiresAt.getHours() + 1);
 
     await db
       .updateTable("users")
       .set({
-        emailVerificationToken: resetToken,
+        passwordResetToken: resetToken,
+        passwordResetTokenExpiresAt: expiresAt,
       })
       .where("id", "=", user.id)
       .execute();
@@ -203,8 +208,13 @@ export const resetPassword = async (
 
   const user = await db
     .selectFrom("users")
-    .where("emailVerificationToken", "=", token)
-    .select(["id", "emailVerified"])
+    .where("passwordResetToken", "=", token)
+    .select([
+      "id",
+      "emailVerified",
+      "authz_version",
+      "passwordResetTokenExpiresAt",
+    ])
     .executeTakeFirst();
 
   if (!user) {
@@ -215,16 +225,24 @@ export const resetPassword = async (
     return reply.status(401).send({ message: "Invalid or expired token" });
   }
 
+  if (user.passwordResetTokenExpiresAt! < new Date()) {
+    return reply.status(401).send({ message: "Invalid or expired token" });
+  }
+
   const hash = await passwordHash(password);
 
   await db
     .updateTable("users")
     .set({
       password: hash,
-      emailVerificationToken: null,
+      passwordResetToken: null,
+      passwordResetTokenExpiresAt: null,
+      authz_version: user.authz_version + 1, // Invalidate existing sessions
     })
     .where("id", "=", user.id)
     .execute();
+
+  await db.deleteFrom("refresh_tokens").where("userId", "=", user.id).execute(); // Invalidate all refresh tokens
 
   return reply
     .status(200)

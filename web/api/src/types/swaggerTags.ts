@@ -7,6 +7,7 @@ const swaggerTags = {
   SERVERS: "Servers",
   VIRTUAL_MACHINES: "Virtual Machines",
   CSRF: "CSRF",
+  WS: "WebSocket",
   ADMIN: {
     USERS: `${AdminTag} Users`,
     SERVERS: `${AdminTag} Servers`,

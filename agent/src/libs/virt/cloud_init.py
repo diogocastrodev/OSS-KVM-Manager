@@ -6,6 +6,7 @@ from typing import Optional
 import tempfile
 import subprocess
 import xml.etree.ElementTree as ET
+import subprocess
 
 @dataclass
 class MetaTemplate:
@@ -30,6 +31,15 @@ class UserPasswordTemplate:
     hostname: str
     username: str
     password: str
+
+
+def sha512_crypt(password: str) -> str:
+    # -6 = SHA-512 crypt, output is $6$... which cloud-init accepts in users[].passwd
+    out = subprocess.check_output(
+        ["openssl", "passwd", "-6", "-stdin"],
+        input=password.encode("utf-8"),
+    )
+    return out.decode("utf-8").strip()
 
 
 def load_template(template_name: str) -> str:
@@ -63,10 +73,12 @@ def generate_user_data_key(template: UserKeyTemplate) -> str:
 
 def generate_user_data_password(template: UserPasswordTemplate) -> str:
     template_str = load_template('user_pwd_template.yaml')
+    password_hashed = sha512_crypt(template.password)
+    print(f"Generated hashed password: {password_hashed}")
     return template_str.format(
         hostname=template.hostname,
         username=template.username,
-        password=template.password
+        password=password_hashed
     )
 
 def vm_uses_user_network(domain) -> bool:

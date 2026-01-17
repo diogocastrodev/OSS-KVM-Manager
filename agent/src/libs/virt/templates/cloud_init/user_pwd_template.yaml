@@ -8,14 +8,44 @@ users:
     groups: [sudo, adm]
     shell: /bin/bash
     lock_passwd: false
+    passwd: '{password}'
 
 ssh_pwauth: true
 disable_root: true
 
-chpasswd:
-  expire: false
-  list: |
-    {username}:{password}
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-platform.conf
+    permissions: "0644"
+    content: |
+      PubkeyAuthentication yes
+      PasswordAuthentication yes
+      KbdInteractiveAuthentication yes
+      UsePAM yes
+
+  - path: /etc/netplan/01-netcfg.yaml
+    permissions: "0600"
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            dhcp4: true
+
+  - path: /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
+    permissions: "0644"
+    content: |
+      [Service]
+      TimeoutStartSec=12s
+      ExecStart=
+      ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --timeout=12 --any
+
+runcmd:
+  - netplan generate
+  - netplan apply
+  - systemctl daemon-reload
+  - systemctl restart systemd-networkd
+  - systemctl restart systemd-networkd-wait-online || true
 
 # Grow filesystem after qemu-img resize
 growpart:
@@ -28,3 +58,6 @@ power_state:
   message: "Cloud-init finished; powering off"
   timeout: 30
   condition: true
+
+network:
+  config: disabled

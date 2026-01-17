@@ -11,6 +11,7 @@
   --color-background-secondary: var(--color-zinc-100);
   --color-background-selected: var(--color-zinc-300);
   --color-foreground: var(--color-zinc-800);
+  --color-logo: #f0aa3d;
 
   background-color: var(--color-background-primary);
   color: var(--color-foreground);
@@ -22,6 +23,7 @@ html.dark {
   --color-background-secondary: var(--color-zinc-950);
   --color-background-selected: var(--color-zinc-800);
   --color-foreground: var(--color-zinc-100);
+  --color-logo: #f0aa3d;
 }
 
 /* :root {

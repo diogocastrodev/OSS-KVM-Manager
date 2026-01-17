@@ -33,20 +33,22 @@ enum DeactivationReason {
 }
 
 model User {
-  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                   String
-  email                  String                 @unique
-  password               String
-  role                   Role                   @default(USER)
-  status                 UserStatus             @default(PENDING)
-  emailVerified          Boolean                @default(false)
-  emailVerificationToken String?
-  deactivationReason     DeactivationReason?
-  authz_version          Int                    @default(0)
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @default(now()) @updatedAt
-  refreshTokens          RefreshToken[]
-  virtualMachinesUsers   VirtualMachinesUsers[]
+  id                          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                        String
+  email                       String                 @unique
+  password                    String
+  role                        Role                   @default(USER)
+  status                      UserStatus             @default(PENDING)
+  emailVerified               Boolean                @default(false)
+  emailVerificationToken      String?
+  passwordResetToken          String?
+  passwordResetTokenExpiresAt DateTime?
+  deactivationReason          DeactivationReason?
+  authz_version               Int                    @default(0)
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @default(now()) @updatedAt
+  refreshTokens               RefreshToken[]
+  virtualMachinesUsers        VirtualMachinesUsers[]
 
   @@map("users")
 }
