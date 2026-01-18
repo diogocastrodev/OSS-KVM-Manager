@@ -50,36 +50,51 @@ def generate_meta_data(template: MetaTemplate) -> str:
     template_str = load_template('meta_template.yaml')
     return template_str.format(vm_id=template.vm_id, hostname=template.hostname)
 
-def generate_networking_data(template: NetworkingTemplate) -> str:
-    template_str = load_template('networking_template.yaml')
+def gen_dns_defaults(dns_list: list[str]) -> str:
+    if not dns_list:
+        dns_list = ["1.1.1.1", "8.8.8.8"]
+    return ", ".join(f'"{dns}"' for dns in dns_list)
 
-    dns_list = template.dns_servers or ["1.1.1.1", "8.8.8.8"]
-    dns_servers_str = ", ".join(f'"{dns}"' for dns in dns_list)
+# def generate_networking_data(template: NetworkingTemplate) -> str:
+#     template_str = load_template('networking_template.yaml')
 
-    return template_str.format(
-        mac=template.mac_address,
-        vm_ip=template.ip_cidr,
-        vm_prefix=24, # TODO: Send prefix in template
-        vms_gateway=template.gateway,
-        dns_servers=dns_servers_str
-    )
+#     dns_list = template.dns_servers or ["1.1.1.1", "8.8.8.8"]
+#     dns_servers_str = ", ".join(f'"{dns}"' for dns in dns_list)
 
-def generate_user_data_key(template: UserKeyTemplate) -> str:
+#     return template_str.format(
+#         mac=template.mac_address,
+#         vm_ip=template.ip_cidr,
+#         vm_prefix=24, # TODO: Send prefix in template
+#         vms_gateway=template.gateway,
+#         dns_servers=dns_servers_str
+#     )
+
+def generate_user_data_key(template: UserKeyTemplate, network: NetworkingTemplate) -> str:
     template_str = load_template('user_keys_template.yaml')
     return template_str.format(
         hostname=template.hostname,
         username=template.username,
-        ssh_public_key=template.ssh_public_key
+        ssh_public_key=template.ssh_public_key,
+        mac=network.mac_address,
+        vm_ip=network.ip_cidr,
+        vm_prefix=24, # TODO: Send prefix in template
+        vms_gateway=network.gateway,
+        dns_servers=gen_dns_defaults(network.dns_servers)
     )
 
-def generate_user_data_password(template: UserPasswordTemplate) -> str:
+def generate_user_data_password(template: UserPasswordTemplate, network: NetworkingTemplate) -> str:
     template_str = load_template('user_pwd_template.yaml')
     password_hashed = sha512_crypt(template.password)
     print(f"Generated hashed password: {password_hashed}")
     return template_str.format(
         hostname=template.hostname,
         username=template.username,
-        password=password_hashed
+        password=password_hashed,
+        mac=network.mac_address,
+        vm_ip=network.ip_cidr,
+        vm_prefix=24, # TODO: Send prefix in template
+        vms_gateway=network.gateway,
+        dns_servers=gen_dns_defaults(network.dns_servers)
     )
 
 def vm_uses_user_network(domain) -> bool:
@@ -119,15 +134,9 @@ def generate_cloud_init_iso_alt(
 ) -> bool:
     meta_str = generate_meta_data(meta_data)
 
-    network_str = None
-    if networking_data is not None:
-        if not networking_data.dns_servers:
-            networking_data.dns_servers = ["1.1.1.1", "8.8.8.8"]
-        network_str = generate_networking_data(networking_data)
-
     if isinstance(user_data, UserKeyTemplate):
-        user_str = generate_user_data_key(user_data)
+        user_str = generate_user_data_key(user_data, networking_data)
     else:
-        user_str = generate_user_data_password(user_data)
+        user_str = generate_user_data_password(user_data, networking_data)
 
-    return generate_cloud_init_iso(meta_str, network_str, user_str, iso_path)
+    return generate_cloud_init_iso(meta_str, None, user_str, iso_path)
