@@ -1,7 +1,5 @@
 import time
-import json
-import shutil
-import subprocess
+import libvirt
 import math
 
 def ensure_shutoff(domain, wait_s: int = 20):
@@ -15,11 +13,11 @@ def ensure_shutoff(domain, wait_s: int = 20):
         time.sleep(0.5)
     domain.destroy()
 
-def get_virtual_size_gb(disk_path: str) -> int:
-    qemu_img = shutil.which("qemu-img")
-    if not qemu_img:
-        raise RuntimeError("qemu-img not found on PATH")
-    out = subprocess.check_output([qemu_img, "info", "--output=json", disk_path], text=True)
-    info = json.loads(out)
-    bytes_ = int(info["virtual-size"])
-    return max(1, math.ceil(bytes_ / (1024**3)))
+def get_virtual_size_gb(conn: libvirt.virConnect, disk_path: str) -> int:
+    """
+    Return the virtual capacity of a disk (in GiB) using libvirt,
+    avoiding direct filesystem access to the qcow2.
+    """
+    vol = conn.storageVolLookupByPath(disk_path)  # works for pool-backed files
+    _type, capacity_bytes, _allocation_bytes = vol.info()
+    return max(1, math.ceil(capacity_bytes / (1024**3)))

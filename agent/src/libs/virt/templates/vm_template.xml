@@ -41,9 +41,9 @@
         </disk>
 
         <!-- Network interface on your bridge -->
-        <interface type='bridge'>
+        <interface type='network'>
             <mac address='{mac}' />
-            <source bridge='br-vms' />
+            <source network='vms' />
             <model type='virtio' />
             <bandwidth>
                 <inbound average='{net_in_kbps}' peak='{net_in_peak_kbps}' burst='{net_in_burst_kb}' />
@@ -51,6 +51,7 @@
                     burst='{net_out_burst_kb}' />
             </bandwidth>
         </interface>
+
 
         <!-- Serial port for logging -->
         <serial type='pty'>

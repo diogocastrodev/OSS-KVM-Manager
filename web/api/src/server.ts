@@ -169,7 +169,7 @@ fastify.setErrorHandler((err, req, reply) => {
 /* -------------------------------------------------------------------------- */
 /*                                  Listener                                  */
 /* -------------------------------------------------------------------------- */
-fastify.listen({ port: env.PORT }, (err, address) => {
+fastify.listen({ port: env.PORT, host: "0.0.0.0" }, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);

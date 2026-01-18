@@ -8,7 +8,7 @@ users:
     groups: [sudo, adm]
     shell: /bin/bash
     lock_passwd: false
-    passwd: '{password}'
+    passwd: "{password}"
 
 ssh_pwauth: true
 disable_root: true
@@ -29,23 +29,25 @@ write_files:
         version: 2
         renderer: networkd
         ethernets:
-          eth0:
-            dhcp4: true
-
-  - path: /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
-    permissions: "0644"
-    content: |
-      [Service]
-      TimeoutStartSec=12s
-      ExecStart=
-      ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --timeout=12 --any
+          nic0:
+            match:
+              macaddress: "{mac}"
+            set-name: eth0
+            dhcp4: false
+            addresses:
+              - {vm_ip}/{vm_prefix}
+            routes:
+              - to: default
+                via: {vms_gateway}
+            nameservers:
+              addresses: [1.1.1.1, 8.8.8.8]
 
 runcmd:
   - netplan generate
   - netplan apply
   - systemctl daemon-reload
   - systemctl restart systemd-networkd
-  - systemctl restart systemd-networkd-wait-online || true
+  - systemctl restart ssh || systemctl restart sshd || true
 
 # Grow filesystem after qemu-img resize
 growpart:

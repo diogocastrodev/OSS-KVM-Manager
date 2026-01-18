@@ -83,7 +83,7 @@ async def format_vm_disk(vm_id: str, body: VMFormatBody):
 
         # 2) find current vda disk path + current size
         vda_path = get_vda_path(domain)
-        current_disk_gb = get_virtual_size_gb(vda_path)
+        current_disk_gb = get_virtual_size_gb(conn, vda_path)
         print("Step 2: done")
 
         print("Step 3: ensuring image", body.os.os_name, body.os.os_url, "into", CLOUDIMG_DIR)

@@ -1,0 +1,6 @@
+<network>
+    <name>vms</name>
+    <bridge name='br-vms' stp='on' delay='0' />
+    <forward mode='nat' />
+    <ip address='{ip_gateway}' netmask='{network_mask}' />
+</network>

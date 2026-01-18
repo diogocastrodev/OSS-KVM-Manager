@@ -6,7 +6,7 @@ import requests
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from pathlib import Path
 
-PRIVATE_KEY_PEM = Path(os.getenv("AGENT_PRIVATE_KEY_PATH", "./keys/agent_private.pem")).read_bytes()
+PRIVATE_KEY_PEM = Path(os.getenv("AGENT_PRIVATE_KEY_PATH", "/etc/agent/agent_private.pem")).read_bytes()
 PRIVATE_KEY = load_pem_private_key(PRIVATE_KEY_PEM, password=None)
 
 AGENT_ID = os.getenv("AGENT_ID", "agent-1")

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def get_connection_read_only(uri=os.getenv("LIBVIRT_URI", "qemu:///session")):
+def get_connection_read_only(uri=os.getenv("LIBVIRT_URI", "qemu:///system")):
     try:
         conn = libvirt.openReadOnly(uri)
         if conn is None:
@@ -13,7 +13,7 @@ def get_connection_read_only(uri=os.getenv("LIBVIRT_URI", "qemu:///session")):
     except libvirt.libvirtError as e:
         raise Exception(f"Libvirt error: {e}")
     
-def get_connection(uri=os.getenv("LIBVIRT_URI", "qemu:///session")):
+def get_connection(uri=os.getenv("LIBVIRT_URI", "qemu:///system")):
     try:
         conn = libvirt.open(uri)
         if conn is None:

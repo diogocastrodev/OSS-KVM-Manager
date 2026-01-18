@@ -22,6 +22,7 @@ echo "[*] Installing Required Packages ..."
 echo "\t- Updating System ..."
 apt update && apt upgrade -y
 echo "\t- Installing Packages ..."
+# TODO: noninteractive -> error in debian 12 
 DEBIAN_FRONTEND=noninteractive apt install -y \
   python3-pip \
   qemu-system \
@@ -34,7 +35,11 @@ DEBIAN_FRONTEND=noninteractive apt install -y \
   python3-venv \
   curl \
   qemu-utils \
-  genisoimage
+  genisoimage \
+  pkg-config \
+  libvirt-dev \
+  libvirt-clients \
+  acl
 
 ### Setup libvirt ###
 echo "[*] Setting up libvirt ..."
@@ -54,6 +59,7 @@ ip link set $NIC_NAME up
 ip route replace default via $DEFAULT_GATEWAY
 # Create Bridge for VMs #
 echo "\t- Creating Bridge Network ..."
+# TODO: This will change for another setup method using libvirt's network XML definition
 brctl addbr $BRIDGE_NAME 2> /dev/null || true
 ip addr replace $BRIDGE_IP dev $BRIDGE_NAME      # gateway for VMs
 ip link set $BRIDGE_NAME up
@@ -102,6 +108,7 @@ chown -R agent:agent /etc/agent
 chmod 600 /etc/agent/agent_private.pem
 chmod 644 /etc/agent/agent_public.pem
 chown agent:agent /etc/agent/agent_private.pem /etc/agent/agent_public.pem
+usermod -aG kvm,libvirt,libvirt-qemu agent
 
 ####### Fetch Agent #######
 echo "[*] Fetching Agent Software ..."
@@ -123,3 +130,9 @@ AGENT_SERVICE_PATH="/etc/systemd/system/agent.service"
 systemctl daemon-reload
 systemctl enable --now agent.service
 journalctl -u agent.service -f
+
+chown root:libvirt-qemu /var/lib/libvirt/images
+chmod 2770 /var/lib/libvirt/images
+setfacl -m u:agent:rwx /var/lib/libvirt/images
+setfacl -d -m u:agent:rwx /var/lib/libvirt/images
+setfacl -d -m g:libvirt-qemu:rwx /var/lib/libvirt/images

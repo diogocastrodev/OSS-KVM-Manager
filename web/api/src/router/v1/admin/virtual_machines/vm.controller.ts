@@ -272,7 +272,7 @@ export const adminCreateVirtualMachine = async (
           os: {
             os_name: os.path,
             // TODO: Use proper URL construction
-            os_url: `http://localhost:8000/api/v1/agent/os/${os.path}/download`,
+            os_url: `http://100.78.85.5:8000/api/v1/agent/os/${os.path}/download`,
           },
         },
       };

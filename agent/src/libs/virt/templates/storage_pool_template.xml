@@ -1,6 +1,6 @@
 <pool type='dir'>
     <name>default</name>
     <target>
-        <path>/Users/diogocastro/libvirt/images</path>
+        <path>/var/lib/libvirt/images</path>
     </target>
 </pool>

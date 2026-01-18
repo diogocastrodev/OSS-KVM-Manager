@@ -157,14 +157,15 @@ export const createServer = async (
       .send({ message: "Server with this publicId already exists" });
   }
 
-  const agent_port = req.body.server_endpoint.split(":")[1] || "80";
+  const server_endpoint_parts = req.body.server_endpoint.split(":");
+  const agent_port = server_endpoint_parts[1] || "80";
 
   const insertedServer = await db
     .insertInto("servers")
     .values({
       publicId: req.body.publicId,
       name: req.body.name,
-      ipLocal: req.body.server_endpoint,
+      ipLocal: server_endpoint_parts[0] || req.body.server_endpoint,
       cpus: req.body.cpus,
       vcpus: req.body.vcpus,
       ram: req.body.memory_mb,
