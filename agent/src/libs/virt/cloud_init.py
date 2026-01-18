@@ -57,9 +57,10 @@ def generate_networking_data(template: NetworkingTemplate) -> str:
     dns_servers_str = ", ".join(f'"{dns}"' for dns in dns_list)
 
     return template_str.format(
-        mac_address=template.mac_address,
-        ip_cidr=template.ip_cidr,
-        gateway=template.gateway,
+        mac=template.mac_address,
+        vm_ip=template.ip_cidr,
+        vm_prefix=24, # TODO: Send prefix in template
+        vms_gateway=template.gateway,
         dns_servers=dns_servers_str
     )
 

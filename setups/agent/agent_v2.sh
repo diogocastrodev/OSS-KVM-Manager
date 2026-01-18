@@ -157,6 +157,9 @@ ensure_keys(){
   chown root:"$AGENT_GROUP" "$AGENT_PRIVATE_KEY_PATH" "$AGENT_PUBLIC_KEY_PATH" || true
   chmod 0640 "$AGENT_PRIVATE_KEY_PATH"
   chmod 0644 "$AGENT_PUBLIC_KEY_PATH"
+  # Ensure agent user can traverse /etc/agent and read the private key
+  chown root:"$AGENT_GROUP" /etc/agent
+  chmod 0750 /etc/agent
 }
 
 write_agent_env(){
@@ -373,7 +376,8 @@ apt_install \
   ovmf \
   genisoimage \
   policykit-1 \
-  iproute2 iptables
+  iproute2 iptables \
+  dnsmasq
 
 log "Starting libvirt"
 systemctl enable --now libvirtd
