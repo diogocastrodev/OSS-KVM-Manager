@@ -19,6 +19,7 @@ interface EnvironmentVariables {
   MAILGUN_API_KEY: string;
   MAILGUN_DOMAIN: string;
   WEB_PANEL_URL: string;
+  IGNORE_AGENT: boolean;
 }
 
 const parseEnv = (name: string, defaultValue: string, required: boolean) => {
@@ -33,7 +34,7 @@ const env: EnvironmentVariables = {
   DATABASE_URL: parseEnv(
     "DATABASE_URL",
     "postgresql://user:password@localhost:5432/mydb",
-    true
+    true,
   ),
   PORT: parseInt(parseEnv("PORT", "3000", false), 10),
   JWT_MODE: parseEnv("JWT_MODE", "secret", false) as JWT_MODE_ENUM,
@@ -42,20 +43,21 @@ const env: EnvironmentVariables = {
   COOKIE_SECRET: parseEnv("COOKIE_SECRET", "defaultcookiesecret", true),
   JWT_TOKEN_TIME_SECONDS: parseInt(
     parseEnv("JWT_TOKEN_TIME_SECONDS", (15 * 60).toString(), false),
-    10
+    10,
   ),
   REFRESH_TOKEN_TIME_SECONDS: parseInt(
     parseEnv(
       "REFRESH_TOKEN_TIME_SECONDS",
       (30 * 24 * 60 * 60).toString(),
-      false
+      false,
     ),
-    10
+    10,
   ),
   IGNORE_CSRF: parseEnv("IGNORE_CSRF", "false", false) === "true",
   MAILGUN_API_KEY: parseEnv("MAILGUN_API_KEY", "", true),
   MAILGUN_DOMAIN: parseEnv("MAILGUN_DOMAIN", "", true),
   WEB_PANEL_URL: parseEnv("WEB_PANEL_URL", "http://localhost:3000", false),
+  IGNORE_AGENT: parseEnv("IGNORE_AGENT", "false", false) === "true",
 };
 
 export default env;

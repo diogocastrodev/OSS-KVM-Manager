@@ -12,6 +12,7 @@ import type {
 import db from "@/db/database";
 import type { NotFoundErrorType } from "@/types/errorSchema";
 import type { tryInfoType } from "@/types/tryInfoType";
+import env from "@/utils/env";
 
 /* -------------------------------------------------------------------------- */
 /*                               Get All Servers                              */
@@ -20,7 +21,7 @@ export const getAllServers = async (
   req: FastifyRequest<{
     Querystring: getServersRequestQueryStringType;
   }>,
-  reply: FastifyReply<{ Reply: getServersReplyBodyType }>
+  reply: FastifyReply<{ Reply: getServersReplyBodyType }>,
 ): Promise<void> => {
   const { include_virtual_machines } = req.query;
 
@@ -51,7 +52,7 @@ export const getAllServers = async (
 
   serversWithVMs.forEach((row) => {
     let server = serversMap.servers.find(
-      (s) => s.publicId === row.serverPublicId
+      (s) => s.publicId === row.serverPublicId,
     );
     if (!server) {
       server = {
@@ -78,7 +79,7 @@ export const getAllServers = async (
 /* -------------------------------------------------------------------------- */
 export const getOneServer = async (
   req: FastifyRequest<{ Params: getOneServerParamsSchemaType }>,
-  reply: FastifyReply<{ Reply: getOneServerReplyBodyType | NotFoundErrorType }>
+  reply: FastifyReply<{ Reply: getOneServerReplyBodyType | NotFoundErrorType }>,
 ): Promise<void> => {
   const { publicId } = req.params;
   const server = await db
@@ -99,12 +100,24 @@ export const getOneServer = async (
 /* -------------------------------------------------------------------------- */
 export const tryInfo = async (
   req: FastifyRequest<{ Body: tryInfoRequestBodyType }>,
-  reply: FastifyReply<{ Reply: tryInfoReplyBodyType | NotFoundErrorType }>
+  reply: FastifyReply<{ Reply: tryInfoReplyBodyType | NotFoundErrorType }>,
 ): Promise<void> => {
   const { server_endpoint } = req.body;
+  if (env.IGNORE_AGENT) {
+    await new Promise((r) => setTimeout(r, 1780));
 
+    return reply.status(200).send({
+      message: "Test mode: Skipping server reachability check",
+      info: {
+        cpus: 4,
+        vcpus: 8,
+        memory_mb: 8192,
+        disk: 100000,
+      },
+    });
+  }
   const res = await fetch(`http://${server_endpoint}/api/v1/info`).catch(
-    () => null
+    () => null,
   );
 
   if (!res || !res.ok) {
@@ -132,17 +145,22 @@ export const tryInfo = async (
 /* -------------------------------------------------------------------------- */
 export const createServer = async (
   req: FastifyRequest<{ Body: createServerRequestBodyType }>,
-  reply: FastifyReply<{ Reply: createServerReplyBodyType }>
+  reply: FastifyReply<{ Reply: createServerReplyBodyType }>,
 ): Promise<void> => {
-  const checkIfServerIsReachable = await fetch(
-    `http://${req.body.server_endpoint}/api/v1/health`
-  ).catch(() => null);
+  // In production, check if server is reachable
+  if (env.IGNORE_AGENT === false) {
+    const checkIfServerIsReachable = await fetch(
+      `http://${req.body.server_endpoint}/api/v1/health`,
+    ).catch(() => null);
 
-  if (
-    !checkIfServerIsReachable?.ok ||
-    checkIfServerIsReachable.status !== 200
-  ) {
-    return reply.status(400).send({ message: "Server is not reachable" });
+    if (
+      !checkIfServerIsReachable?.ok ||
+      checkIfServerIsReachable.status !== 200
+    ) {
+      return reply.status(400).send({ message: "Server is not reachable" });
+    }
+  } else {
+    await new Promise((r) => setTimeout(r, 50));
   }
 
   const checkPublicId = await db

@@ -113,7 +113,7 @@ fastify.addHook(
     // if (!req.cookies?.refresh_token) return done();
 
     fastify.csrfProtection(req, reply, done);
-  }
+  },
 );
 
 /* -------------------------------------------------------------------------- */
@@ -180,6 +180,9 @@ fastify.listen({ port: env.PORT, host: "0.0.0.0" }, (err, address) => {
   fastify.log.info(`🔧 Running in ${env.NODE_ENV}`);
   fastify.log.info(`\t 🚨 JWT using ${env.JWT_MODE} mode`);
   fastify.log.info(
-    `\t 🚨 Currently ${env.IGNORE_CSRF ? "ignoring" : "enforcing"} CSRF`
+    `\t 🚨 Currently ${env.IGNORE_CSRF ? "ignoring" : "enforcing"} CSRF`,
+  );
+  fastify.log.info(
+    `\t 🚨 Currently ${env.IGNORE_AGENT ? "ignoring" : "enforcing"} Agent connection`,
   );
 });
