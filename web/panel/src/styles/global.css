@@ -7,23 +7,118 @@
 
 /* Light defaults */
 :root {
+  /* Primary Colors */
   --color-background-primary: var(--color-zinc-200);
   --color-background-secondary: var(--color-zinc-100);
   --color-background-selected: var(--color-zinc-300);
   --color-foreground: var(--color-zinc-800);
+  --color-foreground-secondary: var(--color-zinc-600);
+  /* Accent Colors */
+  --color-anchor: var(--color-blue-600);
+  --color-anchor-hover: var(--color-blue-700);
+  /* Buttons */
+  --color-button-background: var(--color-zinc-300);
+  --color-button-background-hover: var(--color-zinc-400);
+  --color-button-outline: var(--color-zinc-500);
+  --color-button-outline-hover: var(--color-zinc-600);
+  --color-button-foreground: var(--color-zinc-800);
+  --color-button-foreground-hover: var(--color-zinc-900);
+  /* Input */
+  --color-input-background: var(--color-zinc-300);
+  --color-input-foreground: var(--color-zinc-800);
+  --color-input-outline: var(--color-zinc-500);
+  --color-input-outline-focus: var(--color-blue-700);
+  /* Logo */
   --color-logo: #f0aa3d;
+  /* Errors */
+  --color-error-foreground: var(--color-red-700);
+  --color-error-background: var(--color-red-200);
+  --color-error-outline: var(--color-red-500);
+  /* Custom Buttons */
+  --color-button-turnon: var(--color-green-400);
+  --color-button-turnon-hover: var(--color-green-500);
+  --color-button-turnon-foreground: var(--color-zinc-100);
+  --color-button-turnon-foreground-hover: var(--color-zinc-50);
+  --color-button-turnon-disabled: var(--color-zinc-400);
+  --color-button-turnon-foreground-disabled: var(--color-zinc-200);
+  --color-button-turnoff: var(--color-red-400);
+  --color-button-turnoff-hover: var(--color-red-500);
+  --color-button-turnoff-foreground: var(--color-zinc-100);
+  --color-button-turnoff-foreground-hover: var(--color-zinc-50);
+  --color-button-turnoff-disabled: var(--color-zinc-400);
+  --color-button-turnoff-foreground-disabled: var(--color-zinc-200);
+  --color-button-restart: var(--color-yellow-400);
+  --color-button-restart-hover: var(--color-yellow-500);
+  --color-button-restart-foreground: var(--color-zinc-100);
+  --color-button-restart-foreground-hover: var(--color-zinc-50);
+  --color-button-restart-disabled: var(--color-zinc-400);
+  --color-button-restart-foreground-disabled: var(--color-zinc-200);
+  --color-button-kill: var(--color-red-600);
+  --color-button-kill-hover: var(--color-red-700);
+  --color-button-kill-foreground: var(--color-zinc-100);
+  --color-button-kill-foreground-hover: var(--color-zinc-50);
+  --color-button-kill-disabled: var(--color-zinc-400);
+  --color-button-kill-foreground-disabled: var(--color-zinc-200);
 
+  /* Set default */
   background-color: var(--color-background-primary);
   color: var(--color-foreground);
 }
 
 /* Dark overrides when html has class="dark" */
 html.dark {
+  /* Primary Colors */
   --color-background-primary: var(--color-zinc-900);
   --color-background-secondary: var(--color-zinc-950);
   --color-background-selected: var(--color-zinc-800);
   --color-foreground: var(--color-zinc-100);
+  --color-foreground-secondary: var(--color-zinc-400);
+  /* Accent Colors */
+  --color-anchor: var(--color-blue-400);
+  --color-anchor-hover: var(--color-blue-500);
+  /* Buttons */
+  --color-button-background: var(--color-zinc-800);
+  --color-button-background-hover: var(--color-zinc-700);
+  --color-button-outline: var(--color-zinc-600);
+  --color-button-outline-hover: var(--color-zinc-500);
+  --color-button-foreground: var(--color-zinc-100);
+  --color-button-foreground-hover: var(--color-zinc-50);
+  /* Input */
+  --color-input-background: var(--color-zinc-800);
+  --color-input-foreground: var(--color-zinc-100);
+  --color-input-outline: var(--color-zinc-600);
+  --color-input-outline-focus: var(--color-blue-700);
+  /* Logo */
   --color-logo: #f0aa3d;
+  /* Errors */
+  --color-error-foreground: var(--color-red-400);
+  --color-error-background: var(--color-red-900);
+  --color-error-outline: var(--color-red-600);
+  /* Custom Buttons */
+  --color-button-turnon: var(--color-green-500);
+  --color-button-turnon-hover: var(--color-green-600);
+  --color-button-turnon-foreground: var(--color-zinc-900);
+  --color-button-turnon-foreground-hover: var(--color-zinc-100);
+  --color-button-restart-disabled: var(--color-zinc-600);
+  --color-button-restart-foreground-disabled: var(--color-zinc-400);
+  --color-button-turnoff: var(--color-red-500);
+  --color-button-turnoff-hover: var(--color-red-600);
+  --color-button-turnoff-foreground: var(--color-zinc-900);
+  --color-button-turnoff-foreground-hover: var(--color-zinc-100);
+  --color-button-turnoff-disabled: var(--color-zinc-600);
+  --color-button-turnoff-foreground-disabled: var(--color-zinc-400);
+  --color-button-restart: var(--color-yellow-500);
+  --color-button-restart-hover: var(--color-yellow-600);
+  --color-button-restart-foreground: var(--color-zinc-900);
+  --color-button-restart-foreground-hover: var(--color-zinc-100);
+  --color-button-restart-disabled: var(--color-zinc-600);
+  --color-button-restart-foreground-disabled: var(--color-zinc-400);
+  --color-button-kill: var(--color-red-700);
+  --color-button-kill-hover: var(--color-red-800);
+  --color-button-kill-foreground: var(--color-zinc-100);
+  --color-button-kill-foreground-hover: var(--color-zinc-50);
+  --color-button-kill-disabled: var(--color-zinc-600);
+  --color-button-kill-foreground-disabled: var(--color-zinc-400);
 }
 
 /* :root {

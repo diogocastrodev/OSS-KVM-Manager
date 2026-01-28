@@ -1,8 +1,8 @@
 import { Role } from "@/types/Session";
 
 export const roleRank: Record<Role, number> = {
-  admin: 999,
-  user: 1,
+  ADMIN: 999,
+  USER: 1,
 };
 
 export function hasAtLeast(role: Role | undefined, min: Role) {

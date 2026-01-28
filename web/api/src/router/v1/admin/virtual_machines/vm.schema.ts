@@ -10,14 +10,17 @@ export const adminGetAllServersReplySchema = z.object({
       status: z.string(),
       createdAt: z.string(),
       updatedAt: z.string(),
-    })
+    }),
   ),
 });
 /* -------------------------------------------------------------------------- */
 /*                              Get VM By ID                              */
 /* -------------------------------------------------------------------------- */
 export const adminGetVirtualMachineByIdParamsSchema = z.object({
-  vmPublicId: z.int(),
+  vmPublicId: z
+    .string()
+    .regex(/^\d+$/, "vmPublicId must be a number")
+    .transform(Number),
 });
 
 export type AdminGetVirtualMachineByIdParams = z.infer<

@@ -9,7 +9,7 @@ const handleI18nRouting = createMiddleware(routing);
 // Rules (WITHOUT locale prefix)
 const GUEST_ONLY: string[] = ["/", "/register"];
 const PROTECTED_PREFIXES: string[] = ["/panel", "/profile"];
-const ADMIN_ONLY_PREFIXES: string[] = ["/panel/admin", "/panel/users"];
+const ADMIN_ONLY_PREFIXES: string[] = ["/admin"];
 
 const LOGIN_PATH = "/";
 const DEFAULT_AUTHED_PATH = "/panel";
@@ -134,7 +134,7 @@ export default async function proxy(req: NextRequest) {
 
   // Resolve the effective URL after i18n rewrites (if any)
   const effectiveUrl = new URL(
-    response.headers.get("x-middleware-rewrite") || req.url
+    response.headers.get("x-middleware-rewrite") || req.url,
   );
   const { locale, appPath } = parseLocaleAndAppPath(effectiveUrl.pathname);
 
@@ -165,6 +165,7 @@ export default async function proxy(req: NextRequest) {
 
   // 4) Route decisions
   if (user) {
+    console.log("MW:", user);
     // guest-only -> go to panel
     if (isGuestOnly(appPath)) {
       return redirectWithI18nHeaders(withLocale(locale, DEFAULT_AUTHED_PATH));
@@ -172,8 +173,8 @@ export default async function proxy(req: NextRequest) {
 
     // admin-only check
     if (isAdminOnly(appPath)) {
-      const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
-      if (!roles.includes("admin")) {
+      const role: string = user.role;
+      if (role !== "ADMIN") {
         return redirectWithI18nHeaders(withLocale(locale, DEFAULT_AUTHED_PATH));
       }
     }

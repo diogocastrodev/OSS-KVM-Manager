@@ -106,6 +106,25 @@ export const adminCreateVirtualMachine = async (
       .status(400)
       .send({ message: "Virtual machine ID already in use" });
   }
+
+  // VM available to be created, proceed to reserve resources
+  const updateServerResources = await db
+    .updateTable("servers")
+    .set({
+      ram_available: server.ram_available - req.body.memory_mib,
+      disk_available: server.disk_available - req.body.disk_gb,
+      vcpus_available: server.vcpus_available - req.body.vcpus,
+    })
+    .returning(["ram_available", "disk_available", "vcpus_available"])
+    .where("id", "=", server.id)
+    .executeTakeFirst();
+
+  if (!updateServerResources) {
+    return reply
+      .status(500)
+      .send({ message: "Failed to update server resources" });
+  }
+
   let vmMac = "";
   try {
     if (server.vms_mac_prefix) {
@@ -146,6 +165,16 @@ export const adminCreateVirtualMachine = async (
     }
   } catch (error) {
     console.log(error);
+    await db
+      .updateTable("servers")
+      .set({
+        ram_available:
+          updateServerResources.ram_available + req.body.memory_mib,
+        disk_available: updateServerResources.disk_available + req.body.disk_gb,
+        vcpus_available: updateServerResources.vcpus_available + req.body.vcpus,
+      })
+      .where("id", "=", server.id)
+      .execute();
     return reply
       .status(500)
       .send({ message: "Failed to generate MAC address for VM" });
@@ -220,22 +249,24 @@ export const adminCreateVirtualMachine = async (
           .where("id", "=", newVM.id)
           .execute();
 
+        await db
+          .updateTable("servers")
+          .set({
+            ram_available:
+              updateServerResources.ram_available + req.body.memory_mib,
+            disk_available:
+              updateServerResources.disk_available + req.body.disk_gb,
+            vcpus_available:
+              updateServerResources.vcpus_available + req.body.vcpus,
+          })
+          .where("id", "=", server.id)
+          .execute();
+
         return reply
           .status(500)
           .send({ message: "Failed to create virtual machine on agent" });
       }
     }
-
-    // VM created on agent, update server resources
-    await db
-      .updateTable("servers")
-      .set({
-        ram_available: server.ram_available - req.body.memory_mib,
-        disk_available: server.disk_available - req.body.disk_gb,
-        vcpus_available: server.vcpus_available - req.body.vcpus,
-      })
-      .where("id", "=", server.id)
-      .execute();
 
     if (req.body.os) {
       const os = await db
@@ -334,13 +365,26 @@ export const adminCreateVirtualMachine = async (
             .execute();
 
           if (deleteVMResponse.ok) {
+            // Get fresh server resources
+            const uptServerRes = await db
+              .selectFrom("servers")
+              .select(["ram_available", "disk_available", "vcpus_available"])
+              .where("id", "=", server.id)
+              .executeTakeFirst();
+
+            if (!uptServerRes) {
+              return reply
+                .status(500)
+                .send({ message: "Failed to update server resources" });
+            }
+
             // Update server resources
             await db
               .updateTable("servers")
               .set({
-                ram_available: server.ram_available + req.body.memory_mib,
-                disk_available: server.disk_available + req.body.disk_gb,
-                vcpus_available: server.vcpus_available + req.body.vcpus,
+                ram_available: uptServerRes.ram_available + req.body.memory_mib,
+                disk_available: uptServerRes.disk_available + req.body.disk_gb,
+                vcpus_available: uptServerRes.vcpus_available + req.body.vcpus,
               })
               .where("id", "=", server.id)
               .execute();
@@ -357,6 +401,7 @@ export const adminCreateVirtualMachine = async (
           .updateTable("virtual_machines")
           .set({
             status: "OPERATIONAL",
+            format_completed_at: new Date(),
           })
           .where("id", "=", newVM.id)
           .execute();
@@ -376,6 +421,7 @@ export const adminCreateVirtualMachine = async (
         .updateTable("virtual_machines")
         .set({
           status: "OPERATIONAL",
+          format_completed_at: new Date(),
         })
         .where("id", "=", newVM.id)
         .execute();
@@ -399,6 +445,7 @@ export const adminCreateVirtualMachine = async (
   }
 };
 
+// TODO: Admin Update Virtual Machine
 export const adminUpdateVirtualMachine = async (
   req: FastifyRequest,
   reply: FastifyReply,

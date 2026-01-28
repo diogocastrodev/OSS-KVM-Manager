@@ -1,0 +1,16 @@
+meta {
+  name: Get Specific VM Status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{AGE_ENDPOINT}}/api/v1/vms/fee83b6d-c0f5-4d03-b1fe-b84ddbd7a8c7/status
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

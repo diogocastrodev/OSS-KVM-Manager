@@ -350,7 +350,7 @@ RestartSec=2
 
 # hardening (safe defaults)
 NoNewPrivileges=true
-PrivateTmp=true
+PrivateTmp=false
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+meta {
+  name: Public Key
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{AGE_ENDPOINT}}/api/v1/info/key
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
