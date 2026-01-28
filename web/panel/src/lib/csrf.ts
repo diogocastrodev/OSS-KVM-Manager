@@ -2,6 +2,10 @@ import { useCsrfStore } from "@/stores/csrf";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
 
+/**
+ * Fetch CSRF Token from API
+ * @returns CSRF Token
+ */
 export async function fetchCsrfToken(): Promise<string | null> {
   const res = await fetch(`${API}/api/v1/csrf`, {
     method: "GET",

@@ -34,6 +34,15 @@ export const getAllServers = async (
     return reply.status(200).send({ servers: servers });
   }
 
+  const servs = await db
+    .selectFrom("servers")
+    .select(["publicId", "name"])
+    .execute();
+
+  if (servs.length === 0) {
+    return reply.status(200).send({ servers: [] });
+  }
+
   const serversWithVMs = await db
     .selectFrom("servers")
     .innerJoin("virtual_machines", "servers.id", "virtual_machines.serverId")
@@ -49,6 +58,14 @@ export const getAllServers = async (
   const serversMap: getServersReplyBodyType = {
     servers: [],
   };
+
+  servs.forEach((server) => {
+    serversMap.servers.push({
+      publicId: server.publicId,
+      name: server.name,
+      virtual_machines: [],
+    });
+  });
 
   serversWithVMs.forEach((row) => {
     let server = serversMap.servers.find(
@@ -198,9 +215,13 @@ export const createServer = async (
       vcpus_available: req.body.vcpus_max,
       ram_available: req.body.memory_mb_max,
       disk_available: req.body.disk_max,
-      agent_port: agent_port ? parseInt(agent_port, 10) : 80, // Default agent port
+      agent_port: agent_port ? parseInt(agent_port, 10) : 5000, // Default agent port
     })
-    .execute();
+    .execute()
+    .catch((error) => {
+      req.log.error("Error inserting server into database:", error);
+      return reply.status(500).send({ message: "Database error" });
+    });
 
   return reply.status(200).send({
     message: "Server created successfully",

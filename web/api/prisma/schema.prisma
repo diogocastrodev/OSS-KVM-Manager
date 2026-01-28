@@ -49,6 +49,8 @@ model User {
   updatedAt                   DateTime               @default(now()) @updatedAt
   refreshTokens               RefreshToken[]
   virtualMachinesUsers        VirtualMachinesUsers[]
+  // supportTickets              SupportTickets[]
+  // ticketMessages              TicketMessages[]
 
   @@map("users")
 }
@@ -225,3 +227,44 @@ model IsosPaths {
 
   @@map("isos_paths")
 }
+
+// enum TicketStatus {
+//   OPEN
+//   IN_PROGRESS
+//   RESOLVED
+//   CLOSED
+// }
+
+// enum Priority {
+//   LOW
+//   MEDIUM
+//   HIGH
+//   URGENT
+// }
+
+// model TicketMessages {
+//   id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   ticketId  String         @db.Uuid
+//   ticket    SupportTickets @relation(fields: [ticketId], references: [id])
+//   senderId  String         @db.Uuid
+//   sender    User           @relation(fields: [senderId], references: [id])
+//   message   String
+//   createdAt DateTime       @default(now())
+
+//   @@map("ticket_messages")
+// }
+
+// model SupportTickets {
+//   id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   userId         String           @db.Uuid
+//   user           User             @relation(fields: [userId], references: [id])
+//   subject        String
+//   message        String
+//   priority       Priority         @default(MEDIUM)
+//   status         TicketStatus     @default(OPEN)
+//   createdAt      DateTime         @default(now())
+//   updatedAt      DateTime         @default(now()) @updatedAt
+//   ticketMessages TicketMessages[]
+
+//   @@map("support_tickets")
+// }

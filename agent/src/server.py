@@ -35,7 +35,7 @@ def run():
         raise Exception("Failed to establish read-only connection to libvirt"
                         " - is libvirtd running?")
     conn.close()
-    uvicorn.run(app, host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 20256)))
+    uvicorn.run(app, host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 5000)))
 
 if __name__ == "__main__":
     run()

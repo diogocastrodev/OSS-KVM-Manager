@@ -1,5 +1,6 @@
 "use client";
 import Logo from "@/components/Icon/Logo";
+import { useSession } from "@/hooks/useSession";
 import { useRouter as useLocaleRouter, usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { MoonIcon, SunIcon } from "lucide-react";
@@ -13,10 +14,13 @@ export default function Page() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   // const t = await getTranslations("panel");
+  const s = useSession();
 
   return (
     <>
-      <div>Main Page yay</div>
+      <div className="flex flex-col p-2">
+        <div className="text-2xl">Welcome to the Panel {s.data?.name}!</div>
+      </div>
     </>
   );
 }

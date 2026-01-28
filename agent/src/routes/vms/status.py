@@ -8,13 +8,15 @@ router = APIRouter(prefix="/{vm_id}/status")
 @router.get("/")
 async def get_vm_status(vm_id: str):
     vm = get_virtual_machine_read(vm_id)
-    return {"found": vm is not None, "vm": {"status": __domain_to_dict__(vm)["state"]} if vm else None}
+    if vm is None:
+        raise HTTPException(status_code=404, detail="VM not found")
+    return {"found": True, "vm": {"status": __domain_to_dict__(vm)["state"]}}
 
 @router.post("/start")
 async def start_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}
+        raise HTTPException(status_code=404, detail="VM not found")
     try:
         vm.create()
         return {"found": True, "vm": {"status": "started"}}
@@ -25,7 +27,7 @@ async def start_vm(vm_id: str):
 async def stop_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}
+        raise HTTPException(status_code=404, detail="VM not found")
     try:
         vm.shutdown()
         return {"found": True, "vm": {"status": "stopped"}}
@@ -36,7 +38,7 @@ async def stop_vm(vm_id: str):
 async def restart_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}
+        raise HTTPException(status_code=404, detail="VM not found")
     try:
         vm.reboot(0)
         return {"found": True, "vm": {"status": "restarted"}}
@@ -47,7 +49,7 @@ async def restart_vm(vm_id: str):
 async def kill_vm(vm_id: str):
     vm = get_virtual_machine_changes(vm_id)
     if vm is None:
-        return {"found": False, "vm": None}
+        raise HTTPException(status_code=404, detail="VM not found")
     try:
         vm.destroy()
         return {"found": True, "vm": {"status": "killed"}}

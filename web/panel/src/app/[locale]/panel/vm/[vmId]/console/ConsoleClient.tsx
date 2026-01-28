@@ -1,9 +1,22 @@
 "use client";
-import { apiFetch, getCsrfToken } from "@/lib/apiFetch";
+import Tooltip from "@/components/ToolTip/ToolTip";
+import VMNavbar from "@/components/vm/navbar/navbar";
+import { apiFetch } from "@/lib/apiFetch";
+import qk from "@/lib/fetches/keys";
+import { useQuery } from "@tanstack/react-query";
+import { InfoIcon } from "lucide-react";
 import { useState } from "react";
 
 interface Params {
   vmId: string;
+}
+
+interface props {
+  vmID: string;
+}
+
+interface Response {
+  name: string;
 }
 
 export default function ConsoleClient({ params }: { params: Params }) {
@@ -33,7 +46,25 @@ export default function ConsoleClient({ params }: { params: Params }) {
   }
   return (
     <>
-      <div className="flex flex-col h-full p-2">
+      <div className="flex flex-col h-full gap-y-2">
+        <div className="flex flex-row">
+          <div className="ml-auto">
+            <Tooltip
+              content={
+                <>
+                  Once the console is open type:
+                  <code className="px-1">
+                    ssh <i>username</i>@vm
+                  </code>
+                </>
+              }
+              delay={200}
+              direction="left"
+            >
+              <InfoIcon className="inline-block mr-2" />
+            </Tooltip>
+          </div>
+        </div>
         <div className="h-full border-2 border-(--color-logo) rounded-md overflow-hidden">
           {!open ? (
             <>
@@ -42,7 +73,7 @@ export default function ConsoleClient({ params }: { params: Params }) {
                   className="bg-blue-300 text-zinc-800 dark:bg-blue-800 dark:text-zinc-100 py-2 px-3 rounded-md cursor-pointer"
                   onClick={openConsole}
                 >
-                  Open terminal
+                  Open console
                 </button>
               </div>
             </>

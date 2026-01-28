@@ -70,7 +70,7 @@ export const confirmEmailGet = async (
   }>,
   reply: FastifyReply<{
     Reply: confirmEmailGetReplyBodyType;
-  }>
+  }>,
 ) => {
   const { token } = req.params;
 
@@ -101,7 +101,7 @@ export const confirmEmailPost = async (
   }>,
   reply: FastifyReply<{
     Reply: confirmEmailPostReplyBodyType;
-  }>
+  }>,
 ) => {
   const { token, name, password } = req.body;
 
@@ -141,7 +141,7 @@ export const confirmEmailPost = async (
 /* -------------------------------------------------------------------------- */
 export const requestPasswordReset = async (
   req: FastifyRequest<{ Body: passwordResetRequestBodyType }>,
-  reply: FastifyReply<{ Reply: passwordResetRequestReplyBodyType }>
+  reply: FastifyReply<{ Reply: passwordResetRequestReplyBodyType }>,
 ) => {
   const { email } = req.body;
 
@@ -202,7 +202,7 @@ export const requestPasswordReset = async (
 /* -------------------------------------------------------------------------- */
 export const resetPassword = async (
   req: FastifyRequest<{ Body: passwordResetBodyType }>,
-  reply: FastifyReply<{ Reply: passwordResetReplyBodyType }>
+  reply: FastifyReply<{ Reply: passwordResetReplyBodyType }>,
 ) => {
   const { token, password } = req.body;
 
@@ -255,7 +255,7 @@ export const resetPassword = async (
 
 export const login = async (
   req: FastifyRequest<{ Body: loginRequestBodyType }>,
-  reply: FastifyReply<{ Reply: loginReplyBodyType }>
+  reply: FastifyReply<{ Reply: loginReplyBodyType }>,
 ): Promise<void> => {
   const { email, password: passwordAttempt } = req.body;
 
@@ -304,7 +304,7 @@ export const login = async (
   reply.setCookie(
     "refresh_token",
     refresh,
-    generateRefreshTokenCookie(expiresAt)
+    generateRefreshTokenCookie(expiresAt),
   );
   const jwt = await generateJwtToken(reply, {
     email: user.email,
@@ -355,11 +355,11 @@ export const refresh = async (
   req: FastifyRequest,
   reply: FastifyReply<{
     Reply: refreshReplyBodyType;
-  }>
+  }>,
 ) => {
   const refreshToken = req.cookies.refresh_token;
   if (!refreshToken) {
-    return reply.status(401).send({ message: "No refresh token provided1" });
+    return reply.status(401).send({ message: "No refresh token provided" });
   }
 
   const tokenRecord = await db
@@ -378,7 +378,7 @@ export const refresh = async (
     }
     return reply
       .status(401)
-      .send({ message: "Invalid or expired refresh token2" });
+      .send({ message: "Invalid or expired refresh token" });
   }
 
   const user = await db
@@ -424,7 +424,7 @@ export const refresh = async (
   reply.setCookie(
     "refresh_token",
     newRefreshToken,
-    generateRefreshTokenCookie(expiresAt)
+    generateRefreshTokenCookie(expiresAt),
   );
 
   // Generate new Access Token

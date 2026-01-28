@@ -14,7 +14,7 @@ import env from "@/utils/env";
 /* -------------------------------------------------------------------------- */
 export const getMyVirtualMachines = async (
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) => {
   const email = req.user.email;
 
@@ -23,7 +23,7 @@ export const getMyVirtualMachines = async (
     .innerJoin(
       "virtual_machines_users",
       "virtual_machines.id",
-      "virtual_machines_users.virtualMachinesId"
+      "virtual_machines_users.virtualMachinesId",
     )
     .innerJoin("users", "virtual_machines_users.userId", "users.id")
     .selectAll("virtual_machines")
@@ -40,7 +40,7 @@ export const getVirtualMachineById = async (
   req: FastifyRequest<{
     Params: GetVirtualMachineByIdParams;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) => {
   const email = req.user.email;
   const { vmPublicId } = req.params;
@@ -50,10 +50,24 @@ export const getVirtualMachineById = async (
     .innerJoin(
       "virtual_machines_users",
       "virtual_machines.id",
-      "virtual_machines_users.virtualMachinesId"
+      "virtual_machines_users.virtualMachinesId",
     )
     .innerJoin("users", "virtual_machines_users.userId", "users.id")
-    .selectAll("virtual_machines")
+    .select([
+      "virtual_machines.name",
+      "virtual_machines.publicId",
+      "virtual_machines.vcpus",
+      "virtual_machines.ram",
+      "virtual_machines.disk",
+      "virtual_machines.in_avg",
+      "virtual_machines.out_avg",
+      "virtual_machines.ipLocal",
+      "virtual_machines.ipPublic",
+      "virtual_machines.createdAt",
+      "virtual_machines.updatedAt",
+      "virtual_machines.mac",
+      "virtual_machines_users.role",
+    ])
     .where("users.email", "=", email)
     .where("virtual_machines.publicId", "=", vmPublicId)
     .executeTakeFirst();
@@ -66,7 +80,40 @@ export const getVirtualMachineById = async (
     });
   }
 
-  return reply.status(200).send(vm);
+  const server = await db
+    .selectFrom("servers")
+    .innerJoin("virtual_machines", "servers.id", "virtual_machines.serverId")
+    .select([
+      "servers.ipLocal as serverIpLocal",
+      "servers.agent_port as serverAgentPort",
+      "virtual_machines.id as vmId",
+    ])
+    .where("virtual_machines.publicId", "=", vmPublicId)
+    .executeTakeFirst();
+
+  if (!server) {
+    return reply.status(200).send({ state: "unknown", ...vm });
+  }
+
+  try {
+    const d = await fetch(
+      `http://${server.serverIpLocal}:${server.serverAgentPort}/api/v1/vms/${server.vmId}/status`,
+      {
+        method: "GET",
+        signal: AbortSignal.timeout(600),
+      },
+    );
+
+    if (!d.ok) {
+      return reply.status(200).send({ state: "unknown", ...vm });
+    }
+
+    const statusData = await d.json();
+
+    return reply.status(200).send({ state: statusData.vm.status, ...vm });
+  } catch (e) {
+    return reply.status(200).send({ state: "unknown", ...vm });
+  }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -78,7 +125,7 @@ export const createVirtualSession = async (
   }>,
   reply: FastifyReply<{
     Reply: CreateVirtualSessionResponse | NotFoundErrorType;
-  }>
+  }>,
 ) => {
   const email = req.user.email;
   const { vmPublicId } = req.params;
@@ -88,7 +135,7 @@ export const createVirtualSession = async (
     .innerJoin(
       "virtual_machines_users",
       "virtual_machines.id",
-      "virtual_machines_users.virtualMachinesId"
+      "virtual_machines_users.virtualMachinesId",
     )
     .innerJoin("users", "virtual_machines_users.userId", "users.id")
     .innerJoin("servers", "virtual_machines.serverId", "servers.id")

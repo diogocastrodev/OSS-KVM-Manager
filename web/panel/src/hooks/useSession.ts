@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/apiFetch";
 import { Session } from "@/types/Session";
+import qk from "@/lib/fetches/keys";
 
+/**
+ * Fetch Session Data from API
+ * @returns Session Data
+ */
 export async function fetchSession(): Promise<Session | null> {
   const res = await apiFetch("/api/v1/user/session", { method: "GET" });
 
@@ -15,11 +20,12 @@ export async function fetchSession(): Promise<Session | null> {
 
 export function useSession() {
   return useQuery({
-    queryKey: ["session"],
+    queryKey: qk.api.v1.user.session(),
     queryFn: fetchSession,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
+    refetchOnMount: false,
     refetchInterval: 60_000,
   });
 }

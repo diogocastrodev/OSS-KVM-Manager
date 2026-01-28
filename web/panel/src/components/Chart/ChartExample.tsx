@@ -18,7 +18,7 @@ const data = {
 };
 const LineChart = () => {
   return (
-    <div style={{ width: "700px", height: "700px" }}>
+    <div className="w-full h-full flex flex-col items-center p-3">
       <h1>Example 1: Line Chart</h1>
       <Line data={data} />
     </div>
