@@ -70,32 +70,22 @@ def generate_networking_data(template: NetworkingTemplate) -> str:
         dns_servers=dns_servers_str
     )
 
-def generate_user_data_key(template: UserKeyTemplate, network: NetworkingTemplate) -> str:
+def generate_user_data_key(template: UserKeyTemplate) -> str:
     template_str = load_template('user_keys_template.yaml')
     return template_str.format(
         hostname=template.hostname,
         username=template.username,
-        ssh_public_key=template.ssh_public_key,
-        # mac=network.mac_address,
-        # vm_ip=network.ip_cidr,
-        # vm_prefix=24, # TODO: Send prefix in template
-        # vms_gateway=network.gateway,
-        # dns_servers=gen_dns_defaults(network.dns_servers)
+        ssh_public_key=template.ssh_public_key
     )
 
-def generate_user_data_password(template: UserPasswordTemplate, network: NetworkingTemplate) -> str:
+def generate_user_data_password(template: UserPasswordTemplate) -> str:
     template_str = load_template('user_pwd_template.yaml')
     password_hashed = sha512_crypt(template.password)
     print(f"Generated hashed password: {password_hashed}")
     return template_str.format(
         hostname=template.hostname,
         username=template.username,
-        password=password_hashed,
-        # mac=network.mac_address,
-        # vm_ip=network.ip_cidr,
-        # vm_prefix=
-        # vms_gateway=network.gateway,
-        # dns_servers=gen_dns_defaults(network.dns_servers)
+        password=password_hashed
     )
 
 def vm_uses_user_network(domain) -> bool:
@@ -139,8 +129,8 @@ def generate_cloud_init_iso_alt(
         networking_str = generate_networking_data(networking_data)
 
     if isinstance(user_data, UserKeyTemplate):
-        user_str = generate_user_data_key(user_data, networking_data)
+        user_str = generate_user_data_key(user_data)
     else:
-        user_str = generate_user_data_password(user_data, networking_data)
+        user_str = generate_user_data_password(user_data)
 
     return generate_cloud_init_iso(meta_str, networking_str if networking_data is not None else None, user_str, iso_path)
