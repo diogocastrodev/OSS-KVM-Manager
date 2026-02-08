@@ -2,6 +2,8 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type {
   createServerReplyBodyType,
   createServerRequestBodyType,
+  deleteServerParamsSchemaType,
+  deleteServerReplyBodyType,
   getOneServerParamsSchemaType,
   getOneServerReplyBodyType,
   getServersReplyBodyType,
@@ -12,6 +14,9 @@ import type {
   healthCheckReplyBodyType,
   tryInfoReplyBodyType,
   tryInfoRequestBodyType,
+  updateServerParamsSchemaType,
+  updateServerReplyBodyType,
+  updateServerRequestBodyType,
 } from "./servers.schema";
 import db from "@/db/database";
 import type {
@@ -317,4 +322,113 @@ export const healthCheckServer = async (
   }
 
   return reply.status(200).send({ alive: true });
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                Update Server                               */
+/* -------------------------------------------------------------------------- */
+export const updateServer = async (
+  req: FastifyRequest<{
+    Params: updateServerParamsSchemaType;
+    Body: updateServerRequestBodyType;
+  }>,
+  reply: FastifyReply<{
+    Reply:
+      | updateServerReplyBodyType
+      | NotFoundErrorType
+      | UnauthorizedErrorType;
+  }>,
+) => {
+  const { publicId } = req.params;
+
+  const server = await db
+    .selectFrom("servers")
+    .select(["id"])
+    .where("publicId", "=", publicId)
+    .executeTakeFirst();
+
+  if (!server) {
+    return reply.status(404).send({ message: "Server Not Found" });
+  }
+
+  const usedData = await db
+    .selectFrom("virtual_machines")
+    .select([
+      (eb) => eb.fn.sum("vcpus").as("vcpus_used"),
+      (eb) => eb.fn.sum("ram").as("ram_used"),
+      (eb) => eb.fn.sum("disk").as("disk_used"),
+    ])
+    .where("serverId", "=", server.id)
+    .executeTakeFirst();
+
+  const vcpus_used = Number(usedData?.vcpus_used) || 0;
+  const ram_used = Number(usedData?.ram_used) || 0;
+  const disk_used = Number(usedData?.disk_used) || 0;
+
+  if (
+    Number(req.body.vcpus_max) < vcpus_used ||
+    Number(req.body.memory_mb_max) < ram_used ||
+    Number(req.body.disk_max) < disk_used
+  ) {
+    return reply.status(400).send({
+      message:
+        "New maximum resources cannot be less than currently used resources by VMs",
+    });
+  }
+
+  await db
+    .updateTable("servers")
+    .set({
+      name: req.body.name,
+      cpus: req.body.cpus,
+      vcpus: req.body.vcpus,
+      ram: req.body.memory_mb,
+      disk: req.body.disk,
+      in_link: req.body.in_link_mbps,
+      out_link: req.body.out_link_mbps,
+      vcpus_max: req.body.vcpus_max,
+      ram_max: req.body.memory_mb_max,
+      disk_max: req.body.disk_max,
+      vcpus_available: Number(req.body.vcpus_max) - vcpus_used,
+      ram_available: Number(req.body.memory_mb_max) - ram_used,
+      disk_available: Number(req.body.disk_max) - disk_used,
+    })
+    .where("id", "=", server.id)
+    .execute();
+
+  return reply.status(200).send({ message: "Server updated successfully" });
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                Delete Server                               */
+/* -------------------------------------------------------------------------- */
+export const deleteServer = async (
+  req: FastifyRequest<{ Params: deleteServerParamsSchemaType }>,
+  reply: FastifyReply<{
+    Reply:
+      | deleteServerReplyBodyType
+      | NotFoundErrorType
+      | UnauthorizedErrorType;
+  }>,
+) => {
+  const { publicId } = req.params;
+
+  const server = await db
+    .selectFrom("servers")
+    .select(["id"])
+    .where("publicId", "=", publicId)
+    .executeTakeFirst();
+
+  if (!server) {
+    return reply.status(404).send({ message: "Server Not Found" });
+  }
+
+  await db
+    .deleteFrom("virtual_machines")
+    .where("serverId", "=", server.id)
+    .execute();
+
+  await db.deleteFrom("servers").where("id", "=", server.id).execute();
+
+  return reply.status(200).send({ message: "Server deleted successfully" });
 };

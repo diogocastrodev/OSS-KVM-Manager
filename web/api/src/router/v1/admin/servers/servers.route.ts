@@ -25,6 +25,16 @@ import {
   type getVMsOfServerReplyBodyType,
   getVMsOfServerParamsSchema,
   getVMsOfServerReplyBody,
+  type deleteServerParamsSchemaType,
+  type deleteServerReplyBodyType,
+  deleteServerParamsSchema,
+  deleteServerReplyBody,
+  type updateServerParamsSchemaType,
+  type updateServerRequestBodyType,
+  type updateServerReplyBodyType,
+  updateServerParamsSchema,
+  updateServerRequestBody,
+  updateServerReplyBody,
 } from "./servers.schema";
 import {
   NotFoundError,
@@ -34,11 +44,13 @@ import {
 } from "@/types/errorSchema";
 import {
   createServer,
+  deleteServer,
   getAllServers,
   getOneServer,
   getVMsOfServer,
   healthCheckServer,
   tryInfo,
+  updateServer,
 } from "./servers.controller";
 
 const serversAdminRoute: FastifyPluginAsync = async (fastify) => {
@@ -189,6 +201,63 @@ const serversAdminRoute: FastifyPluginAsync = async (fastify) => {
       },
     },
     createServer,
+  );
+  /* -------------------------------------------------------------------------- */
+  /*                                Update Server                               */
+  /* -------------------------------------------------------------------------- */
+  fastify.put<{
+    Params: updateServerParamsSchemaType;
+    Body: updateServerRequestBodyType;
+    Reply:
+      | updateServerReplyBodyType
+      | NotFoundErrorType
+      | UnauthorizedErrorType;
+  }>(
+    "/:publicId",
+    {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
+      schema: {
+        tags: [swaggerTags.ADMIN.SERVERS],
+        summary: "Update an existing server",
+        description:
+          "Update details of an existing server entry in the system.",
+        params: updateServerParamsSchema,
+        body: updateServerRequestBody,
+        response: {
+          200: updateServerReplyBody,
+          404: NotFoundError,
+          401: UnauthorizedError,
+        },
+      },
+    },
+    updateServer,
+  );
+  /* -------------------------------------------------------------------------- */
+  /*                                Delete Server                               */
+  /* -------------------------------------------------------------------------- */
+  fastify.delete<{
+    Params: deleteServerParamsSchemaType;
+    Reply:
+      | deleteServerReplyBodyType
+      | NotFoundErrorType
+      | UnauthorizedErrorType;
+  }>(
+    "/:publicId",
+    {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
+      schema: {
+        tags: [swaggerTags.ADMIN.SERVERS],
+        summary: "Delete a server",
+        description: "Delete a server entry from the system.",
+        params: deleteServerParamsSchema,
+        response: {
+          204: deleteServerReplyBody,
+          401: UnauthorizedError,
+          404: NotFoundError,
+        },
+      },
+    },
+    deleteServer,
   );
 };
 

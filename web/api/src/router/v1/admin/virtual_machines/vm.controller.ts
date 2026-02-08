@@ -18,6 +18,7 @@ import type { CreateVMBody, PreparedRequest } from "@/utils/agentRoutes";
 import type { AgentRoutes } from "@/utils/agentRoutes";
 import { pollFinalizeUntilOperational } from "@/utils/pool";
 import env from "@/utils/env";
+import normalizeNames from "@/utils/normalizeName";
 
 export const adminGetAllVirtualMachines = async (
   req: FastifyRequest,
@@ -317,10 +318,23 @@ export const adminCreateVirtualMachine = async (
         return reply.status(404).send({ message: "OS path not found" });
       }
 
+      if (req.body.host) {
+        if (normalizeNames(req.body.host.hostname).length === 0) {
+          return reply
+            .status(400)
+            .send({ message: "Invalid host configuration" });
+        }
+        if (normalizeNames(req.body.host.username).length === 0) {
+          return reply
+            .status(400)
+            .send({ message: "Invalid host configuration" });
+        }
+      }
+
       const hostProvided = req.body.host && {
         host: {
-          hostname: req.body.host.hostname,
-          username: req.body.host.username,
+          hostname: normalizeNames(req.body.host.hostname),
+          username: normalizeNames(req.body.host.username),
           password: req.body.host.password,
           public_key: req.body.host.public_key,
         },

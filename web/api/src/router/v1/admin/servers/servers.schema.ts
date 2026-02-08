@@ -182,3 +182,66 @@ export const createServerReplyBody = z.object({
 });
 
 export type createServerReplyBodyType = z.infer<typeof createServerReplyBody>;
+/* -------------------------------------------------------------------------- */
+/*                                Update Server                               */
+/* -------------------------------------------------------------------------- */
+export const updateServerParamsSchema = z.object({
+  publicId: z
+    .string()
+    .regex(/^\d+$/, "publicId must be a number")
+    .transform(Number),
+});
+
+export type updateServerParamsSchemaType = z.infer<
+  typeof updateServerParamsSchema
+>;
+
+export const updateServerRequestBody = z.object({
+  name: z.string().min(1, "Name cannot be empty").optional(),
+  server_endpoint: z
+    .string()
+    .regex(
+      /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]):(?:6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{0,3}|0)$/,
+      "Invalid IP:PORT address format",
+    )
+    .optional(),
+  // Resources
+  cpus: z.number().min(1, "CPUs must be at least 1"),
+  vcpus: z.number().min(1, "vCPUs must be at least 1"),
+  memory_mb: z.number().min(128, "Memory must be at least 128 MB"),
+  disk: z.number().min(1, "Disk must be at least 1 GB"),
+  in_link_mbps: z.number().min(1, "In Link must be at least 1 Mbps"),
+  out_link_mbps: z.number().min(1, "Out Link must be at least 1 Mbps"),
+  // Maximum to be used
+  vcpus_max: z.number().min(1, "vCPUs Max must be at least 1"),
+  memory_mb_max: z.number().min(128, "Memory Max must be at least 128 MB"),
+  disk_max: z.number().min(1, "Disk Max must be at least 1 GB"),
+});
+
+export type updateServerRequestBodyType = z.infer<
+  typeof updateServerRequestBody
+>;
+
+export const updateServerReplyBody = z.object({
+  message: z.string(),
+});
+
+export type updateServerReplyBodyType = z.infer<typeof updateServerReplyBody>;
+
+/* -------------------------------------------------------------------------- */
+/*                                Delete Server                               */
+/* -------------------------------------------------------------------------- */
+export const deleteServerParamsSchema = z.object({
+  publicId: z
+    .string()
+    .regex(/^\d+$/, "publicId must be a number")
+    .transform(Number),
+});
+export type deleteServerParamsSchemaType = z.infer<
+  typeof deleteServerParamsSchema
+>;
+
+export const deleteServerReplyBody = z.object({
+  message: z.string(),
+});
+export type deleteServerReplyBodyType = z.infer<typeof deleteServerReplyBody>;

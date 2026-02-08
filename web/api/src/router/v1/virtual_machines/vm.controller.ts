@@ -19,6 +19,7 @@ import { createVirtualSessionEncryptToken } from "@/utils/vmConsole";
 import env from "@/utils/env";
 import { pollFinalizeUntilOperational } from "@/utils/pool";
 import type { AgentRoutes, PreparedRequest } from "@/utils/agentRoutes";
+import normalizeNames from "@/utils/normalizeName";
 
 /* -------------------------------------------------------------------------- */
 /*                           Get My Virtual Machines                          */
@@ -162,6 +163,36 @@ export const formatVirtualMachine = async (
 
     if (u.role !== "OWNER" && u.role !== "OPERATOR") {
       return reply.status(403).send({ message: "Forbidden" });
+    }
+  }
+
+  if (req.body.host) {
+    req.body.host.hostname = normalizeNames(req.body.host.hostname);
+    req.body.host.username = normalizeNames(req.body.host.username);
+
+    if (
+      req.body.host.hostname.length === 0 ||
+      req.body.host.username.length === 0
+    ) {
+      return reply.status(400).send({
+        message:
+          "Invalid host information. Hostname and username must contain at least one alphanumeric character.",
+      });
+    }
+
+    if (req.body.host.password && req.body.host.password.length === 0) {
+      delete req.body.host.password;
+    }
+
+    if (req.body.host.publicKey && req.body.host.publicKey.length === 0) {
+      delete req.body.host.publicKey;
+    }
+
+    if (!req.body.host.password && !req.body.host.publicKey) {
+      return reply.status(400).send({
+        message:
+          "Invalid host information. Either password or public key must be provided.",
+      });
     }
   }
 
