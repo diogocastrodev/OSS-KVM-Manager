@@ -1,3 +1,4 @@
+import os
 import traceback
 from typing import Optional
 from fastapi import APIRouter, HTTPException
@@ -8,7 +9,7 @@ import libvirt
 from src.models.create_vm import VMCreateRequest
 from src.models.format_vm import VMFormatBody
 from src.libs.virt.edit import edit_virtual_machine, VMEdiRequest, BandWidthConfig
-from src.libs.virt.helpers import get_virtual_size_gb
+from src.libs.virt.helpers import find_attached_cdrom_iso, get_virtual_size_gb
 from src.libs.virt.format import attach_seed_iso, detach_seed_iso, get_vda_path
 from src.libs.virt.cloud_init import (
     MetaTemplate,
@@ -22,6 +23,7 @@ from src.libs.virt.create import get_connection
 from src.libs.cloudimgs.check import CLOUDIMG_DIR, ensure_cloudimg
 from src.libs.virt.clone_cloudimg import full_clone_cloud_image_into_volume
 from pathlib import Path
+from uuid import uuid4
 
 router = APIRouter(prefix="/vms", tags=["VMs Management"])
         
@@ -99,7 +101,7 @@ async def format_vm_disk(vm_id: str, body: VMFormatBody):
         print("Step 4: done")
 
         # 5) create seed ISO
-        seed_iso_path = f"/tmp/{vm_id}-seed.iso"
+        seed_iso_path = f"/tmp/{vm_id}-{uuid4().hex}-seed-.iso"
         print("Step 5: generating cloud-init ISO at", seed_iso_path)
 
 
@@ -165,20 +167,28 @@ async def finalize_vm(vm_id: str):
     try:
         domain = conn.lookupByName(vm_id)
 
-        # not ready yet
         if domain.isActive():
             raise HTTPException(409, "VM still running; cloud-init likely not finished yet")
 
-        seed_iso = f"/tmp/{vm_id}-seed.iso"
+        seed_iso = find_attached_cdrom_iso(domain)
+        if not seed_iso:
+            # Nothing to detach, just boot
+            domain.create()
+            return {"status": "finalized", "seed_detached": False}
 
-        # detach seed
-        detach_seed_iso(domain, seed_iso_path=seed_iso)  # your robust detach-by-source
-        # boot again
+        detach_seed_iso(domain, seed_iso_path=seed_iso)
+
+        # optional: best-effort cleanup (won't break if permission denied)
+        try:
+            os.remove(seed_iso)
+        except Exception:
+            pass
+
         domain.create()
-
-        return {"status": "finalized"}
+        return {"status": "finalized", "seed_detached": True, "seed_iso": seed_iso}
     finally:
         conn.close()
+
 
 @router.put("/{vm_id}")
 async def edit_vm(vm_id: str, body: VMEdiRequest):

@@ -109,6 +109,15 @@ def generate_cloud_init_iso(meta_data: str, networking_data: Optional[str], user
         if not iso_tool:
             raise FileNotFoundError("Need genisoimage or mkisofs in PATH to build seed ISO")
 
+        out = Path(iso_path)
+        try:
+            out.unlink()
+        except FileNotFoundError:
+            pass
+        except PermissionError:
+            # Can't delete existing file (sticky /tmp). Use a unique output name.
+            iso_path = str(out.with_name(out.stem + f"-{os.getpid()}" + out.suffix))
+
         subprocess.run(
             [iso_tool, "-output", iso_path, "-volid", "CIDATA", "-joliet", "-rock", *files],
             check=True,

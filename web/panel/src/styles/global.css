@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@import "tailwindcss";
-
 /* If you want Tailwind's `dark:` to follow the class too */
 @custom-variant dark (&:where(.dark, .dark *));
 
