@@ -376,6 +376,8 @@ export const createVirtualSession = async (
     .selectFrom("virtual_machines")
     .innerJoin("servers", "virtual_machines.serverId", "servers.id")
     .select([
+      "virtual_machines.id as vmId",
+      "virtual_machines.ipLocal as vmIpLocal",
       "servers.ipLocal as targetHost",
       "servers.agent_port as targetPort",
     ])
@@ -389,10 +391,12 @@ export const createVirtualSession = async (
   }
 
   const token = await createVirtualSessionEncryptToken({
-    email: email,
-    vm: vmPublicId,
-    targetHost: vm.targetHost,
-    targetPort: parseInt("22222"), // TODO: CHANGE THIS
+    email,
+    vm: vm.vmId,
+    agentHost: vm.targetHost, // server ipLocal (agent host)
+    agentPort: Number(vm.targetPort), // servers.agent_port
+    targetHost: vm.vmIpLocal, // server ipLocal (agent host)
+    targetPort: Number(22), // servers.agent_port
   });
 
   reply.setCookie(`vm-console-${vmPublicId}`, token, {

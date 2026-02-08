@@ -5,7 +5,9 @@ import type { RawData } from "ws";
 
 interface CreateVirtualSessionEncryptTokenParams {
   email: string;
-  vm: number;
+  vm: string;
+  agentHost: string;
+  agentPort: number;
   targetHost: string;
   targetPort: number;
 }
@@ -13,12 +15,16 @@ interface CreateVirtualSessionEncryptTokenParams {
 export const createVirtualSessionEncryptToken = async ({
   email,
   vm,
+  agentHost,
+  agentPort,
   targetHost,
   targetPort,
 }: CreateVirtualSessionEncryptTokenParams) => {
   return await new EncryptJWT({
     email,
     vm,
+    agentHost,
+    agentPort,
     targetHost,
     targetPort,
     aud: "sshterm",
@@ -31,14 +37,14 @@ export const createVirtualSessionEncryptToken = async ({
 };
 
 export const decryptVirtualSessionEncryptToken = async (
-  token: string
+  token: string,
 ): Promise<CreateVirtualSessionEncryptTokenParams> => {
   const { payload } = await jwtDecrypt<CreateVirtualSessionEncryptTokenParams>(
     token,
     getPrivatePemBuffer(),
     {
       audience: "sshterm",
-    }
+    },
   );
 
   if (payload.typ !== "vm-console") {
@@ -48,6 +54,8 @@ export const decryptVirtualSessionEncryptToken = async (
   if (
     !payload.email ||
     !payload.vm ||
+    !payload.agentHost ||
+    !payload.agentPort ||
     !payload.targetHost ||
     !payload.targetPort
   ) {
@@ -57,6 +65,8 @@ export const decryptVirtualSessionEncryptToken = async (
   return {
     email: payload.email,
     vm: payload.vm,
+    agentHost: payload.agentHost,
+    agentPort: payload.agentPort,
     targetHost: payload.targetHost,
     targetPort: payload.targetPort,
   };

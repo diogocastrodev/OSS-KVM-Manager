@@ -1,22 +1,30 @@
-"use client";
-import Logo from "@/components/Icon/Logo";
-import { useRouter as useLocaleRouter, usePathname } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
-import { MoonIcon, SunIcon } from "lucide-react";
-import { useLocale } from "next-intl";
-import { getTranslations } from "next-intl/server";
-import { useTheme } from "next-themes";
+import qk from "@/lib/fetches/keys";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import AdminPage, { AdminServerHealthResponse } from "./AdminPage";
+import { apiFetchServer } from "@/lib/apiFetchServer";
 
-export default function Page() {
-  const locale = useLocaleRouter();
-  const l = useLocale();
-  const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  // const t = await getTranslations("panel");
+export default async function Page() {
+  const qc = new QueryClient();
+  await qc.fetchQuery({
+    queryKey: [qk.api.v1.admin.servers.allHealth()],
+    queryFn: async () => {
+      const res = await apiFetchServer("/api/v1/admin/servers/health");
+      if (!res.ok) {
+        throw new Error("Failed to fetch server health");
+      }
+      return res.json() as Promise<AdminServerHealthResponse>;
+    },
+  });
 
   return (
     <>
-      <div>Main Page</div>
+      <HydrationBoundary state={dehydrate(qc)}>
+        <AdminPage />
+      </HydrationBoundary>
     </>
   );
 }

@@ -32,9 +32,7 @@ export default function LoginForm({ translation: t }: LoginFormProps) {
           headers: {
             "Content-Type": "application/json",
           },
-        });
-        console.log("Login successful:", res);
-        // await queryClient.invalidateQueries({ queryKey: ["session"] });
+        }); // await queryClient.invalidateQueries({ queryKey: ["session"] });
 
         router.replace("/panel");
         router.refresh();

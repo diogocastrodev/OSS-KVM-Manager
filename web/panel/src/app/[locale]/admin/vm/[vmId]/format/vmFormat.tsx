@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/apiFetch";
 import qk from "@/lib/fetches/keys";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import z from "zod";
 
 interface props {
@@ -43,7 +44,6 @@ export default function VMFormat({ vmID }: props) {
       >;
     },
   });
-  console.log(data);
 
   const mutation = useMutation({
     mutationFn: async (data: {
@@ -68,6 +68,12 @@ export default function VMFormat({ vmID }: props) {
           }),
         })
       ).json();
+    },
+    onSuccess: () => {
+      toast.success("VM formatting started successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to start VM formatting. Please try again.");
     },
   });
   const [selectedOption, setSelectedOption] = useState<

@@ -43,7 +43,6 @@ export default function VMFormat({ vmID }: props) {
       >;
     },
   });
-  console.log(data);
 
   const mutation = useMutation({
     mutationFn: async (data: {

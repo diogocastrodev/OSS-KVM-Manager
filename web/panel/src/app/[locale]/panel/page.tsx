@@ -17,7 +17,6 @@ export default function Page() {
     staleTime: 60_000,
   });
   const s = useSession();
-  console.log(data);
 
   return (
     <>

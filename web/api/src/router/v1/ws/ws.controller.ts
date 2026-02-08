@@ -5,25 +5,22 @@ import {
   decryptVirtualSessionEncryptToken,
   rawDataToBuffer,
 } from "@/utils/vmConsole";
-import net from "node:net";
+import WS from "ws";
 import type { RawData } from "ws";
 
 export const wsSSHTerminal = (
   conn: WebSocket,
-  req: FastifyRequest<{ Querystring: WsCreateSSHTerminalQuery }>
+  req: FastifyRequest<{ Querystring: WsCreateSSHTerminalQuery }>,
 ) => {
   const token = req.query.token;
-  if (!token) {
-    conn.close(1008, "Missing token");
-    return;
-  }
+  if (!token) return conn.close(1008, "Missing token");
 
-  // Buffer any WS->TCP data that arrives before TCP is ready.
   const pending: Buffer[] = [];
   let pendingBytes = 0;
-  const MAX_PENDING = 1024 * 1024; // 1MB safety cap
-  let tcp: net.Socket | null = null;
-  let tcpReady = false;
+  const MAX_PENDING = 1024 * 1024;
+
+  let agentWs: WS | null = null;
+  let agentReady = false;
   let closed = false;
 
   const cleanup = (why: string) => {
@@ -31,79 +28,77 @@ export const wsSSHTerminal = (
     closed = true;
     req.log.info({ why }, "sshterm tunnel closed");
     try {
-      tcp?.destroy();
+      agentWs?.terminate();
     } catch {}
     try {
       conn.terminate();
     } catch {}
   };
 
-  // Attach WS handlers IMMEDIATELY (before any await)
-  let loggedClient = false;
-
   conn.on("message", (data: RawData) => {
     const buf = rawDataToBuffer(data);
 
-    if (!loggedClient) {
-      loggedClient = true;
-      req.log.info(
-        { firstClient: buf.slice(0, 80).toString("utf8") },
-        "first client bytes"
-      );
-    }
-
-    if (!tcpReady) {
+    if (!agentReady) {
       pending.push(buf);
       pendingBytes += buf.length;
-      if (pendingBytes > MAX_PENDING) {
-        cleanup("buffer overflow before tcp ready");
-      }
+      if (pendingBytes > MAX_PENDING)
+        cleanup("buffer overflow before agent ready");
       return;
     }
 
-    // Normal path: forward to TCP
-    tcp!.write(buf);
+    agentWs!.send(buf);
   });
 
   conn.on("error", (e: any) => cleanup("ws error: " + (e?.message ?? e)));
   conn.on("close", (code, reason) =>
-    cleanup(`ws close: ${code} ${reason?.toString() ?? ""}`)
+    cleanup(`ws close: ${code} ${reason?.toString() ?? ""}`),
   );
 
-  // Async setup: decrypt token -> connect TCP
   (async () => {
     try {
-      const decryptedToken = await decryptVirtualSessionEncryptToken(token);
-      if (!decryptedToken) {
-        conn.close(1008, "Invalid token");
-        return;
-      }
+      const decrypted = await decryptVirtualSessionEncryptToken(token);
+      if (!decrypted) return conn.close(1008, "Invalid token");
 
-      const host = String(decryptedToken.targetHost);
-      const port = Number(decryptedToken.targetPort);
+      const agentHost = String(decrypted.agentHost);
+      const agentPort = Number(decrypted.agentPort);
 
-      tcp = net.connect({ host, port });
-      tcp.setNoDelay(true);
+      // agent needs a WS endpoint (we’ll add it next)
+      const url = `ws://${agentHost}:${agentPort}/api/v1/sshterm/ws`;
 
-      // TCP -> WS (binary)
-      tcp.on("data", (chunk: Buffer) => {
-        if (conn.readyState === 1) {
-          conn.send(chunk, { binary: true });
+      agentWs = new WS(url);
+      agentWs.binaryType = "nodebuffer"; // ensures binary arrives as Buffer in Node-style clients :contentReference[oaicite:1]{index=1}
+
+      agentWs.on("open", () => {
+        agentWs!.send(
+          JSON.stringify({
+            vmId: String(decrypted.vm),
+            targetHost: String(decrypted.targetHost), // VM IP
+            targetPort: Number(decrypted.targetPort), // 22
+          }),
+        );
+      });
+
+      agentWs.on("message", (data, isBinary) => {
+        // If you implement an "OK" handshake reply, handle it here.
+        if (!agentReady && !isBinary) {
+          const txt = data.toString();
+          if (txt === "OK") {
+            agentReady = true;
+            for (const b of pending) agentWs!.send(b);
+            pending.length = 0;
+            pendingBytes = 0;
+            return;
+          }
         }
+
+        // normal stream: agent -> browser
+        if (conn.readyState === 1) conn.send(data as any, { binary: true });
       });
 
-      tcp.on("error", (e) => cleanup("tcp error: " + e.message));
-      tcp.on("close", () => cleanup("tcp closed"));
-
-      tcp.on("connect", () => {
-        tcpReady = true;
-        req.log.info({ host, port }, "sshterm tcp connected");
-
-        // Flush anything the client sent while we were decrypting/connecting.
-        for (const b of pending) tcp!.write(b);
-        pending.length = 0;
-        pendingBytes = 0;
-      });
+      agentWs.on("close", () => cleanup("agent ws closed"));
+      agentWs.on("error", (e: any) =>
+        cleanup("agent ws error: " + (e?.message ?? e)),
+      );
     } catch (e: any) {
       cleanup("setup failed: " + (e?.message ?? e));
     }

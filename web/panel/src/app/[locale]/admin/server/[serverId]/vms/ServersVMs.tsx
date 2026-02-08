@@ -35,7 +35,6 @@ export default function ServerVMs({ serverId }: props) {
       return d.json() as Promise<getVMsOfServerReplyBodyType>;
     },
   });
-  console.log(data);
   return (
     <>
       <div className="flex flex-col">

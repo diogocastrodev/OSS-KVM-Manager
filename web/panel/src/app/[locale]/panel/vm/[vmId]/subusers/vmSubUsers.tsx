@@ -82,7 +82,6 @@ export default function VMSubUsers({ vmID }: props) {
       onSubmit: createSubUserSchema,
     },
     onSubmit: async ({ value }) => {
-      console.log("Submitting form with values:", value);
       await createSubUser.mutateAsync({
         email: value.email,
         role: value.role as Role,
@@ -140,8 +139,6 @@ export default function VMSubUsers({ vmID }: props) {
       });
     },
   });
-
-  console.log(data);
 
   return (
     <>

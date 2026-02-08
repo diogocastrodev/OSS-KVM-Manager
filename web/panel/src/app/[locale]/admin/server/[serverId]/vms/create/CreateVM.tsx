@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminServersResponse } from "@/app/[locale]/admin/layout";
 import Divider from "@/components/Divider/Divider";
 import Button from "@/components/Form/Button/Button";
 import { useAppForm } from "@/components/Form/useAppForm";
@@ -26,6 +27,19 @@ export default function CreateVM({ serverId }: props) {
       }
       return d.json() as Promise<ServerData>;
     },
+  });
+
+  const { refetch: updateLayout } = useQuery({
+    queryKey: qk.api.v1.admin.servers.all(),
+    queryFn: async () =>
+      await apiFetch(
+        "/api/v1/admin/servers?include_virtual_machines=true",
+      ).then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch servers");
+        }
+        return res.json() as Promise<AdminServersResponse>;
+      }),
   });
 
   const createVMMutation = useMutation({
@@ -60,6 +74,7 @@ export default function CreateVM({ serverId }: props) {
         toast.error("Failed to create VM. Please try again.");
         throw new Error("Failed to create VM");
       }
+      updateLayout();
       toast.success("VM created successfully!");
       const createdVM = (await d.json()) as { publicId: number; name: string };
       router.push(`/admin/vm/${createdVM.publicId}`);
@@ -119,7 +134,6 @@ export default function CreateVM({ serverId }: props) {
       });
     },
   });
-  console.log(data);
   return (
     <>
       <div className="flex flex-col gap-y-3">

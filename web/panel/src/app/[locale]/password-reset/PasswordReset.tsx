@@ -14,6 +14,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import qk from "@/lib/fetches/keys";
+import { toast } from "react-toastify";
 
 interface PasswordResetProps {
   translation: {
@@ -36,12 +37,12 @@ export default function PasswordReset({ translation: t }: PasswordResetProps) {
             "Content-Type": "application/json",
           },
         });
-        console.log("Password reset successful:", res);
+        toast.success("Password updated successfully");
 
         router.replace("/");
         router.refresh();
       } catch (error) {
-        console.error("Update failed:", error);
+        toast.error("Failed to update password");
       }
     },
   });

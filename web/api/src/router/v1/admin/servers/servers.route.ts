@@ -35,6 +35,8 @@ import {
   updateServerParamsSchema,
   updateServerRequestBody,
   updateServerReplyBody,
+  type getServersHealthReplyBodyType,
+  getServersHealthReplyBody,
 } from "./servers.schema";
 import {
   NotFoundError,
@@ -46,6 +48,7 @@ import {
   createServer,
   deleteServer,
   getAllServers,
+  getAllServersHealth,
   getOneServer,
   getVMsOfServer,
   healthCheckServer,
@@ -77,6 +80,28 @@ const serversAdminRoute: FastifyPluginAsync = async (fastify) => {
       },
     },
     getAllServers,
+  );
+  /* -------------------------------------------------------------------------- */
+  /*                            Get Servers Health                              */
+  /* -------------------------------------------------------------------------- */
+  fastify.get<{
+    Reply: getServersHealthReplyBodyType | UnauthorizedErrorType;
+  }>(
+    "/health",
+    {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
+      schema: {
+        tags: [swaggerTags.ADMIN.SERVERS],
+        summary: "Get servers health",
+        description:
+          "Returns a list of servers accessible to the authenticated user",
+        response: {
+          200: getServersHealthReplyBody,
+          401: UnauthorizedError,
+        },
+      },
+    },
+    getAllServersHealth,
   );
 
   /* -------------------------------------------------------------------------- */

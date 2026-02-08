@@ -15,6 +15,7 @@ import { ServerData } from "@/components/vm/navbar/navbarAdminServer";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
+import { AdminServersResponse } from "../../../layout";
 
 interface props {
   serverId: number;
@@ -30,6 +31,19 @@ export default function ServerSettings({ serverId }: props) {
           throw new Error("Failed to fetch server");
         }
         return res.json() as Promise<ServerData>;
+      }),
+  });
+
+  const { refetch: updateLayout } = useQuery({
+    queryKey: qk.api.v1.admin.servers.all(),
+    queryFn: async () =>
+      await apiFetch(
+        "/api/v1/admin/servers?include_virtual_machines=true",
+      ).then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch servers");
+        }
+        return res.json() as Promise<AdminServersResponse>;
       }),
   });
 
@@ -134,6 +148,7 @@ export default function ServerSettings({ serverId }: props) {
       return res.json();
     },
     onSuccess: () => {
+      updateLayout();
       toast.success("Server updated successfully");
       router.push(`/admin/server/${serverId}`);
     },
@@ -236,7 +251,6 @@ export default function ServerSettings({ serverId }: props) {
       onSubmit: updateServerSchema,
     },
     onSubmit: async ({ value }) => {
-      console.log("Submitting form with value:", value);
       const vcpus = parseInt(value.vcpus);
       const vcpus_max = parseInt(value.vcpus_max);
       const memory_mb = parseInt(value.memory_mb);
@@ -285,6 +299,7 @@ export default function ServerSettings({ serverId }: props) {
       return res.json();
     },
     onSuccess: () => {
+      updateLayout();
       router.push("/admin");
     },
   });

@@ -7,6 +7,7 @@ import Button from "@/components/Form/Button/Button";
 import Logo from "@/components/Icon/Logo";
 import { useMutation } from "@tanstack/react-query";
 import qk from "@/lib/fetches/keys";
+import { toast } from "react-toastify";
 
 interface ForgotPasswordProps {
   translation: {
@@ -28,12 +29,12 @@ export default function ForgotPassword({
             "Content-Type": "application/json",
           },
         });
-        console.log("Password reset successful:", res);
+        toast.success("Password reset email sent! Check your inbox.");
 
         router.replace("/");
         router.refresh();
       } catch (error) {
-        console.error("Update failed:", error);
+        toast.error("Failed to send password reset email");
       }
     },
   });

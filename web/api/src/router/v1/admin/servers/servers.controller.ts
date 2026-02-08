@@ -6,6 +6,7 @@ import type {
   deleteServerReplyBodyType,
   getOneServerParamsSchemaType,
   getOneServerReplyBodyType,
+  getServersHealthReplyBodyType,
   getServersReplyBodyType,
   getServersRequestQueryStringType,
   getVMsOfServerParamsSchemaType,
@@ -105,6 +106,69 @@ export const getAllServers = async (
   const servers = Object.values(serversMap.servers);
 
   return reply.status(200).send({ servers });
+};
+
+/* -------------------------------------------------------------------------- */
+/*                           Get All Servers Health                           */
+/* -------------------------------------------------------------------------- */
+export const getAllServersHealth = async (
+  req: FastifyRequest,
+  reply: FastifyReply<{ Reply: getServersHealthReplyBodyType }>,
+): Promise<void> => {
+  const servers = await db
+    .selectFrom("servers")
+    .select(["publicId", "name", "ipLocal", "agent_port", "status"])
+    .orderBy("publicId", "asc")
+    .execute();
+
+  const serversWithHealth = await Promise.all(
+    servers.map(async (server) => {
+      if (env.IGNORE_AGENT) {
+        await new Promise((r) => setTimeout(r, 600));
+        return {
+          publicId: server.publicId,
+          name: server.name,
+          status: server.status,
+          health: "UNKNOWN",
+        };
+      }
+      const res = await fetch(
+        `http://${server.ipLocal}:${server.agent_port}/api/v1/health`,
+        {
+          signal: AbortSignal.timeout(600), // 0.6 seconds timeout
+        },
+      ).catch(() => null);
+
+      return {
+        publicId: server.publicId,
+        name: server.name,
+        status: server.status,
+        health: res && res.ok ? "HEALTHY" : "UNHEALTHY",
+      };
+    }),
+  );
+
+  const vmsCount = await db
+    .selectFrom("virtual_machines")
+    .innerJoin("servers", "virtual_machines.serverId", "servers.id")
+    .select([
+      "servers.publicId",
+      (eb) => eb.fn.count("virtual_machines.id").as("vmCount"),
+    ])
+    .groupBy("servers.publicId")
+    .execute();
+
+  const serversWithHealthAndVMs = serversWithHealth.map((server) => {
+    const vmData = vmsCount.find((v) => v.publicId === server.publicId);
+    return {
+      ...server,
+      vmsCount: vmData ? Number(vmData.vmCount) : 0,
+    };
+  });
+
+  return reply.status(200).send({
+    servers: serversWithHealthAndVMs,
+  });
 };
 
 /* -------------------------------------------------------------------------- */
@@ -302,6 +366,7 @@ export const createServer = async (
       vms_network: req.body.vms_network,
       vms_network_mask: req.body.vms_network_mask,
       vms_gateway: req.body.vms_network_gateway,
+      status: "ACTIVE",
     })
     .execute()
     .catch((error) => {

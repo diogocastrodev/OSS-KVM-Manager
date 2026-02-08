@@ -44,6 +44,7 @@ const qk = {
       admin: {
         users: {
           all: () => ["api", "v1", "admin", "users", "all"] as const,
+
           getById: (userId: number) =>
             ["api", "v1", "admin", "users", "getById", userId] as const,
           getByPage: ({
@@ -71,6 +72,8 @@ const qk = {
         },
         servers: {
           all: () => ["api", "v1", "admin", "server", "all"] as const,
+          allHealth: () =>
+            ["api", "v1", "admin", "server", "allHealth"] as const,
           getById: (vmId: number) =>
             ["api", "v1", "admin", "server", "getById", vmId] as const,
           getVMs: (serverId: number) =>

@@ -214,7 +214,6 @@ export default function AdminCreatePage() {
       onSubmit: createServerFormValidate,
     },
     onSubmit: async ({ value }) => {
-      console.log("Submitting form with value:", value);
       const vcpus = parseInt(value.vcpus);
       const vcpus_max = parseInt(value.vcpus_max);
       const memory_mb = parseInt(value.memory_mb);

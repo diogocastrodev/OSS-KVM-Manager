@@ -2,6 +2,7 @@
 
 import Divider from "@/components/Divider/Divider";
 import Button from "@/components/Form/Button/Button";
+import ButtonNoForm from "@/components/Form/Button/ButtonNoForm";
 import { useAppForm } from "@/components/Form/useAppForm";
 import { ServerData } from "@/components/vm/navbar/navbarAdminServer";
 import { apiFetch } from "@/lib/apiFetch";
@@ -12,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import z from "zod";
+import { AdminServersResponse } from "../../../layout";
 
 interface props {
   vmId: string;
@@ -19,6 +21,29 @@ interface props {
 
 export default function VMsSettings({ vmId }: props) {
   const router = useRouter();
+
+  const { refetch } = useQuery({
+    queryKey: qk.api.v1.admin.servers.all(),
+    queryFn: async () =>
+      await apiFetch(
+        "/api/v1/admin/servers?include_virtual_machines=true",
+      ).then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch servers");
+        }
+        return res.json() as Promise<AdminServersResponse>;
+      }),
+  });
+
+  const { refetch: refetchVM } = useQuery({
+    queryKey: qk.api.v1.admin.vms.getById(parseInt(vmId)),
+    queryFn: async () => {
+      const d = await apiFetch(`/api/v1/admin/vms/${vmId}`);
+      return d.json() as Promise<UserGetVMByIDResponse>;
+    },
+    staleTime: 60_000,
+  });
+
   const { data, isLoading } = useQuery({
     queryKey: [qk.api.v1.admin.vms.getById(parseInt(vmId))],
     queryFn: async () => {
@@ -30,7 +55,6 @@ export default function VMsSettings({ vmId }: props) {
       return d.json() as Promise<AdminGetVMByIDResponse>;
     },
   });
-  console.log(data);
 
   useEffect(() => {
     if (data) {
@@ -94,6 +118,8 @@ export default function VMsSettings({ vmId }: props) {
         toast.error("Failed to update VM. Please try again.");
         throw new Error("Failed to update VM");
       }
+      refetch();
+      refetchVM();
       toast.success("VM updated successfully!");
       const updatedVM = (await d.json()) as { publicId: number; name: string };
       router.push(`/admin/vm/${updatedVM.publicId}`);
@@ -150,7 +176,6 @@ export default function VMsSettings({ vmId }: props) {
       });
     },
   });
-  console.log(data);
   return (
     <>
       <div className="flex flex-col gap-y-3">
@@ -371,7 +396,34 @@ export default function VMsSettings({ vmId }: props) {
               </updateVMForm.AppField>
             </div>
             <Divider />
-            <Button text="Update VM" />
+            <div className="flex flex-row flex-wrap gap-x-3">
+              <Button text="Update VM" />
+              <ButtonNoForm
+                button={{
+                  onClick: async () => {
+                    if (
+                      !confirm(
+                        "Are you sure you want to delete this VM? This action cannot be undone.",
+                      )
+                    ) {
+                      return;
+                    }
+                    const a = await apiFetch(`/api/v1/admin/vms/${vmId}`, {
+                      method: "DELETE",
+                    });
+                    if (!a.ok) {
+                      toast.error("Failed to delete VM. Please try again.");
+                      return;
+                    }
+                    refetch();
+                    toast.success("VM deleted successfully!");
+                    router.push("/admin");
+                  },
+                }}
+              >
+                Delete VM
+              </ButtonNoForm>
+            </div>
           </div>
         </updateVMForm.AppForm>
         <div className="my-4"></div>

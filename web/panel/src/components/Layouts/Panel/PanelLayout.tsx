@@ -85,8 +85,6 @@ export default function PanelLayout({
 
   const qc = new QueryClient();
 
-  console.log(session2.data);
-
   // useEffect(() => {
   //   if (!data?.user && !isLoading) {
   //     router.replace("/");
@@ -109,12 +107,12 @@ export default function PanelLayout({
               <Logo props={{ className: "size-14" }} />
               <span className="font-semibold text-2xl">Serverseer</span>
             </div>
-            <div className="flex flex-col flex-1 gap-y-2">
-              <div className="text-xl font-semibold">
+            <div className="flex flex-col flex-1 gap-y-2 ">
+              <div className="text-xl font-semibold pl-2">
                 <a href="/panel">Panel</a>
               </div>
               {session2.data?.role === "ADMIN" && (
-                <div className="text-xl font-semibold">
+                <div className="text-xl font-semibold pl-2 pt-2">
                   <a href="/admin">Admin</a>
                 </div>
               )}

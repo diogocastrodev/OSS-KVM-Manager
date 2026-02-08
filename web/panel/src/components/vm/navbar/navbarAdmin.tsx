@@ -76,8 +76,6 @@ export default function VMNavbarAdmin(props: props) {
     staleTime: 60_000,
   });
 
-  console.log(data);
-
   return (
     <>
       <div className="flex flex-col gap-y-3">

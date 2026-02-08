@@ -71,6 +71,24 @@ export const getOneServerReplyBody = z.object({
   public_key: z.string().nullable(),
 });
 export type getOneServerReplyBodyType = z.infer<typeof getOneServerReplyBody>;
+/* -------------------------------------------------------------------------- */
+/*                                   Health                                   */
+/* -------------------------------------------------------------------------- */
+
+export const getServersHealthReplyBody = z.object({
+  servers: z.array(
+    z.object({
+      publicId: z.number(),
+      name: z.string(),
+      vmsCount: z.number(),
+      status: z.string(),
+      health: z.string(),
+    }),
+  ),
+});
+export type getServersHealthReplyBodyType = z.infer<
+  typeof getServersHealthReplyBody
+>;
 
 /* -------------------------------------------------------------------------- */
 /*                        Get VMs of a specific server                        */
