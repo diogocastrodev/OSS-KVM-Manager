@@ -22,31 +22,7 @@ write_files:
       KbdInteractiveAuthentication yes
       UsePAM yes
 
-  - path: /etc/netplan/01-netcfg.yaml
-    permissions: "0600"
-    content: |
-      network:
-        version: 2
-        renderer: networkd
-        ethernets:
-          nic0:
-            match:
-              macaddress: "{mac}"
-            set-name: eth0
-            dhcp4: false
-            addresses:
-              - {vm_ip}/{vm_prefix}
-            routes:
-              - to: default
-                via: {vms_gateway}
-            nameservers:
-              addresses: [{dns_servers}]
-
 runcmd:
-  - netplan generate
-  - netplan apply
-  - systemctl daemon-reload
-  - systemctl restart systemd-networkd
   - systemctl restart ssh || systemctl restart sshd || true
 
 # Grow filesystem after qemu-img resize
