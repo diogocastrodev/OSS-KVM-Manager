@@ -82,6 +82,11 @@ export const wsSSHTerminal = (
         // If you implement an "OK" handshake reply, handle it here.
         if (!agentReady && !isBinary) {
           const txt = data.toString();
+          if (txt.startsWith("ERR ")) {
+            req.log.error({ txt }, "agent refused/failed");
+            cleanup("agent error: " + txt);
+            return;
+          }
           if (txt === "OK") {
             agentReady = true;
             for (const b of pending) agentWs!.send(b);

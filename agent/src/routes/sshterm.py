@@ -1,5 +1,5 @@
 from fastapi import APIRouter, FastAPI, WebSocket, WebSocketDisconnect
-import asyncio, json
+import asyncio, json, logging
 import libvirt
 import os
 
@@ -28,53 +28,74 @@ def get_vm_ip_from_libvirt(vm_name: str) -> str:
 @router.get("/ping")
 def ping(): return {"ok": True}
 
+log = logging.getLogger("sshterm")
+
 @router.websocket("/ws")
 async def ws_sshterm(ws: WebSocket):
-    # TODO: auth, validate token, check if user can access this VM, etc.
     await ws.accept()
+    log.info("ws accepted from %s", ws.client)
 
-    hello = json.loads(await ws.receive_text())
-    vm_host = hello["targetHost"]
-    vm_port = int(hello.get("targetPort", 22))
+    try:
+        # Accept handshake as either text or bytes (robust)
+        msg = await asyncio.wait_for(ws.receive(), timeout=5)
+        raw = msg.get("text") or (msg.get("bytes").decode("utf-8") if msg.get("bytes") else "")
+        hello = json.loads(raw)
 
-    reader, writer = await asyncio.open_connection(vm_host, vm_port)
-    await ws.send_text("OK")
-    vm_public_id = hello.get("vm")
-    if not vm_public_id:
-        await ws.close(code=1008, reason="missing vm")
-        return
+        target_host = hello.get("targetHost")
+        target_port = int(hello.get("targetPort", 22))
 
-    vm_ip = get_vm_ip_from_libvirt(vm_public_id)
+        if not target_host:
+            await ws.close(code=1008, reason="missing targetHost")
+            return
 
-    reader, writer = await asyncio.open_connection(vm_ip, 22)
-    await ws.send_text("OK")
+        log.info("connecting to VM ssh %s:%s", target_host, target_port)
 
-    async def ws_to_tcp():
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(target_host, target_port),
+            timeout=5,
+        )
+
+        await ws.send_text("OK")
+        log.info("connected to VM ssh, starting pipe")
+
+        async def ws_to_tcp():
+            try:
+                while True:
+                    data = await ws.receive_bytes()
+                    writer.write(data)
+                    await writer.drain()
+            except WebSocketDisconnect:
+                pass
+            finally:
+                try:
+                    writer.close()
+                    await writer.wait_closed()
+                except Exception:
+                    pass
+
+        async def tcp_to_ws():
+            try:
+                while True:
+                    chunk = await reader.read(32768)
+                    if not chunk:
+                        break
+                    await ws.send_bytes(chunk)
+            finally:
+                try:
+                    await ws.close()
+                except Exception:
+                    pass
+
+        await asyncio.gather(ws_to_tcp(), tcp_to_ws())
+
+    except Exception as e:
+        # THIS is what will tell us why it closes
+        log.exception("sshterm ws crashed: %r", e)
         try:
-            while True:
-                data = await ws.receive_bytes()
-                writer.write(data)
-                await writer.drain()
-        except WebSocketDisconnect:
+            await ws.send_text(f"ERR {type(e).__name__}: {e}")
+        except Exception:
             pass
-        finally:
-            try:
-                writer.close()
-                await writer.wait_closed()
-            except Exception:
-                pass
-
-    async def tcp_to_ws():
         try:
-            while True:
-                chunk = await reader.read(32768)
-                if not chunk:
-                    break
-                await ws.send_bytes(chunk)
-        finally:
-            try:
-                await ws.close()
-            except Exception:
-                pass
-
-    await asyncio.gather(ws_to_tcp(), tcp_to_ws())
+            await ws.close(code=1011, reason="internal error")
+        except Exception:
+            pass
