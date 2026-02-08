@@ -63,7 +63,7 @@ def generate_networking_data(template: NetworkingTemplate) -> str:
     dns_servers_str = ", ".join(f'"{dns}"' for dns in dns_list)
 
     return template_str.format(
-        mac=template.mac_address,
+        mac=template.mac_address.lower(),
         vm_ip=template.ip_cidr,
         vm_prefix=template.prefix,
         vms_gateway=template.gateway,
