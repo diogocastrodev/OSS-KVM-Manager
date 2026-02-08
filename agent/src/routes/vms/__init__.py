@@ -1,15 +1,15 @@
 import traceback
 from typing import Optional
 from fastapi import APIRouter, HTTPException
-from src.libs.virt.list import list_virtual_machines, get_virtual_machine_read, get_virtual_machine_changes, __domain_to_dict__
+from src.libs.virt.list import list_virtual_machines, get_virtual_machine_read, __domain_to_dict__
 from src.libs.virt.create import create_virtual_machine
 from .status import router as vm_status_router
 import libvirt
 from src.models.create_vm import VMCreateRequest
 from src.models.format_vm import VMFormatBody
-from src.models.finalize_vm import FinalizeRequest
-from src.libs.virt.helpers import ensure_shutoff, get_virtual_size_gb
-from src.libs.virt.format import attach_seed_iso, detach_seed_iso, get_vda_path, detach_cdroms
+from src.libs.virt.edit import edit_virtual_machine, VMEdiRequest, BandWidthConfig
+from src.libs.virt.helpers import get_virtual_size_gb
+from src.libs.virt.format import attach_seed_iso, detach_seed_iso, get_vda_path
 from src.libs.virt.cloud_init import (
     MetaTemplate,
     NetworkingTemplate,
@@ -178,6 +178,15 @@ async def finalize_vm(vm_id: str):
     finally:
         conn.close()
 
+@router.put("/{vm_id}")
+async def edit_vm(vm_id: str, body: VMEdiRequest):
+
+    success = edit_virtual_machine(vm_id, body)
+    if not success:
+        raise HTTPException(500, "Failed to edit VM")
+
+    return {"status": "edited"}
+
 @router.delete("/{vm_id}")
 async def delete_vm(vm_id: str):
     conn = get_connection()
@@ -234,6 +243,108 @@ async def delete_vm(vm_id: str):
         raise HTTPException(500, f"Error deleting VM: {str(e)}")
     finally:
         conn.close()
+
+class Metrics:
+    cpu_usage: float
+    memory_usage_mb: int
+    disk_io_bytes: int
+    network_io_bytes: int
+
+# TODO: (TEMPORARY) metrics function
+async def get_vm_metrics(domain: libvirt.virDomain):
+    print("Getting metrics for VM:", domain.name())
+    cpu_stats = await domain.getCPUStats(True)
+    mem_stats = await domain.memoryStats()
+    metrics = {
+        "cpu": cpu_stats,
+        "memory": mem_stats,
+    }
+    return metrics
+
+@router.get("/{vm_id}/metrics")
+async def get_vm_metrics(vm_id: str):
+    conn = get_connection()
+    try:
+        domain = conn.lookupByName(vm_id)
+        if not domain:
+            raise HTTPException(404, f"VM with ID {vm_id} not found.")
+
+        cpu_stats = domain.getCPUStats(False)
+        mem_stats = domain.memoryStats()
+        disk_stats = {}  # Placeholder for disk stats
+        for block in domain.blockStatsFlags("vda", 0):
+            disk_stats[block] = domain.blockStats("vda")
+        metrics = {
+            "cpu": cpu_stats,
+            "memory": mem_stats,
+            "disk": disk_stats,
+        }
+        print(f"Metrics for VM {vm_id}: {metrics}")
+        return {"found": True, "metrics": metrics}
+
+    except libvirt.libvirtError as e:
+        raise HTTPException(500, f"Error retrieving metrics for VM {vm_id}: {str(e)}")
+    finally:
+        conn.close()
+
+@router.get("/metrics")
+async def get_all_vm_metrics():
+    conn = get_connection()
+    all_metrics = {}
+    try:
+        domains = conn.listAllDomains()
+        for domain in domains:
+            vm_id = domain.name()
+            all_metrics[vm_id] = get_vm_metrics(domain)
+        return {"metrics": all_metrics}
+    except libvirt.libvirtError as e:
+        raise HTTPException(500, f"Error retrieving metrics for all VMs: {str(e)}")
+    finally:
+        conn.close()
+
+@router.get("/metrics-avg")
+async def get_all_vm_metrics_avg():
+    conn = get_connection()
+    all_metrics_avg = {}
+    try:
+        domains = conn.listAllDomains()
+        for domain in domains:
+            vm_id = domain.name()
+            metrics = get_vm_metrics(domain)
+            # Example: calculate average CPU time (you can expand this as needed)
+            cpu_times = [cpu['cpu_time'] for cpu in metrics['cpu']]
+            avg_cpu_time = sum(cpu_times) / len(cpu_times) if cpu_times else 0
+            all_metrics_avg[vm_id] = {
+                "avg_cpu_time": avg_cpu_time,
+            }
+        return {"metrics_avg": all_metrics_avg}
+    except libvirt.libvirtError as e:
+        raise HTTPException(500, f"Error retrieving average metrics for all VMs: {str(e)}")
+    finally:
+        conn.close()
+
+@router.get("/metrics-total")
+async def get_all_vm_metrics_total():
+    conn = get_connection()
+    all_metrics_total = {}
+    try:
+        domains = conn.listAllDomains()
+        for domain in domains:
+            vm_id = domain.name()
+            metrics = get_vm_metrics(domain)
+            # Example: calculate total CPU time (you can expand this as needed)
+            cpu_times = [cpu['cpu_time'] for cpu in metrics['cpu']]
+            total_cpu_time = sum(cpu_times)
+            all_metrics_total[vm_id] = {
+                "total_cpu_time": total_cpu_time,
+                # Add more total metrics as needed
+            }
+        return {"metrics_total": all_metrics_total}
+    except libvirt.libvirtError as e:
+        raise HTTPException(500, f"Error retrieving total metrics for all VMs: {str(e)}")
+    finally:
+        conn.close()
+
     
 
 router.include_router(vm_status_router)

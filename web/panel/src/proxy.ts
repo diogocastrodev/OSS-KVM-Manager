@@ -7,7 +7,12 @@ const API = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL!;
 const handleI18nRouting = createMiddleware(routing);
 
 // Rules (WITHOUT locale prefix)
-const GUEST_ONLY: string[] = ["/", "/register"];
+const GUEST_ONLY: string[] = [
+  "/",
+  "/forgot-password",
+  "/password-reset",
+  "/confirm-email",
+];
 const PROTECTED_PREFIXES: string[] = ["/panel", "/profile"];
 const ADMIN_ONLY_PREFIXES: string[] = ["/admin"];
 

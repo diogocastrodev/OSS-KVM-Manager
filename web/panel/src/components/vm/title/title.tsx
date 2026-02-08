@@ -4,7 +4,6 @@ interface props {
 }
 
 export default function VMTitle(props: props) {
-  console.log(props);
   return (
     <>
       <div className="text-xl font-semibold">

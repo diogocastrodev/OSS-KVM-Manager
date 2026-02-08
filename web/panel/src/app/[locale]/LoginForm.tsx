@@ -160,7 +160,7 @@ export default function LoginForm({ translation: t }: LoginFormProps) {
                       inputId="password"
                     >
                       <a
-                        href="#"
+                        href="/forgot-password"
                         className="text-sm text-(--color-anchor) mt-1 hover:text-(--color-anchor-hover) transition-colors"
                       >
                         {t.forgotPassword}

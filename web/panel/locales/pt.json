@@ -3,14 +3,77 @@
     "hey": "Olá"
   },
   "login": {
-    "username": "Utilizador",
-    "password": "Senha",
-    "forgotPassword": "Esqueceu-se da senha?",
+    "username": "Email",
+    "password": "Palavra-Passe",
+    "forgotPassword": "Esqueceu-se da palavra-passe?",
     "login": "Entrar"
+  },
+  "confirm-email": {
+    "name": "Nome",
+    "password": "Palavra-Passe",
+    "confirmPassword": "Confirmar Palavra-Passe",
+    "buttonText": "Confirmar Email"
+  },
+  "forgot-password": {
+    "email": "Email",
+    "buttonText": "Pedir Troca de Palavra-Passe"
+  },
+  "passwordReset": {
+    "password": "Palavra-Passe",
+    "confirmPassword": "Confirmar Palavra-Passe",
+    "resetPassword": "Trocar Palavra-Passe"
   },
   "panel": {
     "panel": "Painel",
     "admin": "Admin",
     "datacenters": "Datacenters"
+  },
+  "panel-vm": {
+    "navbar": {
+      "dashboard": "Dashboard",
+      "console": "Consola",
+      "reset": "Formatar",
+      "subusers": "SubUtilizadores",
+      "settings": "Definições"
+    },
+    "status": {
+      "pre-message": "Esta máquina está atualmente",
+      "running": "a correr",
+      "shutoff": "desligada",
+      "stopped": "parada",
+      "paused": "pausada",
+      "suspended": "suspensa",
+      "unknown": "desconhecido"
+    },
+    "buttons-action": {
+      "start": "Iniciar",
+      "shutdown": "Parar",
+      "restart": "Reiniciar",
+      "kill": "Matar"
+    },
+    "banner-info": {
+      "title": "Os recursos da sua VM",
+      "vcpus": "vCPUs",
+      "memory": "Memória",
+      "disk": "Disco",
+      "inout": "In/Out",
+      "ips": {
+        "title": "IPs atribuidos:",
+        "local": "Local",
+        "public": "Publico"
+      }
+    },
+    "graphs": {
+      "title": "Informações sobre a sua VM",
+      "cpu-usage": "Uso de CPU",
+      "memory-usage": "Uso de Memória"
+    },
+    "console-page": {
+      "open-console": "Abrir Consola",
+      "tip": {
+        "text": "Uma vez que a consola esteja aberta, digite:",
+        "command": "ssh utilizador@vm"
+      }
+    }
   }
 }

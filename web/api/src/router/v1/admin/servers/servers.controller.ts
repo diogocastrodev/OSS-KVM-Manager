@@ -6,11 +6,18 @@ import type {
   getOneServerReplyBodyType,
   getServersReplyBodyType,
   getServersRequestQueryStringType,
+  getVMsOfServerParamsSchemaType,
+  getVMsOfServerReplyBodyType,
+  healthCheckParamsSchemaType,
+  healthCheckReplyBodyType,
   tryInfoReplyBodyType,
   tryInfoRequestBodyType,
 } from "./servers.schema";
 import db from "@/db/database";
-import type { NotFoundErrorType } from "@/types/errorSchema";
+import type {
+  NotFoundErrorType,
+  UnauthorizedErrorType,
+} from "@/types/errorSchema";
 import type { tryInfoType } from "@/types/tryInfoType";
 import env from "@/utils/env";
 
@@ -29,6 +36,7 @@ export const getAllServers = async (
     const servers = await db
       .selectFrom("servers")
       .select(["publicId", "name"])
+      .orderBy("publicId", "asc")
       .execute();
 
     return reply.status(200).send({ servers: servers });
@@ -37,6 +45,7 @@ export const getAllServers = async (
   const servs = await db
     .selectFrom("servers")
     .select(["publicId", "name"])
+    .orderBy("publicId", "asc")
     .execute();
 
   if (servs.length === 0) {
@@ -53,6 +62,7 @@ export const getAllServers = async (
       "virtual_machines.name as vmName",
       "virtual_machines.status as vmStatus",
     ])
+    .orderBy("virtual_machines.publicId", "asc")
     .execute();
 
   const serversMap: getServersReplyBodyType = {
@@ -101,7 +111,7 @@ export const getOneServer = async (
   const { publicId } = req.params;
   const server = await db
     .selectFrom("servers")
-    .select(["publicId", "name"])
+    .selectAll()
     .where("publicId", "=", publicId)
     .executeTakeFirst();
 
@@ -109,7 +119,49 @@ export const getOneServer = async (
     return reply.status(404).send({ message: "Server Not Found" });
   }
 
-  return reply.status(200).send({ server: server });
+  return reply.status(200).send({
+    ...server,
+  });
+};
+
+/* -------------------------------------------------------------------------- */
+/*                             Get One Server VMs                             */
+/* -------------------------------------------------------------------------- */
+export const getVMsOfServer = async (
+  req: FastifyRequest<{ Params: getVMsOfServerParamsSchemaType }>,
+  reply: FastifyReply<{
+    Reply: getVMsOfServerReplyBodyType | NotFoundErrorType;
+  }>,
+): Promise<void> => {
+  const { publicId } = req.params;
+
+  const server = await db
+    .selectFrom("servers")
+    .select(["id"])
+    .where("publicId", "=", publicId)
+    .executeTakeFirst();
+
+  if (!server) {
+    return reply.status(404).send({ message: "Server Not Found" });
+  }
+
+  const vms = await db
+    .selectFrom("virtual_machines")
+    .select([
+      "publicId",
+      "name",
+      "status",
+      "vcpus",
+      "ram",
+      "disk",
+      "ipLocal",
+      "ipPublic",
+    ])
+    .where("serverId", "=", server.id)
+    .orderBy("publicId", "asc")
+    .execute();
+
+  return reply.status(200).send({ vms: vms });
 };
 
 /* -------------------------------------------------------------------------- */
@@ -226,4 +278,43 @@ export const createServer = async (
   return reply.status(200).send({
     message: "Server created successfully",
   });
+};
+
+export const healthCheckServer = async (
+  req: FastifyRequest<{
+    Params: healthCheckParamsSchemaType;
+  }>,
+  reply: FastifyReply<{
+    Reply: healthCheckReplyBodyType | NotFoundErrorType | UnauthorizedErrorType;
+  }>,
+) => {
+  const { publicId } = req.params;
+
+  const server = await db
+    .selectFrom("servers")
+    .select(["ipLocal", "agent_port"])
+    .where("publicId", "=", publicId)
+    .executeTakeFirst();
+
+  if (!server) {
+    return reply.status(404).send({ message: "Server Not Found" });
+  }
+
+  if (env.IGNORE_AGENT) {
+    await new Promise((r) => setTimeout(r, 1780));
+
+    return reply.status(200).send({
+      alive: true,
+    });
+  }
+
+  const res = await fetch(
+    `http://${server.ipLocal}:${server.agent_port}/api/v1/health`,
+  ).catch(() => null);
+
+  if (!res || !res.ok) {
+    return reply.status(200).send({ alive: false });
+  }
+
+  return reply.status(200).send({ alive: true });
 };

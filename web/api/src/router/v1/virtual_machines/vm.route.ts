@@ -1,12 +1,26 @@
 import type { FastifyPluginAsync } from "fastify";
 import {
+  changeVMStatusBodySchema,
+  changeVMStatusParamsSchema,
+  changeVMStatusResponseSchema,
+  formatVirtualMachineBodySchema,
+  formatVirtualMachineParamsSchema,
+  formatVirtualMachineResponseSchema,
   getVirtualMachineByIdParamsSchema,
+  type ChangeVMStatusBody,
+  type ChangeVMStatusParams,
+  type ChangeVMStatusResponse,
   type CreateVirtualSessionBody,
   type CreateVirtualSessionResponse,
+  type FormatVirtualMachineBody,
+  type FormatVirtualMachineParams,
+  type FormatVirtualMachineResponse,
   type GetVirtualMachineByIdParams,
 } from "./vm.schema";
 import {
+  changeVMStatus,
   createVirtualSession,
+  formatVirtualMachine,
   getMyVirtualMachines,
   getVirtualMachineById,
 } from "./vm.controller";
@@ -14,8 +28,10 @@ import {
   NotFoundError,
   UnauthorizedError,
   type NotFoundErrorType,
+  type UnauthorizedErrorType,
 } from "@/types/errorSchema";
 import swaggerTags from "@/types/swaggerTags";
+import vmsSubUserRoute from "./subuser/subuser.route";
 
 const vmsRoute: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
@@ -32,7 +48,7 @@ const vmsRoute: FastifyPluginAsync = async (fastify) => {
           "Retrieves a list of virtual machines owned by the authenticated user.",
       },
     },
-    getMyVirtualMachines
+    getMyVirtualMachines,
   );
   /* -------------------------------------------------------------------------- */
   /*                             Get Virtual Machine                            */
@@ -55,20 +71,47 @@ const vmsRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    getVirtualMachineById
+    getVirtualMachineById,
   );
   /* -------------------------------------------------------------------------- */
   /*                           Update Virtual Machine                           */
   /* -------------------------------------------------------------------------- */
+
   /* -------------------------------------------------------------------------- */
-  /*                         Add User to Virtual Machine                        */
+  /*                           Format Virtual Machine                           */
   /* -------------------------------------------------------------------------- */
+  fastify.post<{
+    Params: FormatVirtualMachineParams;
+    Body: FormatVirtualMachineBody;
+    Reply:
+      | FormatVirtualMachineResponse
+      | NotFoundErrorType
+      | UnauthorizedErrorType;
+  }>(
+    "/:vmPublicId/format",
+    {
+      preValidation: [fastify.authRequired],
+      schema: {
+        tags: [swaggerTags.VIRTUAL_MACHINES],
+        summary: "Format Virtual Machine",
+        description:
+          "Formats the virtual machine, erasing all data and restoring it to its initial state.",
+        params: formatVirtualMachineParamsSchema,
+        body: formatVirtualMachineBodySchema,
+        response: {
+          200: formatVirtualMachineResponseSchema,
+          401: UnauthorizedError,
+          404: NotFoundError,
+        },
+      },
+    },
+    formatVirtualMachine,
+  );
+
   /* -------------------------------------------------------------------------- */
-  /*                       Update User in Virtual Machine                       */
+  /*                                  Sub Users                                 */
   /* -------------------------------------------------------------------------- */
-  /* -------------------------------------------------------------------------- */
-  /*                      Remove User from Virtual Machine                      */
-  /* -------------------------------------------------------------------------- */
+  fastify.register(vmsSubUserRoute, { prefix: "/:vmPublicId/subusers" });
   /* -------------------------------------------------------------------------- */
   /*                     Virtual Session to Virtual Machine                     */
   /* -------------------------------------------------------------------------- */
@@ -91,7 +134,35 @@ const vmsRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    createVirtualSession
+    createVirtualSession,
+  );
+
+  /* -------------------------------------------------------------------------- */
+  /*                              Change VM State                              */
+  /* -------------------------------------------------------------------------- */
+  fastify.post<{
+    Params: ChangeVMStatusParams;
+    Body: ChangeVMStatusBody;
+    Reply: ChangeVMStatusResponse | NotFoundErrorType | UnauthorizedErrorType;
+  }>(
+    "/:vmPublicId/state",
+    {
+      preValidation: [fastify.authRequired],
+      schema: {
+        tags: [swaggerTags.VIRTUAL_MACHINES],
+        summary: "Change Virtual Machine State",
+        description:
+          "Changes the state of the virtual machine (e.g., start, stop, restart, kill).",
+        params: changeVMStatusParamsSchema,
+        body: changeVMStatusBodySchema,
+        response: {
+          200: changeVMStatusResponseSchema,
+          401: UnauthorizedError,
+          404: NotFoundError,
+        },
+      },
+    },
+    changeVMStatus,
   );
 };
 

@@ -13,6 +13,9 @@ import {
 import qk from "@/lib/fetches/keys";
 import { Session } from "@/types/Session";
 import { apiFetchServer } from "@/lib/apiFetchServer";
+import { ToastContainer } from "react-toastify";
+import { useTheme } from "next-themes";
+import AppToasts from "@/components/AppToast/AppToast";
 
 type Props = {
   children: React.ReactNode;
@@ -62,6 +65,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               <main id="root" lang={locale}>
                 <HydrationBoundary state={dehydrate(qc)}>
                   {children}
+                  <AppToasts />
                 </HydrationBoundary>
               </main>
             </ThemeProvider>

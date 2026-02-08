@@ -15,7 +15,7 @@ export async function sendEmail(
   to: string,
   subject: string,
   text: string,
-  html?: string
+  html?: string,
 ) {
   const messageData: MailgunMessageData = {
     from: `No-Reply <no-reply@${env.MAILGUN_DOMAIN}>`,
@@ -33,7 +33,6 @@ export async function sendEmail(
     console.log("Email sent:", response);
   } catch (error) {
     console.error("Error sending email:", error);
-    throw error;
   }
 }
 
@@ -41,13 +40,13 @@ export async function sendRegisterEmail(to: string, token: string) {
   const subject = "Serverseer - Confirm Your Email";
   const emailTemplate = loadEmailTemplateFile(
     EmailsTemplates.REGISTER,
-    "new_account.html"
+    "new_account.html",
   );
   const templateContent = await fs.readFile(emailTemplate, "utf-8");
   const confirmationLink = `${env.WEB_PANEL_URL}/confirm-email?token=${token}`;
   const html = templateContent.replaceAll(
     "{{registration_link}}",
-    confirmationLink
+    confirmationLink,
   );
 
   await sendEmail(to, subject, "", html);
@@ -56,18 +55,18 @@ export async function sendRegisterEmail(to: string, token: string) {
 export async function sendInviteRegisterEmail(
   from: string,
   to: string,
-  token: string
+  token: string,
 ) {
   const subject = "Serverseer - You're Invited to Join";
   const emailTemplate = loadEmailTemplateFile(
     EmailsTemplates.REGISTER,
-    "invite_account.html"
+    "invite_account.html",
   );
   const templateContent = await fs.readFile(emailTemplate, "utf-8");
-  const registrationLink = `${env.WEB_PANEL_URL}/register?token=${token}`;
+  const registrationLink = `${env.WEB_PANEL_URL}/confirm-email?token=${token}`;
   let html = templateContent.replaceAll(
     "{{registration_link}}",
-    registrationLink
+    registrationLink,
   );
   html = html.replaceAll("{{inviter_name}}", from);
 
@@ -78,10 +77,10 @@ export async function sendPasswordResetEmail(to: string, token: string) {
   const subject = "Serverseer - Password Reset Request";
   const emailTemplate = loadEmailTemplateFile(
     EmailsTemplates.ACCOUNT,
-    "password_reset.html"
+    "password_reset.html",
   );
   const templateContent = await fs.readFile(emailTemplate, "utf-8");
-  const resetLink = `${env.WEB_PANEL_URL}/reset-password?token=${token}`;
+  const resetLink = `${env.WEB_PANEL_URL}/password-reset?token=${token}`;
   const html = templateContent.replaceAll("{{reset_password_link}}", resetLink);
 
   await sendEmail(to, subject, "", html);

@@ -60,6 +60,30 @@
   --color-button-kill-disabled: var(--color-zinc-400);
   --color-button-kill-foreground-disabled: var(--color-zinc-200);
 
+  --color-button-update: var(--color-blue-600);
+  --color-button-update-hover: var(--color-blue-700);
+  --color-button-update-foreground: var(--color-zinc-100);
+  --color-button-update-foreground-hover: var(--color-zinc-50);
+  --color-button-update-disabled: var(--color-zinc-400);
+  --color-button-update-foreground-disabled: var(--color-zinc-200);
+
+  --color-button-delete: var(--color-red-600);
+  --color-button-delete-hover: var(--color-red-700);
+  --color-button-delete-foreground: var(--color-zinc-100);
+  --color-button-delete-foreground-hover: var(--color-zinc-50);
+  --color-button-delete-disabled: var(--color-zinc-400);
+  --color-button-delete-foreground-disabled: var(--color-zinc-200);
+
+  --color-traffic-green: var(--color-green-400);
+  --color-traffic-yellow: var(--color-yellow-400);
+  --color-traffic-red: var(--color-red-400);
+
+  --color-gauge-good: var(--color-green-400);
+  --color-gauge-warning: var(--color-yellow-400);
+  --color-gauge-critical: var(--color-red-400);
+  --color-gauge-track: var(--color-zinc-300);
+  --color-gauge-border: var(--color-zinc-500);
+
   /* Set default */
   background-color: var(--color-background-primary);
   color: var(--color-foreground);
@@ -119,6 +143,30 @@ html.dark {
   --color-button-kill-foreground-hover: var(--color-zinc-50);
   --color-button-kill-disabled: var(--color-zinc-600);
   --color-button-kill-foreground-disabled: var(--color-zinc-400);
+
+  --color-button-update: var(--color-blue-400);
+  --color-button-update-hover: var(--color-blue-500);
+  --color-button-update-foreground: var(--color-zinc-900);
+  --color-button-update-foreground-hover: var(--color-zinc-100);
+  --color-button-update-disabled: var(--color-zinc-600);
+  --color-button-update-foreground-disabled: var(--color-zinc-400);
+
+  --color-button-delete: var(--color-red-700);
+  --color-button-delete-hover: var(--color-red-800);
+  --color-button-delete-foreground: var(--color-zinc-100);
+  --color-button-delete-foreground-hover: var(--color-zinc-50);
+  --color-button-delete-disabled: var(--color-zinc-600);
+  --color-button-delete-foreground-disabled: var(--color-zinc-400);
+
+  --color-traffic-green: var(--color-green-500);
+  --color-traffic-yellow: var(--color-yellow-500);
+  --color-traffic-red: var(--color-red-500);
+
+  --color-gauge-good: var(--color-green-500);
+  --color-gauge-warning: var(--color-yellow-500);
+  --color-gauge-critical: var(--color-red-500);
+  --color-gauge-track: var(--color-zinc-800);
+  --color-gauge-border: var(--color-zinc-600);
 }
 
 /* :root {

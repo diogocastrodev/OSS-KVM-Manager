@@ -6,7 +6,9 @@ interface InputFieldProps {
   inputType: React.HTMLInputTypeAttribute;
   inputName: string;
   inputId: string;
+  placeholder?: string;
   children?: React.ReactNode;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
 }
 
 export default function InputField(props: InputFieldProps) {
@@ -29,7 +31,9 @@ export default function InputField(props: InputFieldProps) {
           value={field.state.value}
           onBlur={field.handleBlur}
           onChange={(e) => field.handleChange(e.target.value)}
+          placeholder={props.placeholder}
           aria-invalid={isInvalid}
+          {...props.inputProps}
         />
         {/* {isInvalid && (
           <span className="text-red-300">

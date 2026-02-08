@@ -15,7 +15,7 @@ import { useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { fetchMyVMs } from "@/lib/fetches/fetchMyVMs";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import qk from "@/lib/fetches/keys";
 import { apiFetch } from "@/lib/apiFetch";
 
@@ -26,10 +26,10 @@ const dropdownMenuItems: Array<{
   action?: () => void;
   spacer?: boolean;
 }> = [
-  { icon: <UserIcon />, label: "Profile" },
   {
-    icon: <SettingsIcon />,
-    label: "Settings",
+    icon: <UserIcon />,
+    href: "/panel/profile",
+    label: "Profile",
     spacer: true,
   },
   {
@@ -102,9 +102,9 @@ export default function PanelLayout({
     <>
       {/* <PanelSidebar /> */}
       {/* <PanelContent>{children}</PanelContent> */}
-      <div className="flex-1 flex flex-col p-2 pb-0">
-        <div className="flex-1 flex flex-row">
-          <div className="w-60 h-full flex flex-col gap-y-2 p-1 pr-3 pb-3">
+      <div className="h-dvh flex-1 flex flex-col p-2 pb-0 overflow-y-hidden">
+        <div className="flex-1 flex flex-row min-h-0">
+          <div className="w-60 h-full flex flex-col gap-y-2 p-1 pr-3 pb-3 min-h-0">
             <div className="flex flex-row items-center justify-center gap-x-1.5 mb-4">
               <Logo props={{ className: "size-14" }} />
               <span className="font-semibold text-2xl">Serverseer</span>
@@ -121,7 +121,7 @@ export default function PanelLayout({
 
               <div className="my-4"></div>
               <div className="text-sm font-semibold">Datacenters</div>
-              <div className="flex flex-col flex-1 gap-y-2 bg-(--color-background-selected) p-2 rounded-lg shadow-md overflow-y-auto overflow-x-hidden">
+              <div className="min-h-0 flex flex-col flex-1 gap-y-2 bg-(--color-background-selected) p-2 rounded-lg shadow-md overflow-y-auto overflow-x-hidden">
                 <div>Home</div>
                 <div className="pl-4 flex flex-col gap-y-2">
                   {data &&
@@ -139,7 +139,7 @@ export default function PanelLayout({
                                 return (
                                   <a
                                     key={`${s.publicId}-${vm.publicId}`}
-                                    href={`/${pathname.includes("admin") ? "admin" : "panel"}/vm/${vm.publicId}`}
+                                    href={`/panel/vm/${vm.publicId}`}
                                   >
                                     {vm.name}
                                   </a>
@@ -202,14 +202,13 @@ export default function PanelLayout({
                   </span>
                 </div>
                 {isUserDropdownOpen && (
-                  <div className="absolute bottom-14 left-0 w-full bg-(--color-background-secondary) rounded-lg shadow-md flex flex-col gap-y-0.5 z-10 before:absolute before:top-full before:left-4 before:border-8 before:border-x-transparent before:border-b-transparent before:border-(--color-background-secondary) before:border-t-8">
+                  <div className="p-0.5 absolute bottom-14 left-0 w-full bg-(--color-background-secondary) rounded-lg shadow-md flex flex-col gap-y-0.5 z-10 before:absolute before:top-full before:left-4 before:border-8 before:border-x-transparent before:border-b-transparent before:border-(--color-background-secondary) before:border-t-8">
                     {dropdownMenuItems.map((item, idx) => {
                       return (
-                        <>
+                        <Fragment key={`dropdown-fragment-${idx}`}>
                           <a
                             className="px-2 py-1 hover:bg-(--color-background-selected) cursor-pointer flex flex-row rounded-lg items-center"
                             href={item.href || "#"}
-                            key={`dropdown-item-${idx}`}
                             onClick={item.action ? item.action : undefined}
                           >
                             {item.icon && (
@@ -220,12 +219,9 @@ export default function PanelLayout({
                             {item.label}
                           </a>
                           {item.spacer && (
-                            <div
-                              className="mx-1 border-b-2 border-(--color-background-primary)"
-                              key={`dropdown-spacer-${idx}`}
-                            ></div>
+                            <div className="mx-1 border-b-2 border-(--color-background-primary)"></div>
                           )}
-                        </>
+                        </Fragment>
                       );
                     })}
                   </div>
@@ -233,7 +229,7 @@ export default function PanelLayout({
               </div>
             </div>
           </div>
-          <div className="flex-1 bg-(--color-background-secondary) rounded-t-lg overflow-y-auto p-1">
+          <div className="flex-1 min-h-0 bg-(--color-background-secondary) rounded-t-lg overflow-y-scroll p-5 relative">
             {children}
           </div>
         </div>
