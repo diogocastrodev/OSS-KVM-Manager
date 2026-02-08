@@ -25,6 +25,7 @@ import type {
 } from "@/types/errorSchema";
 import type { tryInfoType } from "@/types/tryInfoType";
 import env from "@/utils/env";
+import { calculateNetworkAddress, cidrToNetmask } from "@/utils/network";
 
 /* -------------------------------------------------------------------------- */
 /*                               Get All Servers                              */
@@ -187,6 +188,11 @@ export const tryInfo = async (
         vcpus: 8,
         memory_mb: 8192,
         disk: 100000,
+        network: {
+          prefix: "AB:CD:EF:12:34:56",
+          gateway: "192.168.50.1",
+          network: "192.168.50.0",
+        },
       },
     });
   }
@@ -202,6 +208,15 @@ export const tryInfo = async (
   req.log.info(`Response status: ${res.status}`);
   // Parse Text to JSON
   const data = (await res.json()) as tryInfoType;
+  const vm_network = data.network["br-vms"];
+  if (vm_network) {
+    req.log.info(`vm info: ${JSON.stringify(vm_network)}`);
+  }
+
+  const vmIpData = vm_network?.addresses.find((addr) => addr.family === "inet");
+  if (vmIpData) {
+    req.log.info(`VM IP: ${vmIpData.ip}, Prefix Length: ${vmIpData.prefixlen}`);
+  }
 
   return reply.status(200).send({
     message: "Successfully reached server endpoint",
@@ -210,6 +225,16 @@ export const tryInfo = async (
       vcpus: data.cpu.logical_cpus,
       memory_mb: data.memory.total_bytes / 1024 / 1024,
       disk: data.disk_summary.root.total_bytes / 1024 / 1024,
+      network: {
+        prefix: vmIpData?.prefixlen
+          ? cidrToNetmask(vmIpData?.prefixlen)
+          : "0.0.0.0",
+        gateway: vmIpData?.ip,
+        network: calculateNetworkAddress(
+          vmIpData?.ip || "",
+          vmIpData?.prefixlen ? cidrToNetmask(vmIpData.prefixlen) : "",
+        ),
+      },
     },
   });
 };
@@ -273,6 +298,10 @@ export const createServer = async (
       ram_available: req.body.memory_mb_max,
       disk_available: req.body.disk_max,
       agent_port: agent_port ? parseInt(agent_port, 10) : 5000, // Default agent port
+      // Network
+      vms_network: req.body.vms_network,
+      vms_network_mask: req.body.vms_network_mask,
+      vms_gateway: req.body.vms_network_gateway,
     })
     .execute()
     .catch((error) => {
@@ -343,7 +372,15 @@ export const updateServer = async (
 
   const server = await db
     .selectFrom("servers")
-    .select(["id"])
+    .select([
+      "id",
+      "vcpus_max",
+      "ram_max",
+      "disk_max",
+      "vcpus_available",
+      "ram_available",
+      "disk_available",
+    ])
     .where("publicId", "=", publicId)
     .executeTakeFirst();
 
@@ -376,6 +413,10 @@ export const updateServer = async (
     });
   }
 
+  const new_vcpus_available = Number(req.body.vcpus_max) - vcpus_used;
+  const new_ram_available = Number(req.body.memory_mb_max) - ram_used;
+  const new_disk_available = Number(req.body.disk_max) - disk_used;
+
   await db
     .updateTable("servers")
     .set({
@@ -389,9 +430,9 @@ export const updateServer = async (
       vcpus_max: req.body.vcpus_max,
       ram_max: req.body.memory_mb_max,
       disk_max: req.body.disk_max,
-      vcpus_available: Number(req.body.vcpus_max) - vcpus_used,
-      ram_available: Number(req.body.memory_mb_max) - ram_used,
-      disk_available: Number(req.body.disk_max) - disk_used,
+      vcpus_available: new_vcpus_available,
+      ram_available: new_ram_available,
+      disk_available: new_disk_available,
     })
     .where("id", "=", server.id)
     .execute();
@@ -422,6 +463,18 @@ export const deleteServer = async (
   if (!server) {
     return reply.status(404).send({ message: "Server Not Found" });
   }
+
+  Promise.all([
+    db
+      .deleteFrom("virtual_machines")
+      .where("serverId", "=", server.id)
+      .execute(),
+  ]).catch((error) => {
+    req.log.error("Error deleting related data for server:", error);
+    return reply
+      .status(500)
+      .send({ message: "Database error during deletion" });
+  });
 
   await db
     .deleteFrom("virtual_machines")

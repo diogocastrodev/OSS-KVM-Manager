@@ -16,6 +16,17 @@ export const adminGetAllServersReplySchema = z.object({
 /* -------------------------------------------------------------------------- */
 /*                              Get VM By ID                              */
 /* -------------------------------------------------------------------------- */
+export const adminGetVirtualMachinesByIdQuerySchema = z.object({
+  include_server: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
+});
+
+export type AdminGetVirtualMachinesByIdQuery = z.infer<
+  typeof adminGetVirtualMachinesByIdQuerySchema
+>;
+
 export const adminGetVirtualMachineByIdParamsSchema = z.object({
   vmPublicId: z
     .string()
@@ -88,7 +99,48 @@ export type AdminCreateVirtualMachineReply = z.infer<
 /* -------------------------------------------------------------------------- */
 /*                                Update Server                               */
 /* -------------------------------------------------------------------------- */
+export const AdminUpdateVirtualMachineParamsSchema = z.object({
+  vmPublicId: z
+    .string()
+    .regex(/^\d+$/, "publicId must be a number")
+    .transform(Number),
+});
 
+export type AdminUpdateVirtualMachineParams = z.infer<
+  typeof AdminUpdateVirtualMachineParamsSchema
+>;
+
+export const AdminUpdateVirtualMachineBodySchema = z.object({
+  publicId: z.int().min(1),
+  name: z.string().min(3).max(50),
+  vcpus: z.number().min(1).max(256),
+  memory_mib: z
+    .number()
+    .min(1)
+    .max(256 * 1024),
+  disk_gb: z.number().min(1).max(2000),
+  network: z.object({
+    in_avg_mbps: z.number().min(0),
+    in_peak_mbps: z.number().min(0),
+    in_burst_mbps: z.number().min(0),
+    out_avg_mbps: z.number().min(0),
+    out_peak_mbps: z.number().min(0),
+    out_burst_mbps: z.number().min(0),
+  }),
+});
+
+export type AdminUpdateVirtualMachineBody = z.infer<
+  typeof AdminUpdateVirtualMachineBodySchema
+>;
+
+export const AdminUpdateVirtualMachineReplySchema = z.object({
+  publicId: z.number(),
+  name: z.string(),
+});
+
+export type AdminUpdateVirtualMachineReply = z.infer<
+  typeof AdminUpdateVirtualMachineReplySchema
+>;
 /* -------------------------------------------------------------------------- */
 /*                                Delete Server                               */
 /* -------------------------------------------------------------------------- */

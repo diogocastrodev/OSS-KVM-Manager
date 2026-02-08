@@ -1,10 +1,11 @@
 <domain type='kvm'>
     <name>{name}</name>
 
-    <memory unit='MiB'>{memory_mib}</memory>
+    <memory unit='MiB'>{memory_max_mib}</memory>
     <currentMemory unit='MiB'>{memory_mib}</currentMemory>
 
-    <vcpu placement='static'>{vcpus}</vcpu>
+
+    <vcpu placement='static' current='{vcpus}'>{vcpus_max}</vcpu>
 
     <os>
         <type arch='x86_64'>hvm</type>

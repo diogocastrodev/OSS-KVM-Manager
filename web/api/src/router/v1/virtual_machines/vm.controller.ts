@@ -20,7 +20,7 @@ import env from "@/utils/env";
 import { pollFinalizeUntilOperational } from "@/utils/pool";
 import type { AgentRoutes, PreparedRequest } from "@/utils/agentRoutes";
 import normalizeNames from "@/utils/normalizeName";
-import netmaskToCidr from "@/utils/maskToCIDR";
+import { netmaskToCidr } from "@/utils/network";
 
 /* -------------------------------------------------------------------------- */
 /*                           Get My Virtual Machines                          */

@@ -51,7 +51,10 @@ export default function ServerPageClient(props: props) {
         </div>
         <div className="flex flex-row">
           Check if server is alive:
-          <button className="pl-1" onClick={() => healthCheckRefetch()}>
+          <button
+            className="pl-1 italic underline"
+            onClick={() => healthCheckRefetch()}
+          >
             Click Here
           </button>
           <div className="pl-4">

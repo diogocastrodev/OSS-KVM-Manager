@@ -1,3 +1,4 @@
+from platform import node
 from typing import Optional
 import libvirt
 import os
@@ -85,8 +86,45 @@ def create_virtual_machine(req: VMCreateRequest) -> Optional[libvirt.virDomain]:
             'net_out_peak_kbps': __mbps_to_kibps__(req.vm.network.out_peak_mbps),
             'net_out_burst_kb': __mbps_to_kibps__(req.vm.network.out_burst_mbps)
         }
-        vm_xml = vm_xml.format(name=req.vm_id, vcpus=req.vm.vcpus, memory_mib=req.vm.memory, disk_path=vol.path(), mac=req.vm.mac, **network_params) # Fill in template values
-        
+
+        node = conn.getInfo()  # (model, memoryMB, cpus, mhz, nodes, sockets, cores, threads)
+        host_mem_mib = int(node[1])  # treat as MiB for caps
+        host_cpus = int(node[2])
+
+        hv_type = "kvm"
+        if os.getenv("SYSTEM", "linux").lower() == "macos":
+            hv_type = "qemu"
+
+        try:
+            hv_max_vcpus = int(conn.getMaxVcpus(hv_type))
+        except libvirt.libvirtError:
+            hv_max_vcpus = host_cpus
+
+        host_vcpu_cap = min(host_cpus, hv_max_vcpus)
+
+        vcpu_headroom_factor = float(os.getenv("VCPU_HEADROOM_FACTOR", "2.0"))
+        mem_headroom_factor = float(os.getenv("MEM_HEADROOM_FACTOR", "2.0"))
+        host_mem_cap_pct = float(os.getenv("HOST_MEM_CAP_PCT", "0.90"))
+
+        vm_vcpu_max_cap = int(os.getenv("VM_VCPU_MAX_CAP", "16"))
+        vm_mem_max_cap_mib = int(os.getenv("VM_MEM_MAX_CAP_MIB", "16384"))
+
+        vcpus_max = max(req.vm.vcpus + 1, int(req.vm.vcpus * vcpu_headroom_factor))
+        vcpus_max = min(vcpus_max, host_vcpu_cap, vm_vcpu_max_cap)
+
+        memory_max_mib = max(req.vm.memory + 256, int(req.vm.memory * mem_headroom_factor))
+        memory_max_mib = min(memory_max_mib, int(host_mem_mib * host_mem_cap_pct), vm_mem_max_cap_mib)
+
+        vm_xml = vm_xml.format(
+            name=req.vm_id,
+            vcpus=req.vm.vcpus,
+            vcpus_max=vcpus_max,
+            memory_mib=req.vm.memory,
+            memory_max_mib=memory_max_mib,
+            disk_path=vol.path(),
+            mac=req.vm.mac,
+            **network_params
+        )        
         # Save this XML for tests purposes
         with open(f"/tmp/{req.vm_id}_vm.xml", 'w') as file:
             file.write(vm_xml)

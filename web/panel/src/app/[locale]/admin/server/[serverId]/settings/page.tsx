@@ -1,7 +1,15 @@
-export default function ServersSettingsPage() {
+import ServerSettings from "./ServerSettings";
+
+export default async function ServersSettingsPage({
+  params,
+}: {
+  params: Promise<{ serverId: string }>;
+}) {
+  const { serverId } = await params;
+
   return (
     <>
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <ServerSettings serverId={parseInt(serverId)} />
     </>
   );
 }

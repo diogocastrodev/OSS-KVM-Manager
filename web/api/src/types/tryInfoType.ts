@@ -3,7 +3,7 @@ export interface tryInfoType {
   memory: Memory;
   disks: Disk[];
   disk_summary: DiskSummary;
-  network: Record<string, Network>;
+  network: { [key: string]: Network };
   network_meta: NetworkMeta;
 }
 
@@ -69,6 +69,10 @@ export interface Address {
   ip: string;
   netmask: string;
   broadcast: string | any;
+  prefixlen?: number;
+  state?: string;
+  mac?: string;
+  mtu?: number;
 }
 
 export interface NetworkMeta {

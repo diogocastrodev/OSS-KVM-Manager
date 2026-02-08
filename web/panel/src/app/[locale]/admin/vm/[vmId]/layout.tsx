@@ -29,7 +29,9 @@ export default async function PanelLayout({
     queryKey: qk.api.v1.admin.vms.getById(parseInt(vmId)),
     queryFn: async () => {
       try {
-        const d = await apiFetchServer(`/api/v1/admin/vms/${vmId}`);
+        const d = await apiFetchServer(
+          `/api/v1/admin/vms/${vmId}?include_server=true`,
+        );
         if (!d.ok) notFound();
         return d.json() as Promise<UserGetVMByIDResponse>;
       } catch {

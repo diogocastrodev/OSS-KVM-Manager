@@ -9,37 +9,56 @@ import { apiFetch } from "@/lib/apiFetch";
 import qk from "@/lib/fetches/keys";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { AdminServersResponse } from "../../layout";
 import cidrToNetmask from "@/utils/CIDRtoNetmask";
+import { TryInfoResponse } from "../../create/AdminCreatePage";
+import { ServerData } from "@/components/vm/navbar/navbarAdminServer";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 
-export interface TryInfoResponse {
-  message: string;
-  info: {
-    cpus: number;
-    vcpus: number;
-    memory_mb: number;
-    disk: number;
-    network?: {
-      prefix: string;
-      gateway: string;
-      network: string;
-    };
-  };
+interface props {
+  serverId: number;
 }
 
-export default function AdminCreatePage() {
-  const { refetch: refetchServers } = useQuery({
-    queryKey: qk.api.v1.admin.servers.all(),
+export default function ServerSettings({ serverId }: props) {
+  const router = useRouter();
+  const { data, refetch: refetchServer } = useQuery({
+    queryKey: qk.api.v1.admin.servers.getById(serverId),
     queryFn: async () =>
-      await apiFetch(
-        "/api/v1/admin/servers?include_virtual_machines=true",
-      ).then((res) => {
+      await apiFetch(`/api/v1/admin/servers/${serverId}`).then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch servers");
+          throw new Error("Failed to fetch server");
         }
-        return res.json() as Promise<AdminServersResponse>;
+        return res.json() as Promise<ServerData>;
       }),
   });
+
+  useEffect(() => {
+    if (data) {
+      updateServerForm.setFieldValue("name", data.name);
+      updateServerForm.setFieldValue("publicId", data.publicId + "");
+      updateServerForm.setFieldValue(
+        "server_endpoint",
+        `${data.ipLocal}:${data.agent_port}`,
+      );
+      updateServerForm.setFieldValue("cpus", data.cpus + "");
+      updateServerForm.setFieldValue("vcpus", data.vcpus + "");
+      updateServerForm.setFieldValue("memory_mb", data.ram + "");
+      updateServerForm.setFieldValue("disk", data.disk + "");
+      updateServerForm.setFieldValue("in_link_mbps", data.in_link + "");
+      updateServerForm.setFieldValue("out_link_mbps", data.out_link + "");
+      updateServerForm.setFieldValue("vcpus_max", data.vcpus_max + "");
+      updateServerForm.setFieldValue("memory_mb_max", data.ram_max + "");
+      updateServerForm.setFieldValue("disk_max", data.disk_max + "");
+      updateServerForm.setFieldValue("network", data.vms_network || "");
+      updateServerForm.setFieldValue(
+        "network_mask",
+        data.vms_network_mask || "",
+      );
+      updateServerForm.setFieldValue("network_gateway", data.vms_gateway || "");
+    }
+  }, [data]);
+
   const {
     data: dataTryInfo,
     isPending: isPendingTryInfo,
@@ -52,35 +71,40 @@ export default function AdminCreatePage() {
         body: JSON.stringify({ server_endpoint }),
       });
 
-      if (!res.ok) throw new Error("Failed to fetch server info");
+      if (!res.ok) {
+        toast.error(
+          "Failed to fetch server info. Please check the endpoint and try again.",
+        );
+        throw new Error("Failed to fetch server info");
+      }
       return res.json() as Promise<TryInfoResponse>;
     },
     onSuccess: (data) => {
       const memory = Math.trunc(data.info.memory_mb);
       const disk = Math.trunc(data.info.disk / 1024);
-      createServerForm.setFieldValue("cpus", data.info.cpus + "");
-      createServerForm.setFieldValue("vcpus", data.info.vcpus + "");
-      createServerForm.setFieldValue("memory_mb", memory + "");
-      createServerForm.setFieldValue("disk", disk + "");
-      createServerForm.setFieldValue("vcpus_max", data.info.vcpus + "");
-      createServerForm.setFieldValue("memory_mb_max", memory + "");
-      createServerForm.setFieldValue("disk_max", disk + "");
+      updateServerForm.setFieldValue("cpus", data.info.cpus + "");
+      updateServerForm.setFieldValue("vcpus", data.info.vcpus + "");
+      updateServerForm.setFieldValue("memory_mb", memory + "");
+      updateServerForm.setFieldValue("disk", disk + "");
       if (data.info.network) {
-        createServerForm.setFieldValue("network", data.info.network.network);
-        createServerForm.setFieldValue(
+        updateServerForm.setFieldValue("network", data.info.network.network);
+        updateServerForm.setFieldValue(
           "network_mask",
           data.info.network.prefix,
         );
-        createServerForm.setFieldValue(
+        updateServerForm.setFieldValue(
           "network_gateway",
           data.info.network.gateway,
         );
       }
+      toast.success(
+        "Server info fetched successfully. Please review the information and click Update Server to save.",
+      );
     },
   });
 
-  const { mutate: createServer } = useMutation({
-    mutationKey: [qk.api.v1.admin.servers.create()],
+  const { mutate: updateServer } = useMutation({
+    mutationKey: [qk.api.v1.admin.servers.update(serverId)],
     mutationFn: async (data: {
       publicId: number;
       name: string;
@@ -98,21 +122,24 @@ export default function AdminCreatePage() {
       vm_network_mask: string;
       vm_network_gateway: string;
     }) => {
-      const res = await apiFetch("/api/v1/admin/servers", {
-        method: "POST",
+      const res = await apiFetch(`/api/v1/admin/servers/${serverId}`, {
+        method: "PUT",
         body: JSON.stringify(data),
       });
 
-      if (!res.ok) throw new Error("Failed to create server");
+      if (!res.ok) {
+        toast.error("Failed to update server");
+        throw new Error("Failed to update server");
+      }
       return res.json();
     },
     onSuccess: () => {
-      createServerForm.reset();
-      refetchServers();
+      toast.success("Server updated successfully");
+      router.push(`/admin/server/${serverId}`);
     },
   });
 
-  const createServerFormValidate = z.object({
+  const updateServerSchema = z.object({
     publicId: z
       .string()
       .regex(/^\d+$/, "publicId must be a number")
@@ -172,12 +199,7 @@ export default function AdminCreatePage() {
       .regex(/^\d+$/, "disk_max must be a number")
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
-    network: z
-      .string()
-      .regex(
-        /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])$/,
-        "Invalid IP address format for VMs network",
-      ),
+    network: z.ipv4(),
     network_mask: z
       .string()
       .regex(
@@ -192,7 +214,7 @@ export default function AdminCreatePage() {
       ),
   });
 
-  const createServerForm = useAppForm({
+  const updateServerForm = useAppForm({
     defaultValues: {
       publicId: "",
       name: "",
@@ -211,7 +233,7 @@ export default function AdminCreatePage() {
       network_gateway: "",
     },
     validators: {
-      onSubmit: createServerFormValidate,
+      onSubmit: updateServerSchema,
     },
     onSubmit: async ({ value }) => {
       console.log("Submitting form with value:", value);
@@ -233,7 +255,7 @@ export default function AdminCreatePage() {
         alert("Max vCPUs cannot be greater than vCPUs");
         return;
       }
-      createServer({
+      updateServer({
         publicId: parseInt(value.publicId),
         name: value.name,
         server_endpoint: value.server_endpoint,
@@ -253,13 +275,27 @@ export default function AdminCreatePage() {
     },
   });
 
+  const deleteServerMutation = useMutation({
+    mutationKey: [qk.api.v1.admin.servers.delete(serverId)],
+    mutationFn: async () => {
+      const res = await apiFetch(`/api/v1/admin/servers/${serverId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete server");
+      return res.json();
+    },
+    onSuccess: () => {
+      router.push("/admin");
+    },
+  });
+
   return (
     <>
       <div className="">
-        <div className="text-2xl pb-2">Create Server</div>
-        <createServerForm.AppForm>
+        <div className="text-2xl pb-2">Update Server</div>
+        <updateServerForm.AppForm>
           <div className="flex flex-col gap-y-3">
-            <createServerForm.AppField name="server_endpoint">
+            <updateServerForm.AppField name="server_endpoint">
               {(field) => (
                 <field.InputField
                   inputId="server_endpoint"
@@ -269,7 +305,7 @@ export default function AdminCreatePage() {
                   placeholder="10.10.10.10:5000"
                 />
               )}
-            </createServerForm.AppField>
+            </updateServerForm.AppField>
             <div className="flex flex-row gap-x-3">
               <ButtonNoForm
                 button={{
@@ -277,7 +313,7 @@ export default function AdminCreatePage() {
                   onClick: (e) => {
                     e.preventDefault();
                     const server_endpoint =
-                      createServerForm.getFieldValue("server_endpoint");
+                      updateServerForm.getFieldValue("server_endpoint");
                     tryInfo(server_endpoint);
                   },
                   disabled: isPendingTryInfo,
@@ -313,7 +349,7 @@ export default function AdminCreatePage() {
             <Divider />
             <div className="text-lg">General Information:</div>
             <div className="flex flex-row flex-wrap items-center gap-x-8">
-              <createServerForm.AppField name="name">
+              <updateServerForm.AppField name="name">
                 {(field) => (
                   <field.InputField
                     inputId="name"
@@ -322,8 +358,8 @@ export default function AdminCreatePage() {
                     labelText="Name:"
                   />
                 )}
-              </createServerForm.AppField>
-              <createServerForm.AppField name="publicId">
+              </updateServerForm.AppField>
+              <updateServerForm.AppField name="publicId">
                 {(field) => (
                   <field.InputField
                     inputId="publicId"
@@ -332,13 +368,13 @@ export default function AdminCreatePage() {
                     labelText="Public ID:"
                   />
                 )}
-              </createServerForm.AppField>
+              </updateServerForm.AppField>
             </div>
             <Divider />
             <div className="flex flex-row gap-x-8 gap-y-4 flex-wrap">
               <div className="flex flex-col gap-y-3">
                 <div className="text-lg">Server Resources:</div>
-                <createServerForm.AppField name="cpus">
+                <updateServerForm.AppField name="cpus">
                   {(field) => (
                     <field.InputField
                       inputId="cpus"
@@ -347,8 +383,8 @@ export default function AdminCreatePage() {
                       labelText="CPUs:"
                     />
                   )}
-                </createServerForm.AppField>
-                <createServerForm.AppField name="vcpus">
+                </updateServerForm.AppField>
+                <updateServerForm.AppField name="vcpus">
                   {(field) => (
                     <field.InputField
                       inputId="vcpus"
@@ -357,8 +393,8 @@ export default function AdminCreatePage() {
                       labelText="vCPUs:"
                     />
                   )}
-                </createServerForm.AppField>
-                <createServerForm.AppField name="memory_mb">
+                </updateServerForm.AppField>
+                <updateServerForm.AppField name="memory_mb">
                   {(field) => (
                     <field.InputField
                       inputId="memory_mb"
@@ -367,8 +403,8 @@ export default function AdminCreatePage() {
                       labelText="Memory (MB):"
                     />
                   )}
-                </createServerForm.AppField>
-                <createServerForm.AppField name="disk">
+                </updateServerForm.AppField>
+                <updateServerForm.AppField name="disk">
                   {(field) => (
                     <field.InputField
                       inputId="disk"
@@ -377,8 +413,8 @@ export default function AdminCreatePage() {
                       labelText="Disk (GB):"
                     />
                   )}
-                </createServerForm.AppField>
-                <createServerForm.AppField name="in_link_mbps">
+                </updateServerForm.AppField>
+                <updateServerForm.AppField name="in_link_mbps">
                   {(field) => (
                     <field.InputField
                       inputId="in_link_mbps"
@@ -387,8 +423,8 @@ export default function AdminCreatePage() {
                       labelText="In Link (Mbps):"
                     />
                   )}
-                </createServerForm.AppField>
-                <createServerForm.AppField name="out_link_mbps">
+                </updateServerForm.AppField>
+                <updateServerForm.AppField name="out_link_mbps">
                   {(field) => (
                     <field.InputField
                       inputId="out_link_mbps"
@@ -397,12 +433,12 @@ export default function AdminCreatePage() {
                       labelText="Out Link (Mbps):"
                     />
                   )}
-                </createServerForm.AppField>
+                </updateServerForm.AppField>
               </div>
               <div className="flex flex-col gap-y-3">
                 <div className="text-lg">Maximum Server Resources:</div>
                 <div className="h-15">{/* Spacer */}</div>
-                <createServerForm.AppField name="vcpus_max">
+                <updateServerForm.AppField name="vcpus_max">
                   {(field) => (
                     <field.InputField
                       inputId="vcpus_max"
@@ -411,8 +447,8 @@ export default function AdminCreatePage() {
                       labelText="Max vCPUs:"
                     />
                   )}
-                </createServerForm.AppField>
-                <createServerForm.AppField name="memory_mb_max">
+                </updateServerForm.AppField>
+                <updateServerForm.AppField name="memory_mb_max">
                   {(field) => (
                     <field.InputField
                       inputId="memory_mb_max"
@@ -421,8 +457,8 @@ export default function AdminCreatePage() {
                       labelText="Max Memory (MB):"
                     />
                   )}
-                </createServerForm.AppField>
-                <createServerForm.AppField name="disk_max">
+                </updateServerForm.AppField>
+                <updateServerForm.AppField name="disk_max">
                   {(field) => (
                     <field.InputField
                       inputId="disk_max"
@@ -431,13 +467,13 @@ export default function AdminCreatePage() {
                       labelText="Max Disk (GB):"
                     />
                   )}
-                </createServerForm.AppField>
+                </updateServerForm.AppField>
               </div>
             </div>
             <Divider />
             <div className="text-xl">Network Information</div>
             <div className="flex flex-row gap-x-8 gap-y-3 flex-wrap">
-              <createServerForm.AppField name="network">
+              <updateServerForm.AppField name="network">
                 {(field) => {
                   return (
                     <field.InputField
@@ -462,7 +498,7 @@ export default function AdminCreatePage() {
                             prefix >= 0 &&
                             prefix <= 32
                           ) {
-                            createServerForm.setFieldValue(
+                            updateServerForm.setFieldValue(
                               "network_mask",
                               cidrToNetmask(prefix),
                             );
@@ -481,13 +517,13 @@ export default function AdminCreatePage() {
                           const ip = m[1];
                           const prefix = Number(m[2]);
 
-                          createServerForm.setFieldValue("network", ip);
+                          updateServerForm.setFieldValue("network", ip);
                           if (
                             Number.isInteger(prefix) &&
                             prefix >= 0 &&
                             prefix <= 32
                           ) {
-                            createServerForm.setFieldValue(
+                            updateServerForm.setFieldValue(
                               "network_mask",
                               cidrToNetmask(prefix),
                             );
@@ -497,8 +533,8 @@ export default function AdminCreatePage() {
                     />
                   );
                 }}
-              </createServerForm.AppField>
-              <createServerForm.AppField name="network_mask">
+              </updateServerForm.AppField>
+              <updateServerForm.AppField name="network_mask">
                 {(field) => {
                   return (
                     <field.InputField
@@ -509,8 +545,8 @@ export default function AdminCreatePage() {
                     />
                   );
                 }}
-              </createServerForm.AppField>
-              <createServerForm.AppField name="network_gateway">
+              </updateServerForm.AppField>
+              <updateServerForm.AppField name="network_gateway">
                 {(field) => {
                   return (
                     <field.InputField
@@ -521,12 +557,31 @@ export default function AdminCreatePage() {
                     />
                   );
                 }}
-              </createServerForm.AppField>
+              </updateServerForm.AppField>
             </div>
             <Divider />
-            <Button text="Create Server" />
+            <div className="flex flex-row gap-x-3">
+              <Button text="Update Server" />
+              <ButtonNoForm
+                button={{
+                  onClick: () => {
+                    if (
+                      !confirm(
+                        "Are you sure you want to delete this server? This action cannot be undone. This will also delete all virtual machines on this server.",
+                      )
+                    )
+                      return;
+
+                    deleteServerMutation.mutate();
+                  },
+                }}
+              >
+                Delete Server
+              </ButtonNoForm>
+            </div>
+            <div className="h-8"></div>
           </div>
-        </createServerForm.AppForm>
+        </updateServerForm.AppForm>
       </div>
     </>
   );

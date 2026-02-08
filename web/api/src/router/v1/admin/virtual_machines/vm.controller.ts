@@ -6,6 +6,10 @@ import type {
   AdminDeleteVirtualMachineReply,
   AdminGetVirtualMachineByIdParams,
   AdminGetVirtualMachineByIdReply,
+  AdminGetVirtualMachinesByIdQuery,
+  AdminUpdateVirtualMachineBody,
+  AdminUpdateVirtualMachineParams,
+  AdminUpdateVirtualMachineReply,
 } from "./vm.schema";
 import db from "@/db/database";
 import {
@@ -19,6 +23,7 @@ import type { AgentRoutes } from "@/utils/agentRoutes";
 import { pollFinalizeUntilOperational } from "@/utils/pool";
 import env from "@/utils/env";
 import normalizeNames from "@/utils/normalizeName";
+import { netmaskToCidr } from "@/utils/network";
 
 export const adminGetAllVirtualMachines = async (
   req: FastifyRequest,
@@ -30,11 +35,13 @@ export const adminGetAllVirtualMachines = async (
 
 export const adminGetVirtualMachineById = async (
   req: FastifyRequest<{
+    Querystring: AdminGetVirtualMachinesByIdQuery;
     Params: AdminGetVirtualMachineByIdParams;
   }>,
   reply: FastifyReply<{}>,
 ) => {
   const { vmPublicId } = req.params;
+  const { include_server } = req.query;
 
   const vm = await db
     .selectFrom("virtual_machines")
@@ -45,6 +52,10 @@ export const adminGetVirtualMachineById = async (
       "virtual_machines.ram",
       "virtual_machines.disk",
       "virtual_machines.in_avg",
+      "virtual_machines.in_peak",
+      "virtual_machines.in_burst",
+      "virtual_machines.out_peak",
+      "virtual_machines.out_burst",
       "virtual_machines.out_avg",
       "virtual_machines.ipLocal",
       "virtual_machines.ipPublic",
@@ -69,12 +80,26 @@ export const adminGetVirtualMachineById = async (
       "servers.ipLocal as serverIpLocal",
       "servers.agent_port as serverAgentPort",
       "virtual_machines.id as vmId",
+      "servers.disk_available as serversDiskAvailable",
+      "servers.ram_available as serversRamAvailable",
+      "servers.vcpus_available as serversVcpusAvailable",
+      "servers.in_link as serversInLinkSpeedMbps",
+      "servers.out_link as serversOutLinkSpeedMbps",
+      "servers.ipLocal as serversIpLocal",
+      "servers.agent_port as serversAgentPort",
+      "servers.vms_network_mask as serversVmsNetworkMask",
+      "servers.vms_gateway as serversVmsGateway",
+      "servers.vms_network as serversVmsNetwork",
     ])
     .where("virtual_machines.publicId", "=", vmPublicId)
     .executeTakeFirst();
 
   if (!server) {
-    return reply.status(200).send({ state: "unknown", ...vm });
+    return reply.status(200).send({
+      state: "unknown",
+      ...vm,
+      include_server: include_server ? null : undefined,
+    });
   }
 
   try {
@@ -87,14 +112,26 @@ export const adminGetVirtualMachineById = async (
     );
 
     if (!d.ok) {
-      return reply.status(200).send({ state: "unknown", ...vm });
+      return reply.status(200).send({
+        state: "unknown",
+        ...vm,
+        include_server: include_server ? server : undefined,
+      });
     }
 
     const statusData = await d.json();
 
-    return reply.status(200).send({ state: statusData.vm.status, ...vm });
+    return reply.status(200).send({
+      state: statusData.vm.status,
+      ...vm,
+      include_server: include_server ? server : undefined,
+    });
   } catch (e) {
-    return reply.status(200).send({ state: "unknown", ...vm });
+    return reply.status(200).send({
+      state: "unknown",
+      ...vm,
+      include_server: include_server ? server : undefined,
+    });
   }
 };
 
@@ -117,6 +154,7 @@ export const adminCreateVirtualMachine = async (
       "agent_port",
       "vms_mac_prefix",
       "vms_gateway",
+      "vms_network_mask",
     ])
     .where("publicId", "=", req.body.serverPublicId)
     .executeTakeFirst();
@@ -365,6 +403,11 @@ export const adminCreateVirtualMachine = async (
           network: {
             mac_address: vmMac,
             ip_cidr: req.body.ip_local,
+            prefix: netmaskToCidr(
+              server.vms_network_mask
+                ? server.vms_network_mask
+                : "255.255.255.0",
+            ),
             gateway: server.vms_gateway || "",
             dns_servers: req.body.dns_servers || [],
           },
@@ -510,9 +553,117 @@ export const adminCreateVirtualMachine = async (
 
 // TODO: Admin Update Virtual Machine
 export const adminUpdateVirtualMachine = async (
-  req: FastifyRequest,
-  reply: FastifyReply,
-) => {};
+  req: FastifyRequest<{
+    Params: AdminUpdateVirtualMachineParams;
+    Body: AdminUpdateVirtualMachineBody;
+  }>,
+  reply: FastifyReply<{
+    Reply: AdminUpdateVirtualMachineReply | NotFoundErrorType;
+  }>,
+) => {
+  const { vmPublicId } = req.params;
+
+  const vm = await db
+    .selectFrom("virtual_machines")
+    .selectAll()
+    .where("publicId", "=", vmPublicId)
+    .executeTakeFirst();
+
+  if (!vm) {
+    return reply.status(404).send({ message: "Virtual machine not found" });
+  }
+
+  const server = await db
+    .selectFrom("servers")
+    .selectAll()
+    .where("id", "=", vm.serverId)
+    .executeTakeFirst();
+
+  if (!server) {
+    return reply.status(404).send({ message: "Server not found" });
+  }
+
+  const s = await db
+    .updateTable("servers")
+    .set({
+      ram_available: server.ram_available + vm.ram - req.body.memory_mib,
+      disk_available: server.disk_available + vm.disk - req.body.disk_gb,
+      vcpus_available: server.vcpus_available + vm.vcpus - req.body.vcpus,
+    })
+    .where("id", "=", vm.serverId)
+    .returning(["ipLocal", "agent_port"])
+    .executeTakeFirst();
+
+  if (!s) {
+    return reply
+      .status(500)
+      .send({ message: "Failed to update server resources" });
+  }
+
+  const f = await fetch(
+    `http://${s.ipLocal}:${s.agent_port}/api/v1/vms/${vm.id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        vcpus: req.body.vcpus,
+        memory_mb: req.body.memory_mib,
+        disk_gb: req.body.disk_gb,
+        bandwidth_mbps: {
+          in_avg: req.body.network.in_avg_mbps,
+          out_avg: req.body.network.out_avg_mbps,
+          in_burst: req.body.network.in_burst_mbps,
+          out_burst: req.body.network.out_burst_mbps,
+          in_peak: req.body.network.in_peak_mbps,
+          out_peak: req.body.network.out_peak_mbps,
+        },
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  req.log.info(
+    `Update VM agent response: ${f.status} ${f.statusText} for VM ID ${vm.id}`,
+  );
+  req.log.info(`Update VM request body: ${JSON.stringify(req.body)}`);
+
+  if (!f.ok) {
+    // Rollback server resource update
+    await db
+      .updateTable("servers")
+      .set({
+        ram_available: server.ram_available,
+        disk_available: server.disk_available,
+        vcpus_available: server.vcpus_available,
+      })
+      .where("id", "=", vm.serverId)
+      .execute();
+
+    return reply
+      .status(500)
+      .send({ message: "Failed to update virtual machine on agent" });
+  }
+
+  await db
+    .updateTable("virtual_machines")
+    .set({
+      name: req.body.name,
+      in_avg: req.body.network.in_avg_mbps,
+      in_peak: req.body.network.in_peak_mbps,
+      in_burst: req.body.network.in_burst_mbps,
+      out_avg: req.body.network.out_avg_mbps,
+      out_peak: req.body.network.out_peak_mbps,
+      out_burst: req.body.network.out_burst_mbps,
+      ram: req.body.memory_mib,
+      disk: req.body.disk_gb,
+      vcpus: req.body.vcpus,
+    })
+    .where("id", "=", vm.id)
+    .execute();
+
+  return reply.status(200).send({ name: req.body.name, publicId: vm.publicId });
+};
 
 export const adminDeleteVirtualMachine = async (
   req: FastifyRequest<{

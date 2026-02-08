@@ -124,6 +124,11 @@ export const tryInfoReplyBody = z.object({
     vcpus: z.number(),
     memory_mb: z.number(),
     disk: z.number(),
+    network: z.object({
+      prefix: z.string().optional(),
+      gateway: z.ipv4().optional(),
+      network: z.ipv4(),
+    }),
   }),
 });
 
@@ -171,6 +176,28 @@ export const createServerRequestBody = z.object({
   vcpus_max: z.number().min(1, "vCPUs Max must be at least 1"),
   memory_mb_max: z.number().min(128, "Memory Max must be at least 128 MB"),
   disk_max: z.number().min(1, "Disk Max must be at least 1 GB"),
+  // Network
+  vms_network: z
+    .string()
+    .regex(
+      /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])$/,
+      "Invalid IP address format for VMs network",
+    )
+    .optional(),
+  vms_network_mask: z
+    .string()
+    .regex(
+      /^(?:255\.(?:255\.(?:255\.(?:255|254|252|248|240|224|192|128|0)|(?:254|252|248|240|224|192|128|0)\.0)|(?:254|252|248|240|224|192|128|0)\.0\.0)|(?:254|252|248|240|224|192|128|0)\.0\.0\.0|0\.0\.0\.0)$/,
+      "Invalid network mask format for VMs network",
+    )
+    .optional(),
+  vms_network_gateway: z
+    .string()
+    .regex(
+      /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])$/,
+      "Invalid IP address format for VMs network gateway",
+    )
+    .optional(),
 });
 
 export type createServerRequestBodyType = z.infer<

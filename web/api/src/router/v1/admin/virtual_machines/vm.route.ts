@@ -23,12 +23,20 @@ import {
   AdminDeleteVirtualMachineReplySchema,
   adminGetVirtualMachineByIdParamsSchema,
   adminGetVirtualMachineByIdReplySchema,
+  adminGetVirtualMachinesByIdQuerySchema,
+  AdminUpdateVirtualMachineBodySchema,
+  AdminUpdateVirtualMachineParamsSchema,
+  AdminUpdateVirtualMachineReplySchema,
   type AdminCreateVirtualMachineBody,
   type AdminCreateVirtualMachineReply,
   type AdminDeleteVirtualMachineParams,
   type AdminDeleteVirtualMachineReply,
   type AdminGetVirtualMachineByIdParams,
   type AdminGetVirtualMachineByIdReply,
+  type AdminGetVirtualMachinesByIdQuery,
+  type AdminUpdateVirtualMachineBody,
+  type AdminUpdateVirtualMachineParams,
+  type AdminUpdateVirtualMachineReply,
 } from "./vm.schema";
 import subUsers from "./subusers/subusers.route";
 
@@ -71,6 +79,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   /*                        Get One Virtual Machine By ID                       */
   /* -------------------------------------------------------------------------- */
   fastify.get<{
+    Querystring: AdminGetVirtualMachinesByIdQuery;
     Params: AdminGetVirtualMachineByIdParams;
     // Reply: AdminGetVirtualMachineByIdReply | NotFoundErrorType;
   }>(
@@ -80,6 +89,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
       schema: {
         description: "Get a virtual machine by ID",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
+        querystring: adminGetVirtualMachinesByIdQuerySchema,
         params: adminGetVirtualMachineByIdParamsSchema,
         response: {
           // 200: adminGetVirtualMachineByIdReplySchema,
@@ -122,14 +132,21 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
   /*                           Update Virtual Machine                           */
   /* -------------------------------------------------------------------------- */
-  fastify.put(
+  fastify.put<{
+    Params: AdminUpdateVirtualMachineParams;
+    Body: AdminUpdateVirtualMachineBody;
+    Reply: AdminUpdateVirtualMachineReply | NotFoundErrorType;
+  }>(
     "/:vmPublicId",
     {
       preValidation: [fastify.authRequired, fastify.adminOnly],
       schema: {
         description: "Update a virtual machine by ID",
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
+        params: AdminUpdateVirtualMachineParamsSchema,
+        body: AdminUpdateVirtualMachineBodySchema,
         response: {
+          200: AdminUpdateVirtualMachineReplySchema,
           401: UnauthorizedError,
           404: NotFoundError,
         },
