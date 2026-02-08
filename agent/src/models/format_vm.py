@@ -29,6 +29,7 @@ class FormatOSVM(BaseModel):
 class FormatOSNetwork(BaseModel):
     mac_address: str
     ip_cidr: str
+    prefix: int
     gateway: str
     dns_servers: Optional[list[str]] = None
 

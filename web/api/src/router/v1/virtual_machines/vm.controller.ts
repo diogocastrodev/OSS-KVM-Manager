@@ -20,6 +20,7 @@ import env from "@/utils/env";
 import { pollFinalizeUntilOperational } from "@/utils/pool";
 import type { AgentRoutes, PreparedRequest } from "@/utils/agentRoutes";
 import normalizeNames from "@/utils/normalizeName";
+import netmaskToCidr from "@/utils/maskToCIDR";
 
 /* -------------------------------------------------------------------------- */
 /*                           Get My Virtual Machines                          */
@@ -204,6 +205,7 @@ export const formatVirtualMachine = async (
       "virtual_machines.mac",
       "virtual_machines.ipLocal as vmIpLocal",
       "servers.ipLocal",
+      "servers.vms_network_mask as vmsNetworkMask",
       "servers.agent_port",
       "servers.vms_gateway",
     ])
@@ -265,6 +267,9 @@ export const formatVirtualMachine = async (
       network: {
         mac_address: vm.mac,
         ip_cidr: vm.vmIpLocal,
+        prefix: netmaskToCidr(
+          vm.vmsNetworkMask ? vm.vmsNetworkMask : "255.255.255.0",
+        ),
         gateway: vm.vms_gateway || "",
         dns_servers: [],
       },

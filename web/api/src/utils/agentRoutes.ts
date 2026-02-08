@@ -60,6 +60,7 @@ export interface FormatVMBody {
   network?: {
     mac_address: string;
     ip_cidr: string;
+    prefix: number;
     gateway: string;
     dns_servers: string[];
   };

@@ -102,10 +102,12 @@ async def format_vm_disk(vm_id: str, body: VMFormatBody):
         seed_iso_path = f"/tmp/{vm_id}-seed.iso"
         print("Step 5: generating cloud-init ISO at", seed_iso_path)
 
+
         meta = MetaTemplate(vm_id=vm_id, hostname=body.host.hostname)
         net = NetworkingTemplate(
             mac_address=body.network.mac_address,
             ip_cidr=body.network.ip_cidr,
+            prefix=body.network.prefix,
             gateway=body.network.gateway,
             dns_servers=body.network.dns_servers,
         )
