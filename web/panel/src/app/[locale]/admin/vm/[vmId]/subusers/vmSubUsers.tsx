@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/apiFetch";
 import qk from "@/lib/fetches/keys";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { z } from "zod";
 
 interface props {
@@ -65,10 +66,12 @@ export default function VMSubUsers({ vmID }: props) {
           role: data.role,
         }),
       }).then(() => {
+        toast.success("Sub user created successfully!");
         refetchSubUsers();
       });
     },
     onError: (error) => {
+      toast.error("Failed to create sub user. Please try again.");
       console.error("Error creating sub-user:", error);
     },
   });
@@ -107,6 +110,7 @@ export default function VMSubUsers({ vmID }: props) {
           role: data.role,
         }),
       }).then(() => {
+        toast.success("Sub user updated successfully!");
         refetchSubUsers();
       });
     },
@@ -131,10 +135,11 @@ export default function VMSubUsers({ vmID }: props) {
   const deleteUser = useMutation({
     mutationKey: [qk.api.v1.vms.subUsers.deleteSubUser(Number(vmID))],
     mutationFn: async (subUserId: string) => {
-      return apiFetch(`/api/v1/vms/${vmID}/subusers`, {
+      return apiFetch(`/api/v1/admin/vms/${vmID}/subusers`, {
         method: "DELETE",
         body: JSON.stringify({ subUserId }),
       }).then(() => {
+        toast.success("Sub user deleted successfully!");
         refetchSubUsers();
       });
     },

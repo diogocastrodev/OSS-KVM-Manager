@@ -27,7 +27,11 @@ export interface GetAllOSResponse {
 }
 
 export default function VMFormat({ vmID }: props) {
-  const { data: vmData, isLoading: vmIsLoading } = useQuery({
+  const {
+    data: vmData,
+    isLoading: vmIsLoading,
+    refetch,
+  } = useQuery({
     queryKey: qk.api.v1.admin.vms.getById(parseInt(vmID)),
     queryFn: async () => {
       const d = await apiFetch(`/api/v1/admin/vms/${vmID}`);
@@ -53,8 +57,8 @@ export default function VMFormat({ vmID }: props) {
       password?: string;
       publicKey?: string;
     }) => {
-      return (
-        await apiFetch(`/api/v1/vms/${vmID}/format`, {
+      return toast.promise(
+        apiFetch(`/api/v1/vms/${vmID}/format`, {
           method: "POST",
           body: JSON.stringify({
             os: data.version,
@@ -66,14 +70,13 @@ export default function VMFormat({ vmID }: props) {
                 data.publicKey?.length === 0 ? undefined : data.publicKey,
             },
           }),
-        })
-      ).json();
-    },
-    onSuccess: () => {
-      toast.success("VM formatting started successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to start VM formatting. Please try again.");
+        }),
+        {
+          pending: "Requesting VM format...",
+          success: "VM formatting started successfully!",
+          error: "Failed to start VM formatting. Please try again.",
+        },
+      );
     },
   });
   const [selectedOption, setSelectedOption] = useState<
@@ -275,12 +278,12 @@ export default function VMFormat({ vmID }: props) {
                 >
                   Password
                 </div>
-                <div
+                {/* {                <div
                   className={`${selectedOption === "publicKey" ? "bg-(--color-background-selected) cursor-not-allowed" : "bg-(--color-background-primary) cursor-pointer"} rounded-md shadow-lg p-2`}
                   onClick={() => setSelectedOption("publicKey")}
                 >
                   Public Key
-                </div>
+                </div>} */}
               </div>
               {selectedOption === "password" ? (
                 <>
@@ -321,7 +324,8 @@ export default function VMFormat({ vmID }: props) {
                 text="Format"
                 disabled={
                   vmData?.status !== "OPERATIONAL" ||
-                  vmData?.state === "unknown"
+                  vmData?.state === "unknown" ||
+                  mutation.isPending
                 }
               />
             </div>

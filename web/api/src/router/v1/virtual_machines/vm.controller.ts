@@ -458,6 +458,7 @@ export const changeVMStatus = async (
       "virtual_machines.id as vmId",
       "servers.ipLocal as targetHost",
       "servers.agent_port as targetPort",
+      "virtual_machines.status as currentStatus",
     ])
     .where("virtual_machines.publicId", "=", vmPublicId)
     .executeTakeFirst();
@@ -465,6 +466,12 @@ export const changeVMStatus = async (
   if (!vm) {
     return reply.status(404).send({
       message: `Virtual machine with public ID ${vmPublicId} not found.`,
+    });
+  }
+
+  if (vm.currentStatus !== "OPERATIONAL") {
+    return reply.status(400).send({
+      message: `Virtual machine must be in OPERATIONAL state to perform this action. Current state: ${vm.currentStatus}`,
     });
   }
 

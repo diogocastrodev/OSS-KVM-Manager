@@ -1,5 +1,7 @@
 import db from "@/db/database";
 import type {
+  DeleteSubUserBody,
+  DeleteSubUserResponse,
   GetAllSubusersResponse,
   SubUserParams,
 } from "@/router/v1/virtual_machines/subuser/subuser.schema";
@@ -49,4 +51,32 @@ export const GetAllSubusers = async (
   }
 
   return reply.code(200).send(a);
+};
+
+export const DeleteSubUser = async (
+  req: FastifyRequest<{
+    Body: DeleteSubUserBody;
+  }>,
+  reply: FastifyReply<{
+    Reply: DeleteSubUserResponse | NotFoundErrorType;
+  }>,
+) => {
+  const { subUserId } = req.body;
+
+  const subUser = await db
+    .selectFrom("virtual_machines_users")
+    .select(["id"])
+    .where("id", "=", subUserId)
+    .executeTakeFirst();
+
+  if (!subUser) {
+    return reply.code(404).send({ message: "Sub-user not found." });
+  }
+
+  await db
+    .deleteFrom("virtual_machines_users")
+    .where("id", "=", subUserId)
+    .execute();
+
+  return reply.code(200).send({ message: "Sub-user deleted successfully." });
 };
