@@ -39,6 +39,15 @@ AGENT_USER="${AGENT_USER:-agent}"
 AGENT_GROUP="${AGENT_GROUP:-agent}"
 AGENT_HOME="${AGENT_HOME:-/var/lib/agent}"
 
+# --- Updater install ---
+UPDATER_URL="${UPDATER_URL:-https://raw.githubusercontent.com/diogocastrodev/OSS-KVM-Manager/main/setups/agent/update-agent.sh}"
+UPDATER_BIN_DIR="${UPDATER_BIN_DIR:-/opt/oss-kvm-agent}"
+UPDATER_BIN_PATH="${UPDATER_BIN_PATH:-/opt/oss-kvm-agent/update-agent-only.sh}"
+UPDATER_SYMLINK="${UPDATER_SYMLINK:-/usr/local/sbin/oss-kvm-agent-update}"
+
+# What the updater should checkout (agent-only by default)
+AGENT_SPARSE_PATHS="${AGENT_SPARSE_PATHS:-agent}"
+
 # Where your python agent code lives:
 # - If AGENT_GIT_URL is set, script clones here.
 # - Otherwise, script expects code already exists here.
@@ -328,6 +337,32 @@ install_python_deps(){
   chown -R "$AGENT_USER:$AGENT_GROUP" "$AGENT_HOME"
 }
 
+install_updater(){
+  log "Installing updater (oss-kvm-agent-update)"
+  mkdir -p "$UPDATER_BIN_DIR" /etc/oss-kvm-agent
+
+  # Download updater script from repo
+  curl -fsSL "$UPDATER_URL" -o "$UPDATER_BIN_PATH"
+  chmod +x "$UPDATER_BIN_PATH"
+
+  # Write updater config so it knows what to pull
+  cat >/etc/oss-kvm-agent/update.env <<EOF
+AGENT_GIT_URL="${AGENT_GIT_URL}"
+AGENT_GIT_REF="${AGENT_GIT_REF}"
+AGENT_SUBDIR="${AGENT_SUBDIR}"
+AGENT_SPARSE_PATHS="${AGENT_SPARSE_PATHS}"
+EOF
+  chmod 0644 /etc/oss-kvm-agent/update.env
+
+  # Install shortcut command
+  mkdir -p /usr/local/sbin
+  ln -sf "$UPDATER_BIN_PATH" "$UPDATER_SYMLINK"
+
+  log "Updater installed: $UPDATER_SYMLINK"
+}
+
+
+
 install_systemd_service(){
   log "Installing systemd service (agent.service)"
 
@@ -405,6 +440,8 @@ configure_firewall
 clone_or_update_agent
 install_python_deps
 install_systemd_service
+
+install_updater
 
 log "Done!"
 echo "Service:    systemctl status agent.service --no-pager"
