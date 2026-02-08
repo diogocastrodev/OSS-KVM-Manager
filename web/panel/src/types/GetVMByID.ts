@@ -10,7 +10,16 @@ interface UserGetVMByIDResponse {
   publicId: number;
   ram: number;
   role: "OWNER" | "OPERATOR" | "VIEWER";
-  state: "running" | "stopped" | "paused" | "unknown";
+  state: "running" | "stopped" | "paused" | "unknown" | "shutoff";
+  status:
+    | "CREATING"
+    | "RUNNING"
+    | "STOPPED"
+    | "SUSPENDED"
+    | "FORMATTING"
+    | "DELETING"
+    | "FAILED"
+    | "OPERATIONAL";
   updatedAt: Date;
   vcpus: number;
 }

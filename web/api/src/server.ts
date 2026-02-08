@@ -35,6 +35,7 @@ env.JWT_MODE === "keys" && (await initJwks());
 await fastify.register(cors, {
   origin: ["http://localhost:3000"], // your Next dev server
   credentials: true, // required for cookies
+  methods: ["GET", "PUT", "POST", "DELETE", "OPTIONS"],
 });
 await fastify.register(fastifyCookie, {
   algorithm: "sha256",

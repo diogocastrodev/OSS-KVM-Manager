@@ -31,32 +31,70 @@ export const adminGetVirtualMachineById = async (
   req: FastifyRequest<{
     Params: AdminGetVirtualMachineByIdParams;
   }>,
-  reply: FastifyReply<{
-    Reply:
-      | AdminGetVirtualMachineByIdReply
-      | NotFoundErrorType
-      | UnauthorizedErrorType;
-  }>,
+  reply: FastifyReply<{}>,
 ) => {
   const { vmPublicId } = req.params;
 
   const vm = await db
     .selectFrom("virtual_machines")
-    .selectAll()
-    .where("publicId", "=", vmPublicId)
+    .select([
+      "virtual_machines.name",
+      "virtual_machines.publicId",
+      "virtual_machines.vcpus",
+      "virtual_machines.ram",
+      "virtual_machines.disk",
+      "virtual_machines.in_avg",
+      "virtual_machines.out_avg",
+      "virtual_machines.ipLocal",
+      "virtual_machines.ipPublic",
+      "virtual_machines.createdAt",
+      "virtual_machines.updatedAt",
+      "virtual_machines.mac",
+      "virtual_machines.status",
+    ])
+    .where("virtual_machines.publicId", "=", vmPublicId)
     .executeTakeFirst();
 
   if (!vm) {
-    return reply.status(404).send({ message: "Virtual machine not found" });
+    return reply.status(404).send({
+      message: `Virtual machine with public ID ${vmPublicId} not found.`,
+    });
   }
 
-  return reply.status(200).send({
-    publicId: vm.publicId,
-    name: vm.name,
-    status: vm.status,
-    createdAt: vm.createdAt.toISOString(),
-    updatedAt: vm.updatedAt.toISOString(),
-  });
+  const server = await db
+    .selectFrom("servers")
+    .innerJoin("virtual_machines", "servers.id", "virtual_machines.serverId")
+    .select([
+      "servers.ipLocal as serverIpLocal",
+      "servers.agent_port as serverAgentPort",
+      "virtual_machines.id as vmId",
+    ])
+    .where("virtual_machines.publicId", "=", vmPublicId)
+    .executeTakeFirst();
+
+  if (!server) {
+    return reply.status(200).send({ state: "unknown", ...vm });
+  }
+
+  try {
+    const d = await fetch(
+      `http://${server.serverIpLocal}:${server.serverAgentPort}/api/v1/vms/${server.vmId}/status`,
+      {
+        method: "GET",
+        signal: AbortSignal.timeout(600),
+      },
+    );
+
+    if (!d.ok) {
+      return reply.status(200).send({ state: "unknown", ...vm });
+    }
+
+    const statusData = await d.json();
+
+    return reply.status(200).send({ state: statusData.vm.status, ...vm });
+  } catch (e) {
+    return reply.status(200).send({ state: "unknown", ...vm });
+  }
 };
 
 export const adminCreateVirtualMachine = async (
@@ -288,6 +326,17 @@ export const adminCreateVirtualMachine = async (
         },
       };
 
+      const myIP = await fetch(
+        `http://${server.ipLocal}:${server.agent_port}/api/v1/my-ip`,
+        {
+          method: "GET",
+          signal: AbortSignal.timeout(600),
+        },
+      )
+        .then((d) => d.json())
+        .then((d) => d.ip)
+        .catch(() => null);
+
       // Send format request to agent
       const formatPrepareRoute: PreparedRequest<AgentRoutes["formatVM"]> = {
         method: "POST",
@@ -308,7 +357,7 @@ export const adminCreateVirtualMachine = async (
           os: {
             os_name: os.path,
             // TODO: Use proper URL construction
-            os_url: `http://100.78.85.5:8000/api/v1/agent/os/${os.path}/download`,
+            os_url: `http://${myIP}:${env.PORT}/api/v1/agent/os/${os.path}/download`,
           },
         },
       };

@@ -14,7 +14,7 @@ export const getMyServers = async (
   req: FastifyRequest<{
     Querystring: getMyServersParamsSchemaType;
   }>,
-  reply: FastifyReply<{ Reply: getMyServersReplyBodyType }>
+  reply: FastifyReply<{ Reply: getMyServersReplyBodyType }>,
 ): Promise<void> => {
   let includeVMs = false;
   if (req.query?.include_virtual_machines.toLowerCase() === "true") {
@@ -39,7 +39,7 @@ export const getMyServers = async (
       .innerJoin(
         "virtual_machines_users",
         "virtual_machines.id",
-        "virtual_machines_users.virtualMachinesId"
+        "virtual_machines_users.virtualMachinesId",
       )
       .where("virtual_machines_users.userId", "=", user.id)
       .select(["servers.publicId", "servers.name"])
@@ -54,7 +54,12 @@ export const getMyServers = async (
     .innerJoin(
       "virtual_machines_users",
       "virtual_machines.id",
-      "virtual_machines_users.virtualMachinesId"
+      "virtual_machines_users.virtualMachinesId",
+    )
+    .innerJoin(
+      "operative_systems",
+      "virtual_machines.osId",
+      "operative_systems.id",
     )
     .where("virtual_machines_users.userId", "=", user.id)
     .select([
@@ -63,6 +68,8 @@ export const getMyServers = async (
       "virtual_machines.publicId as vmPublicId",
       "virtual_machines.name as vmName",
       "virtual_machines.status as vmStatus",
+      "operative_systems.os as vmOS",
+      "operative_systems.version as vmOSVersion",
     ])
     .execute();
 
@@ -72,7 +79,7 @@ export const getMyServers = async (
 
   serversWithVMs.forEach((row) => {
     let server = serversMap.servers.find(
-      (s) => s.publicId === row.serverPublicId
+      (s) => s.publicId === row.serverPublicId,
     );
     if (!server) {
       server = {
@@ -86,6 +93,8 @@ export const getMyServers = async (
       publicId: row.vmPublicId,
       name: row.vmName,
       status: row.vmStatus,
+      os: row.vmOS,
+      osVersion: row.vmOSVersion,
     });
   });
 

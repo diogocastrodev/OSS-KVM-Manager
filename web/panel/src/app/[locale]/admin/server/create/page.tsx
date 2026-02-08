@@ -1,13 +1,11 @@
+import AdminCreatePage from "./AdminCreatePage";
 
-
-type Params = { locale: string; serverId: string };
-
+type Params = { locale: string };
 
 export default async function VMPage({ params }: { params: Promise<Params> }) {
-    const { serverId } = await params;
   return (
     <>
-      
+      <AdminCreatePage />
     </>
   );
 }

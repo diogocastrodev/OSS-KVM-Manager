@@ -19,3 +19,8 @@ export const InternalServerError = z.object({
   message: z.literal("Internal Server Error").or(z.string()),
 });
 export type InternalServerErrorType = z.infer<typeof InternalServerError>;
+
+export const ForbiddenError = z.object({
+  message: z.literal("Forbidden").or(z.string()),
+});
+export type ForbiddenErrorType = z.infer<typeof ForbiddenError>;

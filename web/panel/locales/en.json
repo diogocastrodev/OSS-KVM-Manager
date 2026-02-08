@@ -8,9 +8,72 @@
     "forgotPassword": "Forgot your password?",
     "login": "Login"
   },
+  "confirm-email": {
+    "name": "Name",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "buttonText": "Confirm Email"
+  },
+  "forgot-password": {
+    "email": "Email",
+    "buttonText": "Request Password Reset"
+  },
+  "passwordReset": {
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "resetPassword": "Reset Password"
+  },
   "panel": {
     "panel": "Panel",
     "admin": "Admin",
     "datacenters": "Datacenters"
+  },
+  "panel-vm": {
+    "navbar": {
+      "dashboard": "Dashboard",
+      "console": "Console",
+      "reset": "Reset",
+      "subusers": "SubUsers",
+      "settings": "Settings"
+    },
+    "status": {
+      "pre-message": "This machine is currently",
+      "shutoff": "shut off",
+      "running": "running",
+      "stopped": "stopped",
+      "paused": "paused",
+      "suspended": "suspended",
+      "unknown": "unknown"
+    },
+    "buttons-action": {
+      "start": "Start",
+      "shutdown": "Stop",
+      "restart": "Restart",
+      "kill": "Kill"
+    },
+    "banner-info": {
+      "title": "Your VM Resources",
+      "vcpus": "vCPUs",
+      "memory": "Memory",
+      "disk": "Disk",
+      "inout": "In/Out",
+      "ips": {
+        "title": "IPs Assigned:",
+        "local": "Local",
+        "public": "Public"
+      }
+    },
+    "graphs": {
+      "title": "Info about your VM",
+      "cpu-usage": "CPU Usage",
+      "memory-usage": "Memory Usage"
+    },
+    "console-page": {
+      "open-console": "Open Console",
+      "tip": {
+        "text": "Once the console is open, type:",
+        "command": "ssh username@vm"
+      }
+    }
   }
 }

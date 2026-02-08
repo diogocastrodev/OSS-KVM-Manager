@@ -12,14 +12,26 @@ interface Params {
 }
 
 interface props {
-  vmID: string;
+  translations: {
+    openConsole: string;
+    tip: {
+      text: string;
+      command: string;
+    };
+  };
 }
 
 interface Response {
   name: string;
 }
 
-export default function ConsoleClient({ params }: { params: Params }) {
+export default function ConsoleClient({
+  params,
+  props,
+}: {
+  params: Params;
+  props: props;
+}) {
   const [open, setOpen] = useState(false);
 
   async function openConsole() {
@@ -52,9 +64,24 @@ export default function ConsoleClient({ params }: { params: Params }) {
             <Tooltip
               content={
                 <>
-                  Once the console is open type:
+                  {props.translations.tip.text}
                   <code className="px-1">
-                    ssh <i>username</i>@vm
+                    <span>
+                      {props.translations.tip.command.split(" ")[0]}{" "}
+                      <i>
+                        {
+                          props.translations.tip.command
+                            .split(" ")[1]
+                            .split("@")[0]
+                        }
+                      </i>
+                      {"@"}
+                      {
+                        props.translations.tip.command
+                          .split(" ")[1]
+                          .split("@")[1]
+                      }
+                    </span>
                   </code>
                 </>
               }
@@ -73,7 +100,7 @@ export default function ConsoleClient({ params }: { params: Params }) {
                   className="bg-blue-300 text-zinc-800 dark:bg-blue-800 dark:text-zinc-100 py-2 px-3 rounded-md cursor-pointer"
                   onClick={openConsole}
                 >
-                  Open console
+                  {props.translations.openConsole}
                 </button>
               </div>
             </>

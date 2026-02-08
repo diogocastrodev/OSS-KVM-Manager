@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import {
   confirmEmailGet,
   confirmEmailPost,
+  confirmPasswordReset,
   login,
   logout,
   refresh,
@@ -13,6 +14,8 @@ import {
   confirmEmailParams,
   confirmEmailPostReplyBody,
   confirmEmailPostRequestBody,
+  confirmPasswordResetGetReplyBody,
+  confirmPasswordResetParams,
   loginReplyBody,
   loginReplyBodyError,
   loginRequestBody,
@@ -26,6 +29,8 @@ import {
   type confirmEmailParamsType,
   type confirmEmailPostReplyBodyType,
   type confirmEmailPostRequestBodyType,
+  type confirmPasswordResetGetReplyBodyType,
+  type confirmPasswordResetParamsType,
   type loginReplyBodyType,
   type loginRequestBodyType,
   type passwordResetBodyType,
@@ -80,7 +85,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    confirmEmailGet
+    confirmEmailGet,
   );
   // Verify Token
   fastify.post<{
@@ -101,11 +106,31 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    confirmEmailPost
+    confirmEmailPost,
   );
   /* -------------------------------------------------------------------------- */
   /*                               Password Reset                               */
   /* -------------------------------------------------------------------------- */
+  /* --------------------------------- Confirm -------------------------------- */
+  fastify.get<{
+    Params: confirmPasswordResetParamsType;
+    Reply: confirmPasswordResetGetReplyBodyType | NotFoundErrorType;
+  }>(
+    "/password-reset/:token",
+    {
+      preValidation: [fastify.guestOnly],
+      schema: {
+        tags: [swaggerTags.AUTH],
+        description: "Confirm password reset token is valid",
+        params: confirmPasswordResetParams,
+        response: {
+          200: confirmPasswordResetGetReplyBody,
+          401: NotFoundError,
+        },
+      },
+    },
+    confirmPasswordReset,
+  );
   /* --------------------------------- Request -------------------------------- */
   fastify.post<{
     Body: passwordResetRequestBodyType;
@@ -123,7 +148,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    requestPasswordReset
+    requestPasswordReset,
   );
   /* ---------------------------------- Reset --------------------------------- */
   fastify.put<{
@@ -143,7 +168,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    resetPassword
+    resetPassword,
   );
   /* -------------------------------------------------------------------------- */
   /*                                    Login                                   */
@@ -170,7 +195,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    login
+    login,
   );
   /* -------------------------------------------------------------------------- */
   /*                                   Logout                                   */
@@ -185,7 +210,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         tags: [swaggerTags.AUTH],
       },
     },
-    logout
+    logout,
   );
   /* -------------------------------------------------------------------------- */
   /*                                Refresh Token                               */
@@ -206,7 +231,7 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    refresh
+    refresh,
   );
 };
 

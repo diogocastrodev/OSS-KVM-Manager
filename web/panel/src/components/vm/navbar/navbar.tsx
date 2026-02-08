@@ -13,6 +13,14 @@ import VMUserPermissions, {
 
 interface props {
   publicId: number;
+  translations: {
+    navbar: {
+      dashboard: string;
+      console: string;
+      reset: string;
+      subusers: string;
+    };
+  };
 }
 
 interface NavBarLink {
@@ -48,8 +56,8 @@ const navbarLinks: NavBarLinks = [
     permission: VMUserPermissions.operator,
   },
   {
-    name: "Sub-Users",
-    href: (id: number) => `/panel/vm/${id}/sub-users`,
+    name: "SubUsers",
+    href: (id: number) => `/panel/vm/${id}/subusers`,
     permission: VMUserPermissions.owner,
   },
 ];
@@ -85,7 +93,15 @@ export default function VMNavbar(props: props) {
                   href={link.href(props.publicId)}
                   className={`${path === link.href(props.publicId) && "underline"} mr-4`}
                 >
-                  {link.name}
+                  {
+                    props.translations.navbar[
+                      link.name.toLowerCase().replace("-", "") as
+                        | "dashboard"
+                        | "console"
+                        | "reset"
+                        | "subusers"
+                    ]
+                  }
                 </a>
               );
             }

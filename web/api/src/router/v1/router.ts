@@ -9,6 +9,7 @@ import adminRouter from "./admin/router";
 import swaggerTags from "@/types/swaggerTags";
 import agentRoute from "./agent/router";
 import wsRouter from "./ws/ws.route";
+import osRoute from "./os/os.route";
 
 const v1Router: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
@@ -32,7 +33,7 @@ const v1Router: FastifyPluginAsync = async (fastify) => {
     async (req, reply) => {
       const token = reply.generateCsrf(); // sets secret cookie if missing
       return { token };
-    }
+    },
   );
   /* -------------------------------------------------------------------------- */
   /*                                 Auth Route                                 */
@@ -59,6 +60,12 @@ const v1Router: FastifyPluginAsync = async (fastify) => {
     prefix: "/vms",
   });
   /* -------------------------------------------------------------------------- */
+  /*                                     OS                                     */
+  /* -------------------------------------------------------------------------- */
+  fastify.register(osRoute, {
+    prefix: "/os",
+  });
+  /* -------------------------------------------------------------------------- */
   /*                                Admin Router                                */
   /* -------------------------------------------------------------------------- */
   fastify.register(adminRouter, {
@@ -75,6 +82,38 @@ const v1Router: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
   fastify.register(wsRouter, {
     prefix: "/ws",
+  });
+
+  fastify.get("/aaaa", async (req, reply) => {
+    const servers = await db.selectFrom("servers").selectAll().execute();
+
+    const b = await Promise.all(
+      servers.map(async (server) => {
+        return await fetch(
+          `http://${server.ipLocal}:${server.agent_port}/api/v1/my-ip`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            signal: AbortSignal.timeout(2500), // 5 second timeout
+          },
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(`Server ${server.publicId} is ${data.status}`);
+            return {
+              serverIP: server.ipLocal,
+              status: data.status,
+              rest_data: { ...data },
+            };
+          })
+          .catch((err) => {
+            console.error(`Failed to ping server ${server.publicId}:`, err);
+          });
+      }),
+    );
+    return { message: "Pinging servers...", data: b };
   });
 };
 

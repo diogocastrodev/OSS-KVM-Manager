@@ -1,0 +1,27 @@
+meta {
+  name: Create SubUser
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_ENDPOINT}}/api/v1/vms/120/subusers
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-CSRF-Token: {{CSRF_TOKEN}}
+}
+
+body:json {
+  {
+    "email": "zbluezinnpvp@gmail.com",
+    "role": "VIEWER"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,15 @@
+meta {
+  name: My IP
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{AGE_ENDPOINT}}/api/v1/my-ip
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

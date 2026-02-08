@@ -13,6 +13,8 @@ import type {
   passwordResetReplyBodyType,
   passwordResetRequestBodyType,
   passwordResetRequestReplyBodyType,
+  confirmPasswordResetParamsType,
+  confirmPasswordResetGetReplyBodyType,
 } from "./auth.schema";
 import db from "@/db/database";
 import argon2 from "argon2";
@@ -81,15 +83,15 @@ export const confirmEmailGet = async (
     .executeTakeFirst();
 
   if (!found) {
-    return reply.status(401).send({ message: "Invalid or expired token" });
+    return reply.status(404).send({ message: "Invalid or expired token" });
   }
 
   // Already verified (reusing field for password resets)
   if (found && found.emailVerified) {
-    return reply.status(401).send({ message: "Invalid or expired token" });
+    return reply.status(404).send({ message: "Invalid or expired token" });
   }
 
-  return reply.status(200).send({ message: "Token is valid" });
+  return reply.status(204).send();
 };
 
 /* -------------------------------------------------------------------------- */
@@ -137,6 +139,50 @@ export const confirmEmailPost = async (
   return reply.status(200).send({ message: "Email confirmed successfully" });
 };
 /* -------------------------------------------------------------------------- */
+/*                         Password Reset confirmation                        */
+/* -------------------------------------------------------------------------- */
+export const confirmPasswordReset = async (
+  req: FastifyRequest<{
+    Params: confirmPasswordResetParamsType;
+  }>,
+  reply: FastifyReply<{
+    Reply: confirmPasswordResetGetReplyBodyType;
+  }>,
+) => {
+  const { token } = req.params;
+
+  const user = await db
+    .selectFrom("users")
+    .where("passwordResetToken", "=", token)
+    .select(["id", "emailVerified", "passwordResetTokenExpiresAt"])
+    .executeTakeFirst();
+
+  if (!user) {
+    return reply.status(404).send({ message: "Invalid or expired token" });
+  }
+
+  req.log.info(`User fetched for password reset confirmation: ${user}`);
+
+  if (user && !user.emailVerified) {
+    return reply.status(404).send({ message: "Invalid or expired token" });
+  }
+
+  req.log.info(
+    `User email verified for password reset confirmation: ${user.emailVerified}`,
+  );
+
+  if (user.passwordResetTokenExpiresAt! < new Date()) {
+    return reply.status(404).send({ message: "Invalid or expired token" });
+  }
+
+  req.log.info(
+    `Password reset token valid until: ${user.passwordResetTokenExpiresAt}`,
+  );
+
+  return reply.status(204).send();
+};
+
+/* -------------------------------------------------------------------------- */
 /*                           Password Reset Request                           */
 /* -------------------------------------------------------------------------- */
 export const requestPasswordReset = async (
@@ -147,7 +193,7 @@ export const requestPasswordReset = async (
 
   const user = await db
     .selectFrom("users")
-    .where("email", "=", email)
+    .where("email", "=", email.toLowerCase())
     .select([
       "id",
       "passwordResetToken",
@@ -188,7 +234,7 @@ export const requestPasswordReset = async (
       .execute();
 
     // Send password reset email
-    await sendPasswordResetEmail(email, resetToken);
+    await sendPasswordResetEmail(email.toLowerCase(), resetToken);
   }
 
   // Always respond with success message to prevent email enumeration
@@ -270,7 +316,7 @@ export const login = async (
       "authz_version",
       "status",
     ])
-    .where("email", "=", email)
+    .where("email", "=", email.toLowerCase())
     .executeTakeFirst();
 
   if (!user) {
@@ -414,6 +460,7 @@ export const refresh = async (
   await db
     .updateTable("refresh_tokens")
     .set({ expiresAt: expiresAt })
+    .set({ updatedAt: new Date() })
     .set({ token: newRefreshToken })
     .where("token", "=", refreshToken)
     .execute();

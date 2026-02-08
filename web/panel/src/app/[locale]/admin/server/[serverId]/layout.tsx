@@ -1,6 +1,9 @@
-import VMNavbarAdminServer from "@/components/vm/navbar/navbarAdminServer";
+import VMNavbarAdminServer, {
+  ServerData,
+} from "@/components/vm/navbar/navbarAdminServer";
 import { apiFetch } from "@/lib/apiFetch";
 import { apiFetchServer } from "@/lib/apiFetchServer";
+import qk from "@/lib/fetches/keys";
 import {
   dehydrate,
   HydrationBoundary,
@@ -23,19 +26,19 @@ export default async function PanelLayout({
   const queryClient = new QueryClient();
 
   await queryClient.fetchQuery({
-    queryKey: [`getVMById-` + parseInt(serverId)],
+    queryKey: [qk.api.v1.admin.servers.getById(parseInt(serverId))],
     queryFn: async () => {
       const d = await apiFetchServer(`/api/v1/admin/servers/${serverId}`);
       if (d.status === 404) {
         notFound();
       }
-      return d.json();
+      return d.json() as Promise<ServerData>;
     },
   });
 
   return (
     <>
-      <div className="flex flex-col gap-y-5 p-5 h-full">
+      <div className="flex flex-col gap-y-5 h-full">
         <HydrationBoundary state={dehydrate(queryClient)}>
           <VMNavbarAdminServer publicId={parseInt(serverId)} />
           {children}

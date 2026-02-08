@@ -7,35 +7,52 @@ export type DatabaseSchemaViews = {
   }>;
 };
 
+/**
+ * ADMIN, USER
+ */
 export enum UserRole {
   ADMIN = "ADMIN",
   USER = "USER",
 }
-
+/**
+ * ACTIVE, PENDING, DEACTIVATED
+ */
 export enum UserStatus {
   ACTIVE = "ACTIVE",
   PENDING = "PENDING",
   DEACTIVATED = "DEACTIVATED",
 }
 
+/**
+ * USER_REQUEST, TERMS_OF_SERVICE_VIOLATION, OTHER
+ */
 export enum UserDeactivationReason {
   USER_REQUEST = "USER_REQUEST",
   TERMS_OF_SERVICE_VIOLATION = "TERMS_OF_SERVICE_VIOLATION",
   OTHER = "OTHER",
 }
 
+/**
+ * ACTIVE, MAINTENANCE, DISABLED
+ */
 export enum ServerStatus {
   ACTIVE = "ACTIVE",
   MAINTENANCE = "MAINTENANCE",
   DISABLED = "DISABLED",
 }
 
+/**
+ * VIEWER, OPERATOR, OWNER
+ */
 export enum VirtualMachineUserRole {
   VIEWER = "VIEWER",
   OPERATOR = "OPERATOR",
   OWNER = "OWNER",
 }
 
+/**
+ * CREATING, RUNNING, STOPPED, SUSPENDED, FORMATTING, DELETING, FAILED, OPERATIONAL
+ */
 export enum VirtualMachineStatus {
   CREATING = "CREATING",
   RUNNING = "RUNNING",
@@ -47,18 +64,33 @@ export enum VirtualMachineStatus {
   OPERATIONAL = "OPERATIONAL",
 }
 
+/**
+ * ACTIVE, INACTIVE
+ */
 export enum IsoStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
 }
+
+/**
+ * PUBLIC, PRIVATE
+ */
 export enum IsoVisibility {
   PUBLIC = "PUBLIC",
   PRIVATE = "PRIVATE",
 }
+
+/**
+ * X86_64, ARM64
+ */
 export enum IsoArch {
   X86_64 = "X86_64",
   ARM64 = "ARM64",
 }
+
+/**
+ * LIVE, CLOUD_IMAGE
+ */
 export enum IsoType {
   LIVE = "LIVE",
   CLOUD_IMAGE = "CLOUD_IMAGE",

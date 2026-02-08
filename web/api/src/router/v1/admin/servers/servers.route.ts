@@ -17,6 +17,14 @@ import {
   type tryInfoRequestBodyType,
   type getServersRequestQueryStringType,
   getServersRequestQueryString,
+  type healthCheckParamsSchemaType,
+  type healthCheckReplyBodyType,
+  healthCheckParamsSchema,
+  healthCheckReplyBody,
+  type getVMsOfServerParamsSchemaType,
+  type getVMsOfServerReplyBodyType,
+  getVMsOfServerParamsSchema,
+  getVMsOfServerReplyBody,
 } from "./servers.schema";
 import {
   NotFoundError,
@@ -28,6 +36,8 @@ import {
   createServer,
   getAllServers,
   getOneServer,
+  getVMsOfServer,
+  healthCheckServer,
   tryInfo,
 } from "./servers.controller";
 
@@ -54,7 +64,7 @@ const serversAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    getAllServers
+    getAllServers,
   );
 
   /* -------------------------------------------------------------------------- */
@@ -80,7 +90,33 @@ const serversAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    getOneServer
+    getOneServer,
+  );
+
+  /* -------------------------------------------------------------------------- */
+  /*                               Get One Server VMs                           */
+  /* -------------------------------------------------------------------------- */
+  fastify.get<{
+    Params: getVMsOfServerParamsSchemaType;
+    Reply: getVMsOfServerReplyBodyType | NotFoundErrorType;
+  }>(
+    "/:publicId/vms",
+    {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
+      schema: {
+        tags: [swaggerTags.ADMIN.SERVERS],
+        summary: "Get VMs of a specific server",
+        description:
+          "Returns details of the virtual machines of a server identified by publicId if accessible to the authenticated user",
+        params: getVMsOfServerParamsSchema,
+        response: {
+          200: getVMsOfServerReplyBody,
+          401: UnauthorizedError,
+          404: NotFoundError,
+        },
+      },
+    },
+    getVMsOfServer,
   );
 
   /* -------------------------------------------------------------------------- */
@@ -105,7 +141,31 @@ const serversAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    tryInfo
+    tryInfo,
+  );
+  /* -------------------------------------------------------------------------- */
+  /*                                Health Check                                */
+  /* -------------------------------------------------------------------------- */
+  fastify.post<{
+    Params: healthCheckParamsSchemaType;
+    Reply: healthCheckReplyBodyType | NotFoundErrorType | UnauthorizedErrorType;
+  }>(
+    "/:publicId/health-check",
+    {
+      preValidation: [fastify.authRequired, fastify.adminOnly],
+      schema: {
+        tags: [swaggerTags.ADMIN.SERVERS],
+        summary: "Check if Server is Alive",
+        description: "Perform a health check to see if the server is alive.",
+        params: healthCheckParamsSchema,
+        response: {
+          200: healthCheckReplyBody,
+          404: NotFoundError,
+          401: UnauthorizedError,
+        },
+      },
+    },
+    healthCheckServer,
   );
   /* -------------------------------------------------------------------------- */
   /*                                Create Server                               */
@@ -128,7 +188,7 @@ const serversAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    createServer
+    createServer,
   );
 };
 

@@ -74,6 +74,25 @@ export const registerReplyBody = z.object({
 export type registerReplyBodyType = z.infer<typeof registerReplyBody>;
 
 /* -------------------------------------------------------------------------- */
+/*                           Confirm Password Reset                           */
+/* -------------------------------------------------------------------------- */
+export const confirmPasswordResetParams = z.object({
+  token: z.uuid(),
+});
+
+export type confirmPasswordResetParamsType = z.infer<
+  typeof confirmPasswordResetParams
+>;
+
+export const confirmPasswordResetGetReplyBody = z.object({
+  message: z.string().default("Token is valid"),
+});
+
+export type confirmPasswordResetGetReplyBodyType = z.infer<
+  typeof confirmPasswordResetGetReplyBody
+>;
+
+/* -------------------------------------------------------------------------- */
 /*                           Password Reset Request                           */
 /* -------------------------------------------------------------------------- */
 export const passwordResetRequestBody = z.object({
@@ -88,7 +107,7 @@ export const passwordResetRequestReplyBody = z.object({
   message: z
     .string()
     .default(
-      "If an account with that email exists, a password reset link has been sent."
+      "If an account with that email exists, a password reset link has been sent.",
     ),
 });
 

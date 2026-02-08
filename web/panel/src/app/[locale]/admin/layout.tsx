@@ -3,15 +3,23 @@ import {
   HydrationBoundary,
   dehydrate,
 } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/apiFetch";
-import { myVMsResponse } from "@/lib/fetches/fetchMyVMs";
 import qk from "@/lib/fetches/keys";
 import { apiFetchServer } from "@/lib/apiFetchServer";
-import AdminLayout from "../../../components/Layouts/admin/adminLayout";
+import AdminLayout from "@components/Layouts/admin/adminLayout";
 import { Session } from "@/types/Session";
 import { notFound } from "next/navigation";
-import paths from "@/lib/fetches/paths";
-import generalFetch from "@/lib/fetches/generalFetch";
+
+export interface AdminServersResponse {
+  servers: {
+    publicId: number;
+    name: string;
+    virtual_machines: {
+      publicId: number;
+      name: string;
+      status: string;
+    }[];
+  }[];
+}
 
 export default async function PanelLayoutPage({
   children,
@@ -39,21 +47,15 @@ export default async function PanelLayoutPage({
   await qc.fetchQuery({
     queryKey: qk.api.v1.admin.servers.all(),
     queryFn: async () =>
-      await generalFetch({
-        clientType: "server",
-        path: paths.api.v1.admin.servers.all(true),
+      await apiFetchServer(
+        "/api/v1/admin/servers?include_virtual_machines=true",
+      ).then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch servers");
+        }
+        return res.json() as Promise<AdminServersResponse>;
       }),
   });
-  // useEffect(() => {
-  //   if (!data?.user && !isLoading) {
-  //     router.replace("/");
-  //   }
-  // }, [data, isLoading, router]);
-
-  //if (isLoading) return <div>Loading...</div>;
-  // if (!data?.user) {
-  //   return <></>;
-  // }
 
   return (
     <>

@@ -51,6 +51,7 @@ model User {
   virtualMachinesUsers        VirtualMachinesUsers[]
   // supportTickets              SupportTickets[]
   // ticketMessages              TicketMessages[]
+  auditLogs                   AuditLog[]
 
   @@map("users")
 }
@@ -60,7 +61,7 @@ model RefreshToken {
   token     String   @unique
   expiresAt DateTime
   userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   platform  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -122,7 +123,7 @@ model VirtualMachines {
   id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   publicId             Int                    @unique @db.Integer
   name                 String
-  server               Servers                @relation(fields: [serverId], references: [id])
+  server               Servers                @relation(fields: [serverId], references: [id], onDelete: Cascade)
   serverId             String                 @db.Uuid
   vcpus                Int                    @db.Integer
   ram                  Int                    @db.Integer
@@ -144,7 +145,7 @@ model VirtualMachines {
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @default(now()) @updatedAt
   virtualMachinesUsers VirtualMachinesUsers[]
-  os                   OpeartiveSystems?      @relation(fields: [osId], references: [id])
+  os                   OpeartiveSystems?      @relation(fields: [osId], references: [id], onDelete: Cascade)
 
   @@map("virtual_machines")
 }
@@ -157,9 +158,9 @@ enum VirtualMachineUsersRole {
 
 model VirtualMachinesUsers {
   id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  virtualMachines   VirtualMachines?        @relation(fields: [virtualMachinesId], references: [id])
+  virtualMachines   VirtualMachines?        @relation(fields: [virtualMachinesId], references: [id], onDelete: Cascade)
   virtualMachinesId String?                 @db.Uuid
-  user              User?                   @relation(fields: [userId], references: [id])
+  user              User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String?                 @db.Uuid
   role              VirtualMachineUsersRole @default(VIEWER)
 
@@ -172,6 +173,7 @@ model VirtualMachinesUsers {
 model AuditLog {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String?  @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   action    String
   details   String?
   createdAt DateTime @default(now())
@@ -214,7 +216,7 @@ enum IsoType {
 model IsosPaths {
   id   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   osId String?           @db.Uuid
-  os   OpeartiveSystems? @relation(fields: [osId], references: [id])
+  os   OpeartiveSystems? @relation(fields: [osId], references: [id], onDelete: Cascade)
   path String            @unique
 
   status     IsoStatus     @default(ACTIVE)

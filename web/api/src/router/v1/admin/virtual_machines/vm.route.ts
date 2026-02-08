@@ -30,6 +30,7 @@ import {
   type AdminGetVirtualMachineByIdParams,
   type AdminGetVirtualMachineByIdReply,
 } from "./vm.schema";
+import subUsers from "./subusers/subusers.route";
 
 const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
   /* -------------------------------------------------------------------------- */
@@ -47,7 +48,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    adminGetAllVirtualMachines
+    adminGetAllVirtualMachines,
   );
   /* -------------------------------------------------------------------------- */
   /*                        Get all Virtual Machines tiny                       */
@@ -64,14 +65,14 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    () => {}
+    () => {},
   );
   /* -------------------------------------------------------------------------- */
   /*                        Get One Virtual Machine By ID                       */
   /* -------------------------------------------------------------------------- */
   fastify.get<{
     Params: AdminGetVirtualMachineByIdParams;
-    Reply: AdminGetVirtualMachineByIdReply | NotFoundErrorType;
+    // Reply: AdminGetVirtualMachineByIdReply | NotFoundErrorType;
   }>(
     "/:vmPublicId",
     {
@@ -81,13 +82,13 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
         tags: [swaggerTags.ADMIN.VIRTUAL_MACHINES],
         params: adminGetVirtualMachineByIdParamsSchema,
         response: {
-          200: adminGetVirtualMachineByIdReplySchema,
+          // 200: adminGetVirtualMachineByIdReplySchema,
           401: UnauthorizedError,
           404: NotFoundError,
         },
       },
     },
-    adminGetVirtualMachineById
+    adminGetVirtualMachineById,
   );
   /* -------------------------------------------------------------------------- */
   /*                           Create Virtual Machine                           */
@@ -116,7 +117,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    adminCreateVirtualMachine
+    adminCreateVirtualMachine,
   );
   /* -------------------------------------------------------------------------- */
   /*                           Update Virtual Machine                           */
@@ -134,7 +135,7 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    adminUpdateVirtualMachine
+    adminUpdateVirtualMachine,
   );
   /* -------------------------------------------------------------------------- */
   /*                           Delete Virtual Machine                           */
@@ -157,8 +158,12 @@ const vmAdminRoute: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    adminDeleteVirtualMachine
+    adminDeleteVirtualMachine,
   );
+
+  fastify.register(subUsers, {
+    prefix: "/:vmPublicId/subusers",
+  });
 };
 
 export default vmAdminRoute;

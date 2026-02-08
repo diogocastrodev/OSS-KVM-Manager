@@ -13,25 +13,33 @@ enum VirtualMachineStatus {
 }
 
 export interface myVMsResponse {
-    servers: [{
-        publicId: number;
-        name: string;
-        virtual_machines?: [{
-            publicId: number;
-            name: string;
-            status: VirtualMachineStatus
-        }]
-    }]
+  servers: [
+    {
+      publicId: number;
+      name: string;
+      virtual_machines?: [
+        {
+          publicId: number;
+          name: string;
+          status: VirtualMachineStatus;
+          os: string;
+          osVersion: string;
+        },
+      ];
+    },
+  ];
 }
 
-export async function fetchMyVMs () {
-    const r = await apiFetch("/api/v1/servers?include_virtual_machines=true")
-    if (!r) throw new Error("Failed to fetch My VMs")
-    return r.json() as Promise<myVMsResponse>;
+export async function fetchMyVMs() {
+  const r = await apiFetch("/api/v1/servers?include_virtual_machines=true");
+  if (!r) throw new Error("Failed to fetch My VMs");
+  return r.json() as Promise<myVMsResponse>;
 }
 
-export async function fetchAllVMs () {
-    const r = await apiFetch("/api/v1/admin/servers?include_virtual_machines=true")
-    if (!r) throw new Error("Failed to fetch My VMs")
-    return r.json() as Promise<myVMsResponse>;
+export async function fetchAllVMs() {
+  const r = await apiFetch(
+    "/api/v1/admin/servers?include_virtual_machines=true",
+  );
+  if (!r) throw new Error("Failed to fetch My VMs");
+  return r.json() as Promise<myVMsResponse>;
 }

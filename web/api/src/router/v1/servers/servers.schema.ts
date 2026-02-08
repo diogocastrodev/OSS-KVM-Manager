@@ -26,10 +26,12 @@ export const getMyServersReplyBody = z.object({
           publicId: z.number(),
           name: z.string(),
           status: z.string(),
+          os: z.string(),
+          osVersion: z.string(),
         })
         .array()
         .optional(),
-    })
+    }),
   ),
 });
 
