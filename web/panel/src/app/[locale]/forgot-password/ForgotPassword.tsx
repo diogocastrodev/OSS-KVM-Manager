@@ -8,11 +8,19 @@ import Logo from "@/components/Icon/Logo";
 import { useMutation } from "@tanstack/react-query";
 import qk from "@/lib/fetches/keys";
 import { toast } from "react-toastify";
+import { ArrowLeft } from "lucide-react";
 
 interface ForgotPasswordProps {
   translation: {
     email: string;
+    invalidEmail: string;
+    placeholderEmail: string;
+    backToLogin: string;
     buttonText: string;
+    toast: {
+      success: string;
+      error: string;
+    };
   };
 }
 export default function ForgotPassword({
@@ -29,18 +37,18 @@ export default function ForgotPassword({
             "Content-Type": "application/json",
           },
         });
-        toast.success("Password reset email sent! Check your inbox.");
+        toast.success(t.toast.success);
 
         router.replace("/");
         router.refresh();
       } catch (error) {
-        toast.error("Failed to send password reset email");
+        toast.error(t.toast.error);
       }
     },
   });
   const router = useRouter();
   const formSchema = z.object({
-    email: z.email({ message: "Invalid email address" }),
+    email: z.email({ message: t.invalidEmail }),
   });
   const form = useAppForm({
     defaultValues: {
@@ -67,7 +75,12 @@ export default function ForgotPassword({
       </Link> */}
 
       <div className="flex-1 flex justify-center items-center">
-        <div className="w-92 h-96 bg-(--color-background-selected) rounded-lg p-2 flex flex-col justify-center items-center gap-4">
+        <div className="w-92 h-96 bg-(--color-background-selected) rounded-lg p-2 flex flex-col justify-center items-center gap-4 relative">
+          <div className="absolute top-3 left-3">
+            <a href="/">
+              <ArrowLeft />
+            </a>
+          </div>
           <div>
             <Logo
               props={{
@@ -78,7 +91,7 @@ export default function ForgotPassword({
           <form.AppForm>
             <form
               action=""
-              className="flex flex-col gap-4 justify-center items-center"
+              className="flex flex-col gap-11 justify-center items-center"
               onSubmit={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -93,6 +106,7 @@ export default function ForgotPassword({
                       inputType="email"
                       inputName="email"
                       inputId="email"
+                      placeholder={t.placeholderEmail}
                     />
                   )}
                 </form.AppField>
@@ -164,7 +178,6 @@ export default function ForgotPassword({
                   );
                 }}
               /> */}
-              <a href="/">Voltar para o Login</a>
               <Button text={t.buttonText}></Button>
               {/* <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting]}

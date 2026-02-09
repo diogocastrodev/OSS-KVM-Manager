@@ -40,7 +40,9 @@ export default async function VMPage({ params }: { params: Promise<Params> }) {
           graphs: {
             title: t("graphs.title"),
             cpuTitle: t("graphs.cpu-usage"),
+            cpuLabel: t("graphs.cpu-usage-label"),
             memoryTitle: t("graphs.memory-usage"),
+            memoryLabel: t("graphs.memory-usage-label"),
           },
         }}
       />

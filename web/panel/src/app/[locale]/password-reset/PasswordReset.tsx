@@ -18,8 +18,16 @@ import { toast } from "react-toastify";
 
 interface PasswordResetProps {
   translation: {
+    toast: {
+      success: string;
+      error: string;
+    };
     password: string;
+    invalidPassword: string;
+    placeholderPassword: string;
     confirmPassword: string;
+    invalidConfirmPassword: string;
+    placeholderConfirmPassword: string;
     resetPassword: string;
   };
 }
@@ -37,19 +45,19 @@ export default function PasswordReset({ translation: t }: PasswordResetProps) {
             "Content-Type": "application/json",
           },
         });
-        toast.success("Password updated successfully");
+        toast.success(t.toast.success);
 
         router.replace("/");
         router.refresh();
       } catch (error) {
-        toast.error("Failed to update password");
+        toast.error(t.toast.error);
       }
     },
   });
   const router = useRouter();
   const formSchema = z.object({
-    password: z.string().min(6, { message: "Invalid password" }),
-    confPassword: z.string().min(6, { message: "Invalid password" }),
+    password: z.string().min(6, { message: t.invalidPassword }),
+    confPassword: z.string().min(6, { message: t.invalidConfirmPassword }),
   });
   const form = useAppForm({
     defaultValues: {
@@ -61,7 +69,14 @@ export default function PasswordReset({ translation: t }: PasswordResetProps) {
     },
     onSubmit: async ({ value }) => {
       if (value.password !== value.confPassword) {
-        // TODO: Handle Error
+        form.setFieldMeta("confPassword", (meta) => ({
+          ...meta,
+          error: t.invalidConfirmPassword,
+          errorMap: {
+            ...meta.errorMap,
+            custom: t.invalidConfirmPassword,
+          },
+        }));
         return;
       }
       await updatePassword.mutateAsync({
@@ -107,6 +122,7 @@ export default function PasswordReset({ translation: t }: PasswordResetProps) {
                       inputType="password"
                       inputName="password"
                       inputId="password"
+                      placeholder={t.placeholderPassword}
                     />
                   )}
                 </form.AppField>
@@ -150,6 +166,7 @@ export default function PasswordReset({ translation: t }: PasswordResetProps) {
                       inputType="password"
                       inputName="confPassword"
                       inputId="confPassword"
+                      placeholder={t.placeholderConfirmPassword}
                     />
                   )}
                 </form.AppField>

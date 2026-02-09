@@ -11,7 +11,14 @@ export default async function Page() {
       <ForgotPassword
         translation={{
           email: t("email"),
+          invalidEmail: t("invalid-email"),
+          placeholderEmail: t("placeholder-email"),
+          backToLogin: t("backToLogin"),
           buttonText: t("buttonText"),
+          toast: {
+            success: t("toast.success"),
+            error: t("toast.error"),
+          },
         }}
       />
     </>

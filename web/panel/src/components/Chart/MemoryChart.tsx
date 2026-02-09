@@ -1,17 +1,25 @@
 import LineChart from "./ChartExample";
 
 interface props {
+  labelText: string;
+  title: string;
   data: number[];
   labels: string[];
   maxValue: number;
 }
 
-export default function MemoryChart({ data, labels, maxValue }: props) {
+export default function MemoryChart({
+  data,
+  labels,
+  maxValue,
+  labelText,
+  title,
+}: props) {
   return (
     <LineChart
-      title="Memory Usage"
+      title={title}
       data={data}
-      labelText="Usage in MB"
+      labelText={labelText}
       labels={labels}
       maxValue={maxValue}
       beginAtZero={true}

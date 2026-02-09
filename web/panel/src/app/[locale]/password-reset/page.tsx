@@ -24,8 +24,16 @@ export default async function Page({
     <>
       <PasswordReset
         translation={{
+          toast: {
+            success: t("toast.success"),
+            error: t("toast.error"),
+          },
           password: t("password"),
+          invalidPassword: t("invalidPassword"),
+          placeholderPassword: t("placeholderPassword"),
           confirmPassword: t("confirmPassword"),
+          invalidConfirmPassword: t("invalidConfirmPassword"),
+          placeholderConfirmPassword: t("placeholderConfirmPassword"),
           resetPassword: t("resetPassword"),
         }}
       />

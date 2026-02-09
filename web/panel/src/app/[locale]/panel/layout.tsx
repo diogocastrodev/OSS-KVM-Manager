@@ -7,6 +7,7 @@ import PanelLayout from "@/components/Layouts/Panel/PanelLayout";
 import { myVMsResponse } from "@/lib/fetches/fetchMyVMs";
 import qk from "@/lib/fetches/keys";
 import { apiFetchServer } from "@/lib/apiFetchServer";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -16,6 +17,7 @@ export default async function PanelLayoutPage({
 }: {
   children: React.ReactNode;
 }) {
+  const t = await getTranslations("panel.layout");
   const qc = new QueryClient();
 
   await qc.fetchQuery({
@@ -30,7 +32,21 @@ export default async function PanelLayoutPage({
   return (
     <>
       <HydrationBoundary state={dehydrate(qc)}>
-        <PanelLayout>{children}</PanelLayout>
+        <PanelLayout
+          translations={{
+            layout: {
+              panel: t("panel"),
+              admin: t("admin"),
+              datacenters: t("datacenters"),
+              nav: {
+                profile: t("nav.profile"),
+                logout: t("nav.logout"),
+              },
+            },
+          }}
+        >
+          {children}
+        </PanelLayout>
       </HydrationBoundary>
     </>
   );

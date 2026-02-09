@@ -11,8 +11,14 @@ import qk from "@/lib/fetches/keys";
 interface ConfirmEmailProps {
   translation: {
     name: string;
+    nameInvalid: string;
+    namePlaceholder: string;
     password: string;
+    passwordInvalid: string;
+    passwordPlaceholder: string;
     confirmPassword: string;
+    confirmPasswordInvalid: string;
+    confirmPasswordPlaceholder: string;
     buttonText: string;
   };
 }
@@ -44,9 +50,9 @@ export default function ConfirmEmail({ translation: t }: ConfirmEmailProps) {
     },
   });
   const formSchema = z.object({
-    name: z.string().min(1, { message: "Invalid name" }),
-    password: z.string().min(8, { message: "Invalid password" }),
-    confPassword: z.string().min(8, { message: "Invalid password" }),
+    name: z.string().min(1, { message: t.nameInvalid }),
+    password: z.string().min(8, { message: t.passwordInvalid }),
+    confPassword: z.string().min(8, { message: t.confirmPasswordInvalid }),
   });
   const form = useAppForm({
     defaultValues: {
@@ -59,7 +65,14 @@ export default function ConfirmEmail({ translation: t }: ConfirmEmailProps) {
     },
     onSubmit: async ({ value }) => {
       if (value.password !== value.confPassword) {
-        // TODO: Handle Error
+        form.setFieldMeta("confPassword", (meta) => ({
+          ...meta,
+          error: t.confirmPasswordInvalid,
+          errorMap: {
+            ...meta.errorMap,
+            custom: t.confirmPasswordInvalid,
+          },
+        }));
         return;
       }
       await requestUpdatePassword.mutateAsync({
@@ -98,6 +111,7 @@ export default function ConfirmEmail({ translation: t }: ConfirmEmailProps) {
                       inputType="text"
                       inputName="name"
                       inputId="name"
+                      placeholder={t.namePlaceholder}
                     />
                   )}
                 </form.AppField>
@@ -110,6 +124,7 @@ export default function ConfirmEmail({ translation: t }: ConfirmEmailProps) {
                       inputType="password"
                       inputName="password"
                       inputId="password"
+                      placeholder={t.passwordPlaceholder}
                     />
                   )}
                 </form.AppField>
@@ -122,6 +137,7 @@ export default function ConfirmEmail({ translation: t }: ConfirmEmailProps) {
                       inputType="password"
                       inputName="confPassword"
                       inputId="confPassword"
+                      placeholder={t.confirmPasswordPlaceholder}
                     />
                   )}
                 </form.AppField>

@@ -15,9 +15,13 @@ import qk from "@/lib/fetches/keys";
 
 interface LoginFormProps {
   translation: {
-    username: string;
+    email: string;
+    invalidEmail: string;
+    placeholderEmail: string;
     password: string;
+    invalidPassword: string;
     forgotPassword: string;
+    placeholderPassword: string;
     login: string;
   };
 }
@@ -45,8 +49,8 @@ export default function LoginForm({ translation: t }: LoginFormProps) {
   });
   const router = useRouter();
   const formSchema = z.object({
-    email: z.email({ message: "Invalid email address" }),
-    password: z.string().min(6, { message: "Invalid password" }),
+    email: z.email({ message: t.invalidEmail }),
+    password: z.string().min(6, { message: t.invalidPassword }),
   });
   const form = useAppForm({
     defaultValues: {
@@ -109,10 +113,11 @@ export default function LoginForm({ translation: t }: LoginFormProps) {
                 <form.AppField name="email">
                   {(field) => (
                     <field.InputField
-                      labelText={t.username}
+                      labelText={t.email}
                       inputType="text"
                       inputName="email"
                       inputId="email"
+                      placeholder={t.placeholderEmail}
                     />
                   )}
                 </form.AppField>
@@ -156,6 +161,7 @@ export default function LoginForm({ translation: t }: LoginFormProps) {
                       inputType="password"
                       inputName="password"
                       inputId="password"
+                      placeholder={t.placeholderPassword}
                     >
                       <a
                         href="/forgot-password"

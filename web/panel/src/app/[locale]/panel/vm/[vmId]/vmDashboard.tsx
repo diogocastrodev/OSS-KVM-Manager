@@ -44,7 +44,9 @@ interface props {
     graphs: {
       title: string;
       cpuTitle: string;
+      cpuLabel: string;
       memoryTitle: string;
+      memoryLabel: string;
     };
   };
 }
@@ -270,6 +272,8 @@ export default function VMDashboard({ vmID, translations }: props) {
                   "10s",
                   "5s",
                 ]}
+                title={translations.graphs.cpuTitle}
+                labelText={translations.graphs.cpuLabel}
               />
             </div>
             <div className="border rounded-2xl w-full h-full">
@@ -277,6 +281,8 @@ export default function VMDashboard({ vmID, translations }: props) {
                 data={[350, 1024, 2040, 1536, 2010]}
                 labels={["10:00", "10:05", "10:10", "10:15", "10:20"]}
                 maxValue={data?.ram ? data.ram : 100}
+                labelText={translations.graphs.memoryLabel}
+                title={translations.graphs.memoryTitle}
               />
             </div>
           </div>

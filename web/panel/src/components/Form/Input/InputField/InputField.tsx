@@ -24,7 +24,7 @@ export default function InputField(props: InputFieldProps) {
           {props.labelText}
         </label>
         <input
-          className={`w-64 h-8 rounded-md bg-(--color-input-background) focus:outline-(--color-input-outline-focus) text-(--color-input-foreground) pl-2 focus:outline-1 outline-1 ${isInvalid ? "outline-(--color-error-outline) " : " outline-(--color-input-outline)"}`}
+          className={`w-64 h-8 rounded-md bg-(--color-input-background) focus:outline-(--color-input-outline-focus) text-(--color-input-foreground) pl-2 focus:outline-1 outline-1 ${isInvalid ? "outline-(--color-error-outline) " : " outline-(--color-input-outline)"} placeholder:italic placeholder:text-sm`}
           type={props.inputType}
           name={props.inputName}
           id={props.inputId}

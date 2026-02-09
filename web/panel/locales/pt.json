@@ -3,30 +3,73 @@
     "hey": "Olá"
   },
   "login": {
-    "username": "Email",
+    "email": "Email",
+    "invalid-email": "Endereço de email inválido",
+    "placeholder-email": "Introduza o seu email",
     "password": "Palavra-Passe",
+    "invalid-password": "Palavra-Passe inválida",
+    "placeholder-password": "Introduza a sua palavra-passe",
     "forgotPassword": "Esqueceu-se da palavra-passe?",
     "login": "Entrar"
   },
   "confirm-email": {
     "name": "Nome",
+    "invalid-name": "Nome inválido",
+    "placeholder-name": "Introduza o seu nome",
     "password": "Palavra-Passe",
+    "invalid-password": "Palavra-Passe inválida",
+    "placeholder-password": "Introduza a sua palavra-passe",
     "confirmPassword": "Confirmar Palavra-Passe",
+    "invalid-confirmPassword": "As palavras-passe não coincidem",
+    "placeholder-confirmPassword": "Confirme a sua palavra-passe",
     "buttonText": "Confirmar Email"
   },
   "forgot-password": {
+    "toast": {
+      "success": "Pedido de troca de palavra-passe enviado com sucesso",
+      "error": "Ocorreu um erro ao enviar o pedido de troca de palavra-passe"
+    },
     "email": "Email",
+    "invalid-email": "Endereço de email inválido",
+    "placeholder-email": "Introduza o seu email",
+    "backToLogin": "Voltar para o login",
     "buttonText": "Pedir Troca de Palavra-Passe"
   },
   "passwordReset": {
+    "toast": {
+      "success": "Palavra-passe atualizada com sucesso",
+      "error": "Falha ao atualizar a palavra-passe"
+    },
     "password": "Palavra-Passe",
+    "invalidPassword": "Palavra-Passe inválida",
+    "placeholderPassword": "Introduza a sua palavra-passe",
     "confirmPassword": "Confirmar Palavra-Passe",
+    "invalidConfirmPassword": "As palavras-passe não coincidem",
+    "placeholderConfirmPassword": "Confirme a sua palavra-passe",
     "resetPassword": "Trocar Palavra-Passe"
   },
   "panel": {
-    "panel": "Painel",
-    "admin": "Admin",
-    "datacenters": "Datacenters"
+    "layout": {
+      "panel": "Painel",
+      "admin": "Admin",
+      "users": "Utilizadores",
+      "datacenters": "Datacenters",
+      "nav": {
+        "profile": "Perfil",
+        "logout": "Sair"
+      }
+    },
+    "main": {
+      "welcome": "Bem-vindo ao painel de controlo, ",
+      "your-vms": "As suas VMs:",
+      "os": {
+        "unknown": "SO Desconecido"
+      },
+      "status": {
+        "operational": "Operacional",
+        "not-operational": "Não Operacional"
+      }
+    }
   },
   "panel-vm": {
     "navbar": {
@@ -66,7 +109,9 @@
     "graphs": {
       "title": "Informações sobre a sua VM",
       "cpu-usage": "Uso de CPU",
-      "memory-usage": "Uso de Memória"
+      "cpu-usage-label": "Uso em %",
+      "memory-usage": "Uso de Memória",
+      "memory-usage-label": "Uso em MB"
     },
     "console-page": {
       "open-console": "Abrir Consola",
@@ -74,6 +119,33 @@
         "text": "Uma vez que a consola esteja aberta, digite:",
         "command": "ssh utilizador@vm"
       }
+    },
+    "reset-page": {
+      "toast": {
+        "pending": "A solicitar formatação da VM...",
+        "success": "Formatação da VM iniciada com sucesso!",
+        "error": "Falha ao iniciar a formatação da VM. Por favor, tente novamente.",
+        "already": "A VM já está a ser formatada. Por favor, aguarde."
+      },
+      "choose-image": "Escolha a sua Imagem:",
+      "input-os": "Sistema Operativo",
+      "input-os-version": "Versão do Sistema Operativo",
+      "your-credentials": "As suas novas Credenciais",
+      "your-credentials-subtext": "Esta ação irá formatar a sua máquina virtual e apagar todos os dados.",
+      "hostname": "Nome do Host",
+      "invalid-hostname": "Nome do host inválido",
+      "placeholder-hostname": "Introduza o nome do seu host",
+      "username": "Nome de Utilizador",
+      "invalid-username": "Nome de utilizador inválido",
+      "placeholder-username": "Introduza o seu nome de utilizador",
+      "password": "Palavra-Passe",
+      "public-key": "Chave Pública",
+      "invalid-password": "Palavra-passe inválida",
+      "placeholder-password": "Introduza a sua palavra-passe",
+      "confirm-password": "Confirmar Palavra-Passe",
+      "invalid-confirm-password": "As palavras-passe não coincidem",
+      "placeholder-confirm-password": "Confirme a sua palavra-passe",
+      "reset-button": "Formatar VM"
     }
   }
 }

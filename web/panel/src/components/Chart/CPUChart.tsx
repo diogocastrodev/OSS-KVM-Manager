@@ -1,16 +1,18 @@
 import LineChart from "./ChartExample";
 
 interface props {
+  title: string;
+  labelText: string;
   data: number[];
   labels: string[];
 }
 
-export default function CPUChart({ data, labels }: props) {
+export default function CPUChart({ title, labelText, data, labels }: props) {
   return (
     <LineChart
-      title="CPU Usage"
+      title={title}
       data={data}
-      labelText="Usage in %"
+      labelText={labelText}
       labels={labels}
       maxValue={100}
       beginAtZero={true}

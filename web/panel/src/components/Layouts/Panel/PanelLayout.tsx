@@ -19,6 +19,21 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import qk from "@/lib/fetches/keys";
 import { apiFetch } from "@/lib/apiFetch";
 
+interface props {
+  children?: React.ReactNode;
+  translations: {
+    layout: {
+      panel: string;
+      admin: string;
+      datacenters: string;
+      nav: {
+        profile: string;
+        logout: string;
+      };
+    };
+  };
+}
+
 const dropdownMenuItems: Array<{
   icon?: React.ReactNode;
   label: string;
@@ -45,11 +60,7 @@ const dropdownMenuItems: Array<{
   },
 ];
 
-export default function PanelLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PanelLayout({ children, translations: t }: props) {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState<boolean>(false);
@@ -109,16 +120,18 @@ export default function PanelLayout({
             </div>
             <div className="flex flex-col flex-1 gap-y-2 ">
               <div className="text-xl font-semibold pl-2">
-                <a href="/panel">Panel</a>
+                <a href="/panel">{t.layout.panel}</a>
               </div>
               {session2.data?.role === "ADMIN" && (
                 <div className="text-xl font-semibold pl-2 pt-2">
-                  <a href="/admin">Admin</a>
+                  <a href="/admin">{t.layout.admin}</a>
                 </div>
               )}
 
               <div className="my-4"></div>
-              <div className="text-sm font-semibold">Datacenters</div>
+              <div className="text-sm font-semibold">
+                {t.layout.datacenters}
+              </div>
               <div className="min-h-0 flex flex-col flex-1 gap-y-2 bg-(--color-background-selected) p-2 rounded-lg shadow-md overflow-y-auto overflow-x-hidden">
                 <div>Home</div>
                 <div className="pl-4 flex flex-col gap-y-2">
@@ -214,7 +227,13 @@ export default function PanelLayout({
                                 {item.icon}
                               </div>
                             )}
-                            {item.label}
+                            {
+                              t.layout.nav[
+                                item.label.toLowerCase().replace("-", "") as
+                                  | "profile"
+                                  | "logout"
+                              ]
+                            }
                           </a>
                           {item.spacer && (
                             <div className="mx-1 border-b-2 border-(--color-background-primary)"></div>

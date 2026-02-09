@@ -3,30 +3,73 @@
     "hey": "Hello"
   },
   "login": {
-    "username": "Username",
+    "email": "Email",
+    "invalid-email": "Invalid email address",
+    "placeholder-email": "Enter your email",
     "password": "Password",
+    "invalid-password": "Invalid password",
+    "placeholder-password": "Enter your password",
     "forgotPassword": "Forgot your password?",
     "login": "Login"
   },
   "confirm-email": {
     "name": "Name",
+    "invalid-name": "Invalid name",
+    "placeholder-name": "Enter your name",
     "password": "Password",
+    "invalid-password": "Invalid password",
+    "placeholder-password": "Enter your password",
     "confirmPassword": "Confirm Password",
+    "invalid-confirmPassword": "Passwords do not match",
+    "placeholder-confirmPassword": "Confirm your password",
     "buttonText": "Confirm Email"
   },
   "forgot-password": {
+    "toast": {
+      "success": "Password reset request sent successfully",
+      "error": "An error occurred while sending the password reset request"
+    },
     "email": "Email",
-    "buttonText": "Request Password Reset"
+    "invalid-email": "Invalid email address",
+    "placeholder-email": "Enter your email",
+    "backToLogin": "Back to login",
+    "buttonText": "Request Reset"
   },
   "passwordReset": {
+    "toast": {
+      "success": "Password updated successfully",
+      "error": "Failed to update password"
+    },
     "password": "Password",
+    "invalidPassword": "Invalid password",
+    "placeholderPassword": "Enter your password",
     "confirmPassword": "Confirm Password",
+    "invalidConfirmPassword": "Passwords do not match",
+    "placeholderConfirmPassword": "Confirm your password",
     "resetPassword": "Reset Password"
   },
   "panel": {
-    "panel": "Panel",
-    "admin": "Admin",
-    "datacenters": "Datacenters"
+    "layout": {
+      "panel": "Panel",
+      "admin": "Admin",
+      "users": "Users",
+      "datacenters": "Datacenters",
+      "nav": {
+        "profile": "Profile",
+        "logout": "Logout"
+      }
+    },
+    "main": {
+      "welcome": "Welcome to the control panel, ",
+      "your-vms": "Your VMs:",
+      "os": {
+        "unknown": "Unknown OS"
+      },
+      "status": {
+        "operational": "Operational",
+        "not-operational": "Not Operational"
+      }
+    }
   },
   "panel-vm": {
     "navbar": {
@@ -66,7 +109,9 @@
     "graphs": {
       "title": "Info about your VM",
       "cpu-usage": "CPU Usage",
-      "memory-usage": "Memory Usage"
+      "cpu-usage-label": "Usage in %",
+      "memory-usage": "Memory Usage",
+      "memory-usage-label": "Usage in MB"
     },
     "console-page": {
       "open-console": "Open Console",
@@ -74,6 +119,33 @@
         "text": "Once the console is open, type:",
         "command": "ssh username@vm"
       }
+    },
+    "reset-page": {
+      "toast": {
+        "pending": "Requesting VM format...",
+        "success": "VM formatting started successfully!",
+        "error": "Failed to start VM formatting. Please try again.",
+        "already": "VM is already being formatted. Please wait."
+      },
+      "choose-image": "Choose your Image:",
+      "input-os": "Operative System",
+      "input-os-version": "Operative System Version",
+      "your-credentials": "Your new Credentials",
+      "your-credentials-subtext": "This action will format your virtual machine and erase all data.",
+      "hostname": "Hostname",
+      "invalid-hostname": "Invalid hostname",
+      "placeholder-hostname": "Enter your hostname",
+      "username": "Username",
+      "invalid-username": "Invalid username",
+      "placeholder-username": "Enter your username",
+      "password": "Password",
+      "public-key": "Public Key",
+      "invalid-password": "Invalid password",
+      "placeholder-password": "Enter your password",
+      "confirm-password": "Confirm Password",
+      "invalid-confirm-password": "Passwords do not match",
+      "placeholder-confirm-password": "Confirm your password",
+      "reset-button": "Reset VM"
     }
   }
 }

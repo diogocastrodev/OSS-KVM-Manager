@@ -36,8 +36,14 @@ export default async function Page({
       <ConfirmEmail
         translation={{
           name: t("name"),
+          nameInvalid: t("invalid-name"),
+          namePlaceholder: t("placeholder-name"),
           password: t("password"),
+          passwordInvalid: t("invalid-password"),
+          passwordPlaceholder: t("placeholder-password"),
           confirmPassword: t("confirmPassword"),
+          confirmPasswordInvalid: t("invalid-confirmPassword"),
+          confirmPasswordPlaceholder: t("placeholder-confirmPassword"),
           buttonText: t("buttonText"),
         }}
       />

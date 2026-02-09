@@ -11,8 +11,12 @@ export default async function Page() {
     <>
       <LoginForm
         translation={{
-          username: t("username"),
+          email: t("email"),
+          invalidEmail: t("invalid-email"),
+          placeholderEmail: t("placeholder-email"),
           password: t("password"),
+          invalidPassword: t("invalid-password"),
+          placeholderPassword: t("placeholder-password"),
           forgotPassword: t("forgotPassword"),
           login: t("login"),
         }}
