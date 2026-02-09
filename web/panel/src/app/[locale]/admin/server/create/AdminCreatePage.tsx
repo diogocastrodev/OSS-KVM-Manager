@@ -255,24 +255,9 @@ export default function AdminCreatePage({ translations: t }: props) {
       .regex(/^\d+$/, t.maxResources.invalidDisk)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
-    network: z
-      .string()
-      .regex(
-        /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])$/,
-        t.network.invalidVmNetwork,
-      ),
-    network_mask: z
-      .string()
-      .regex(
-        /^(?:255\.(?:255\.(?:255\.(?:255|254|252|248|240|224|192|128|0)|(?:254|252|248|240|224|192|128|0)\.0)|(?:254|252|248|240|224|192|128|0)\.0\.0)|(?:254|252|248|240|224|192|128|0)\.0\.0\.0|0\.0\.0\.0)$/,
-        t.network.invalidVmNetworkMask,
-      ),
-    network_gateway: z
-      .string()
-      .regex(
-        /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])$/,
-        t.network.invalidVmNetwork,
-      ),
+    network: z.string(),
+    network_mask: z.string(),
+    network_gateway: z.string(),
   });
 
   const createServerForm = useAppForm({

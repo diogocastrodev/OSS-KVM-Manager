@@ -56,12 +56,11 @@ export const getMyServers = async (
       "virtual_machines.id",
       "virtual_machines_users.virtualMachinesId",
     )
-    .innerJoin(
+    .leftJoin(
       "operative_systems",
       "virtual_machines.osId",
       "operative_systems.id",
     )
-    .where("virtual_machines_users.userId", "=", user.id)
     .select([
       "servers.publicId as serverPublicId",
       "servers.name as serverName",
@@ -71,7 +70,11 @@ export const getMyServers = async (
       "operative_systems.os as vmOS",
       "operative_systems.version as vmOSVersion",
     ])
+    .where("virtual_machines_users.userId", "=", user.id)
     .execute();
+  req.log.info(
+    `SERVER: Fetched ${serversWithVMs.length} server-VM rows for user ${req.user.email}`,
+  );
 
   const serversMap: getMyServersReplyBodyType = {
     servers: [],
@@ -93,12 +96,16 @@ export const getMyServers = async (
       publicId: row.vmPublicId,
       name: row.vmName,
       status: row.vmStatus,
-      os: row.vmOS,
-      osVersion: row.vmOSVersion,
+      os: row.vmOS || "",
+      osVersion: row.vmOSVersion || "",
     });
   });
 
   const servers = Object.values(serversMap.servers);
+
+  req.log.info(
+    `SERVER: Retrieved ${servers.length} servers for user ${req.user.email}`,
+  );
 
   return reply.status(200).send({ servers });
 };
