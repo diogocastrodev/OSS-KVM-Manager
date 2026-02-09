@@ -69,6 +69,69 @@
         "operational": "Operational",
         "not-operational": "Not Operational"
       }
+    },
+    "main-admin": {
+      "server-status": "Server Status",
+      "virtual-machines": "Virtual Machines: ",
+      "state": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "maintenance": "Maintenance"
+      },
+      "status": {
+        "operational": "Operational",
+        "not-operational": "Not Operational",
+        "unknown": "Unknown"
+      }
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "data": {
+      "title": "Profile Data",
+      "name": "Name",
+      "invalid-name": "Invalid name",
+      "placeholder-name": "Enter your name",
+      "email": "Email",
+      "invalid-email": "Invalid email address",
+      "placeholder-email": "Enter your email",
+      "update-button": "Update Profile",
+      "toast": {
+        "success": "Profile updated successfully",
+        "error": "Failed to update profile"
+      }
+    },
+    "password": {
+      "title": "Update Password",
+      "current-password": "Current Password",
+      "invalid-current-password": "Invalid current password",
+      "placeholder-current-password": "Enter your current password",
+      "password": "Password",
+      "invalid-password": "Invalid password",
+      "placeholder-password": "Enter your password",
+      "confirm-password": "Confirm Password",
+      "invalid-confirm-password": "Passwords do not match",
+      "placeholder-confirm-password": "Confirm your password",
+      "update-button": "Update Password",
+      "toast": {
+        "success": "Password updated successfully",
+        "error": "Failed to update password"
+      }
+    },
+    "devices": {
+      "title": "Active Sessions",
+      "platform": "Platform",
+      "created-at": "Created At",
+      "last-used": "Last Used",
+      "actions": "Actions",
+      "remove-button": "Remove",
+      "remove-all-button": "Remove All Devices",
+      "toast": {
+        "remove-success": "Device removed successfully",
+        "remove-error": "Failed to remove device",
+        "remove-all-success": "All devices removed successfully",
+        "remove-all-error": "Failed to remove all devices"
+      }
     }
   },
   "panel-vm": {
@@ -146,6 +209,462 @@
       "invalid-confirm-password": "Passwords do not match",
       "placeholder-confirm-password": "Confirm your password",
       "reset-button": "Reset VM"
+    },
+    "subuser-page": {
+      "add": {
+        "toast": {
+          "success": "Sub user added successfully",
+          "error": "Failed to add sub user. Please try again."
+        },
+        "title": "Add Sub User",
+        "email": "Email",
+        "invalid-email": "Invalid email address",
+        "placeholder-email": "Enter the sub user's email",
+        "add-button": "Add Sub User"
+      },
+      "role": "Role",
+      "role-error": "A função deve ser operador ou visualizador",
+      "roles": {
+        "viewer": "Viewer",
+        "operator": "Operator",
+        "owner": "Owner"
+      },
+      "list": {
+        "title": "Sub Users",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "actions": "Actions"
+      },
+      "update": {
+        "toast": {
+          "success": "Sub user updated successfully",
+          "error": "Failed to update sub user. Please try again."
+        },
+        "button": "Update",
+        "modal": {
+          "title": "Update Sub User",
+          "button": "Update User"
+        }
+      },
+      "remove": {
+        "button": "Remove",
+        "toast": {
+          "success": "Sub user removed successfully",
+          "error": "Failed to remove sub user. Please try again."
+        }
+      }
+    }
+  },
+  "admin": {
+    "users": {
+      "title": "Users",
+      "create": {
+        "title": "Create User",
+        "toast": {
+          "success": "User created successfully",
+          "error": "Failed to create user. Please try again."
+        },
+        "email": "Email",
+        "invalid-email": "Invalid email address",
+        "placeholder-email": "Enter the user's email",
+        "create-button": "Create User"
+      },
+      "list": {
+        "title": "List of Users",
+        "search-placeholder": "Search by email or name",
+        "page": "Page",
+        "total": "Total",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "stat": "Status",
+        "actions": {
+          "title": "Actions",
+          "update": "update"
+        },
+        "roles": {
+          "admin": "Admin",
+          "user": "User"
+        },
+        "status": {
+          "active": "Active",
+          "deactivated": "Deactivated",
+          "pending": "Pending"
+        }
+      },
+      "update": {
+        "title": "Update User",
+        "name": "Name",
+        "invalid-name": "Invalid name",
+        "placeholder-name": "Enter the user's name",
+        "email": "Email",
+        "invalid-email": "Invalid email address",
+        "placeholder-email": "Enter the user's email",
+        "role": "Role",
+        "invalid-role": "Role must be admin or user",
+        "status": "Status",
+        "invalid-status": "Status must be active, deactivated or pending",
+        "update-button": "Update User",
+        "fake-email-update": "(TMP) Confirm email",
+        "deactivation-reason": "Deactivation Reason",
+        "deactivation-reasons": {
+          "user-request": "User Request",
+          "terms-of-service-violation": "Terms of Service Violation",
+          "other": "Other"
+        },
+        "toast": {
+          "success": "User updated successfully",
+          "error": "Failed to update user. Please try again.",
+          "success-email-update": "(TMP) Email updated successfully",
+          "error-email-update": "(TMP) Failed to update email. Please try again."
+        }
+      }
+    },
+    "create-server": {
+      "title": "Create Server",
+      "toast": {
+        "try-success": "Server found successfully",
+        "try-error": "Failed to find server. Please check the endpoint and try again.",
+        "create-success": "Server created successfully",
+        "create-error": "Failed to create server. Please try again."
+      },
+      "endpoint": {
+        "agent-endpoint": "Agent Endpoint",
+        "invalid-agent-endpoint": "Invalid agent endpoint",
+        "placeholder-agent-endpoint": "Enter the server's agent endpoint",
+        "try-finding": "Try Finding Server"
+      },
+      "data-found": {
+        "title": "Server Data Found",
+        "cpus": "CPUs",
+        "vcpus": "vCPUs",
+        "memory": "Memory",
+        "disk": "Disk",
+        "failed": "Failed to get server data. Please check the endpoint and try again."
+      },
+      "general": {
+        "title": "General Information",
+        "name": "Name",
+        "invalid-name": "Invalid name",
+        "placeholder-name": "Enter the server's name",
+        "public-id": "Public ID",
+        "invalid-public-id": "Invalid public ID",
+        "placeholder-public-id": "Enter the server's public ID"
+      },
+      "resources": {
+        "title": "Resources",
+        "cpus": "CPUs",
+        "invalid-cpus": "Invalid CPUs value",
+        "placeholder-cpus": "Enter the number of CPUs",
+        "vcpus": "vCPUs",
+        "invalid-vcpus": "Invalid vCPUs value",
+        "placeholder-vcpus": "Enter the number of vCPUs",
+        "memory": "Memory (MB)",
+        "invalid-memory": "Invalid memory value",
+        "placeholder-memory": "Enter the amount of memory in MB",
+        "disk": "Disk (GB)",
+        "invalid-disk": "Invalid disk value",
+        "placeholder-disk": "Enter the amount of disk space in GB",
+        "in-link": "In Link (Mbps)",
+        "invalid-in-link": "Invalid in link value",
+        "placeholder-in-link": "Enter the in link speed in Mbps",
+        "out-link": "Out Link (Mbps)",
+        "invalid-out-link": "Invalid out link value",
+        "placeholder-out-link": "Enter the out link speed in Mbps"
+      },
+      "max-resources": {
+        "title": "Max Resources",
+        "vcpus": "vCPUs",
+        "invalid-vcpus": "Invalid vCPUs value",
+        "placeholder-vcpus": "Enter the maximum number of vCPUs",
+        "memory": "Memory (MB)",
+        "invalid-memory": "Invalid memory value",
+        "placeholder-memory": "Enter the maximum amount of memory in MB",
+        "disk": "Disk (GB)",
+        "invalid-disk": "Invalid disk value",
+        "placeholder-disk": "Enter the maximum amount of disk space in GB"
+      },
+      "network": {
+        "title": "Network",
+        "vm-network": "VM Network",
+        "invalid-vm-network": "Invalid VM network",
+        "placeholder-vm-network": "Enter the VM network",
+        "vm-network-mask": "VM Network Mask",
+        "invalid-vm-network-mask": "Invalid VM network mask",
+        "placeholder-vm-network-mask": "Enter the VM network mask",
+        "vm-network-gateway": "VM Network Gateway",
+        "invalid-vm-network-gateway": "Invalid VM network gateway",
+        "placeholder-vm-network-gateway": "Enter the VM network gateway"
+      },
+      "button": "Create Server"
+    },
+    "server-page": {
+      "nav": {
+        "dashboard": "Dashboard",
+        "virtual-machines": "Virtual Machines",
+        "virtual-machines-subnav": {
+          "list-vms": "List Virtual Machines",
+          "create-vm": "Create Virtual Machine"
+        },
+        "settings": "Settings"
+      },
+      "dashboard": {
+        "title": "Server Dashboard",
+        "status-msg": "The server is set to",
+        "agent-msg": "The agent in the server can be found at",
+        "health-check": {
+          "msg": "Check if server is alive",
+          "button": "Check",
+          "success": "Server is alive",
+          "error": "Server did not respond"
+        },
+        "resources": {
+          "title": "Available server Resources",
+          "vcpus-title": "vCPUs",
+          "vcpus-label": "vCPUs Available",
+          "memory-title": "Memory",
+          "memory-label": "Memory Available",
+          "disk-title": "Disk",
+          "disk-label": "Disk Available"
+        },
+        "status": {
+          "active": "Active",
+          "maintenance": "Maintenance",
+          "disabled": "Disabled"
+        }
+      },
+      "list-vms": {
+        "title": "List Virtual Machines",
+        "name": "Name",
+        "stat": "Status",
+        "status": {
+          "operational": "Operational",
+          "formatting": "Formatting",
+          "deleting": "Deleting",
+          "failed": "Failed"
+        },
+        "ips": "IPs",
+        "resources": {
+          "title": "Resources",
+          "vCPU": "vCPU",
+          "memory": "RAM",
+          "disk": "Disk"
+        }
+      },
+      "create-vm": {
+        "title": "Create Virtual Machine",
+        "toast": {
+          "success": "Virtual machine created successfully",
+          "error": "Failed to create virtual machine. Please try again."
+        },
+        "server": {
+          "title": "Server Information",
+          "vcpu-available": "vCPUs Available",
+          "memory-available": "Memory Available (MB)",
+          "disk-available": "Disk Available (GB)",
+          "network-in-link": "Network In Link (Mbps)",
+          "network-out-link": "Network Out Link (Mbps)",
+          "machine-network-vms": "VMs Network",
+          "machine-network-gateway": "VMs Network Gateway"
+        },
+        "general": {
+          "title": "General Information",
+          "name": "Name",
+          "invalid-name": "Invalid name",
+          "placeholder-name": "Enter the virtual machine name",
+          "public-id": "Public ID",
+          "invalid-public-id": "Invalid public ID",
+          "placeholder-public-id": "Enter the virtual machine public ID"
+        },
+        "resources": {
+          "title": "Resources",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Invalid vCPUs value",
+          "placeholder-vcpus": "Enter the number of vCPUs",
+          "memory": "Memory (MB)",
+          "invalid-memory": "Invalid memory value",
+          "placeholder-memory": "Enter the amount of memory in MB",
+          "disk": "Disk (GB)",
+          "invalid-disk": "Invalid disk value",
+          "placeholder-disk": "Enter the amount of disk space in GB"
+        },
+        "network": {
+          "title": "Network",
+          "local-ip": "Local IP",
+          "invalid-local-ip": "Invalid local IP",
+          "placeholder-local-ip": "Enter the virtual machine's local IP",
+          "net-in-avg": "Network In Link (Mbps)",
+          "invalid-net-in-avg": "Invalid network in link value",
+          "placeholder-net-in-avg": "Enter the network in link speed in Mbps",
+          "net-out-avg": "Network Out Link (Mbps)",
+          "invalid-net-out-avg": "Invalid network out link value",
+          "placeholder-net-out-avg": "Enter the network out link speed in Mbps",
+          "net-in-peak": "Network In Peak (Mbps)",
+          "invalid-net-in-peak": "Invalid network in peak value",
+          "placeholder-net-in-peak": "Enter the network in peak speed in Mbps",
+          "net-out-peak": "Network Out Peak (Mbps)",
+          "invalid-net-out-peak": "Invalid network out peak value",
+          "placeholder-net-out-peak": "Enter the network out peak speed in Mbps",
+          "net-in-burst": "Network In Burst (Mbps)",
+          "invalid-net-in-burst": "Invalid network in burst value",
+          "placeholder-net-in-burst": "Enter the network in burst speed in Mbps",
+          "net-out-burst": "Network Out Burst (Mbps)",
+          "invalid-net-out-burst": "Invalid network out burst value",
+          "placeholder-net-out-burst": "Enter the network out burst speed in Mbps"
+        },
+        "button": "Create Virtual Machine"
+      },
+      "settings": {
+        "title": "Update Server",
+        "toast": {
+          "try-success": "Server found successfully",
+          "try-error": "Failed to find server. Please check the endpoint and try again.",
+          "update-success": "Server updated successfully",
+          "update-error": "Failed to update server. Please try again.",
+          "delete-success": "Server deleted successfully",
+          "delete-error": "Failed to delete server. Please try again."
+        },
+        "endpoint": {
+          "agent-endpoint": "Agent Endpoint",
+          "invalid-agent-endpoint": "Invalid agent endpoint",
+          "placeholder-agent-endpoint": "Enter the server's agent endpoint",
+          "try-finding": "Try Finding Server"
+        },
+        "data-found": {
+          "title": "Server Data Found",
+          "cpus": "CPUs",
+          "vcpus": "vCPUs",
+          "memory": "Memory",
+          "disk": "Disk",
+          "failed": "Failed to get server data. Please check the endpoint and try again."
+        },
+        "general": {
+          "title": "General Information",
+          "name": "Name",
+          "invalid-name": "Invalid name",
+          "placeholder-name": "Enter the server's name",
+          "public-id": "Public ID",
+          "invalid-public-id": "Invalid public ID",
+          "placeholder-public-id": "Enter the server's public ID"
+        },
+        "resources": {
+          "title": "Resources",
+          "cpus": "CPUs",
+          "invalid-cpus": "Invalid CPUs value",
+          "placeholder-cpus": "Enter the number of CPUs",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Invalid vCPUs value",
+          "placeholder-vcpus": "Enter the number of vCPUs",
+          "memory": "Memory (MB)",
+          "invalid-memory": "Invalid memory value",
+          "placeholder-memory": "Enter the amount of memory in MB",
+          "disk": "Disk (GB)",
+          "invalid-disk": "Invalid disk value",
+          "placeholder-disk": "Enter the amount of disk space in GB",
+          "in-link": "In Link (Mbps)",
+          "invalid-in-link": "Invalid in link value",
+          "placeholder-in-link": "Enter the in link speed in Mbps",
+          "out-link": "Out Link (Mbps)",
+          "invalid-out-link": "Invalid out link value",
+          "placeholder-out-link": "Enter the out link speed in Mbps"
+        },
+        "max-resources": {
+          "title": "Max Resources",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Invalid vCPUs value",
+          "placeholder-vcpus": "Enter the maximum number of vCPUs",
+          "memory": "Memory (MB)",
+          "invalid-memory": "Invalid memory value",
+          "placeholder-memory": "Enter the maximum amount of memory in MB",
+          "disk": "Disk (GB)",
+          "invalid-disk": "Invalid disk value",
+          "placeholder-disk": "Enter the maximum amount of disk space in GB"
+        },
+        "network": {
+          "title": "Network",
+          "vm-network": "VM Network",
+          "invalid-vm-network": "Invalid VM network",
+          "placeholder-vm-network": "Enter the VM network",
+          "vm-network-mask": "VM Network Mask",
+          "invalid-vm-network-mask": "Invalid VM network mask",
+          "placeholder-vm-network-mask": "Enter the VM network mask",
+          "vm-network-gateway": "VM Network Gateway",
+          "invalid-vm-network-gateway": "Invalid VM network gateway",
+          "placeholder-vm-network-gateway": "Enter the VM network gateway"
+        },
+        "button-update": "Update Server",
+        "delete": {
+          "confirmation": "Are you sure you want to delete this server? This action cannot be undone.",
+          "button": "Delete Server"
+        }
+      }
+    },
+    "vms-page": {
+      "settings": {
+        "title": "Virtual Machine Settings",
+        "toast": {
+          "success": "Virtual machine updated successfully",
+          "error": "Failed to update the virtual machine. Please try again.",
+          "success-delete": "Virtual machine deleted successfully",
+          "error-delete": "Failed to delete the virtual machine. Please try again."
+        },
+        "server": {
+          "title": "Server Information",
+          "vcpu-available": "vCPUs Available",
+          "memory-available": "Memory Available (MB)",
+          "disk-available": "Disk Available (GB)",
+          "network-in-link": "In Link (Mbps)",
+          "network-out-link": "Out Link (Mbps)"
+        },
+        "general": {
+          "title": "General Information",
+          "name": "Name",
+          "invalid-name": "Invalid name",
+          "placeholder-name": "Enter the virtual machine name",
+          "public-id": "Public ID",
+          "invalid-public-id": "Invalid public ID",
+          "placeholder-public-id": "Enter the public ID of the virtual machine"
+        },
+        "resources": {
+          "title": "Resources",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Invalid vCPUs value",
+          "placeholder-vcpus": "Enter the number of vCPUs",
+          "memory": "Memory (MB)",
+          "invalid-memory": "Invalid memory value",
+          "placeholder-memory": "Enter the amount of memory in MB",
+          "disk": "Disk (GB)",
+          "invalid-disk": "Invalid disk value",
+          "placeholder-disk": "Enter the maximum amount of disk space in GB"
+        },
+        "network": {
+          "title": "Network",
+          "net-in-avg": "In Link (Mbps)",
+          "invalid-net-in-avg": "Invalid in link value",
+          "placeholder-net-in-avg": "Enter the in link speed in Mbps",
+          "net-out-avg": "Out Link (Mbps)",
+          "invalid-net-out-avg": "Invalid out link value",
+          "placeholder-net-out-avg": "Enter the out link speed in Mbps",
+          "net-in-peak": "In Link Peak (Mbps)",
+          "invalid-net-in-peak": "Invalid in link peak value",
+          "placeholder-net-in-peak": "Enter the in link peak speed in Mbps",
+          "net-out-peak": "Out Link Peak (Mbps)",
+          "invalid-net-out-peak": "Invalid out link peak value",
+          "placeholder-net-out-peak": "Enter the out link peak speed in Mbps",
+          "net-in-burst": "In Link Burst (Mbps)",
+          "invalid-net-in-burst": "Invalid in link burst value",
+          "placeholder-net-in-burst": "Enter the in link burst speed in Mbps",
+          "net-out-burst": "Out Link Burst (Mbps)",
+          "invalid-net-out-burst": "Invalid out link burst value",
+          "placeholder-net-out-burst": "Enter the out link burst speed in Mbps"
+        },
+        "button-update": "Update Virtual Machine",
+        "delete": {
+          "confirmation": "Are you sure you want to delete this virtual machine? This action cannot be undone.",
+          "button": "Delete Virtual Machine"
+        }
+      }
     }
   }
 }

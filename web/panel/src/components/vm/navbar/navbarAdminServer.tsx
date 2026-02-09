@@ -13,14 +13,15 @@ import VMUserPermissions, {
 
 interface props {
   publicId: number;
-  //   translations: {
-  //     navbar: {
-  //       dashboard: string;
-  //       console: string;
-  //       reset: string;
-  //       subusers: string;
-  //     };
-  //   };
+  translations: {
+    dashboard: string;
+    virtualmachines: string;
+    virtualmachinessubnav: {
+      listvms: string;
+      createvm: string;
+    };
+    settings: string;
+  };
 }
 
 interface NavBarLink {
@@ -85,6 +86,7 @@ export interface ServerData {
 export default function VMNavbarAdminServer(props: props) {
   const path = usePathname();
   const session2 = useSession();
+  const { translations: t } = props;
 
   const { data, isLoading } = useQuery({
     queryKey: [qk.api.v1.admin.servers.getById(props.publicId)],
@@ -115,16 +117,18 @@ export default function VMNavbarAdminServer(props: props) {
 
                 className={`${path === link.href(props.publicId) || (link.subNavBar && path.startsWith(link.href(props.publicId))) ? "underline" : ""} mr-4`}
               >
-                {/* {
-                  props.translations.navbar[
-                    link.name.toLowerCase().replace("-", "") as
+                {
+                  props.translations[
+                    link.name
+                      .toLowerCase()
+                      .replace("-", "")
+                      .replace(" ", "") as
                       | "dashboard"
-                      | "console"
-                      | "reset"
-                      | "subusers"
+                      | "virtualmachines"
+                      | "settings"
                   ]
-                } */}
-                {link.name}
+                }
+                {/* {link.name} */}
               </a>
             );
           })}
@@ -144,7 +148,14 @@ export default function VMNavbarAdminServer(props: props) {
                     path === sublink.href(props.publicId) && "underline"
                   } mr-4`}
                 >
-                  {sublink.name}
+                  {
+                    props.translations.virtualmachinessubnav[
+                      sublink.name
+                        .toLowerCase()
+                        .replace("-", "")
+                        .replace(" ", "") as "listvms" | "createvm"
+                    ]
+                  }
                 </a>
               ))}
         </div>

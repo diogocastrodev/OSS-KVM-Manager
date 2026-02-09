@@ -14,6 +14,33 @@ import z from "zod";
 
 interface props {
   vmID: string;
+  translations: {
+    toast: {
+      pending: string;
+      success: string;
+      error: string;
+      already: string;
+    };
+    chooseImage: string;
+    inputOs: string;
+    inputOsVersion: string;
+    yourCredentials: string;
+    yourCredentialsSubtext: string;
+    hostname: string;
+    invalidHostname: string;
+    placeholderHostname: string;
+    username: string;
+    invalidUsername: string;
+    placeholderUsername: string;
+    password: string;
+    publicKey: string;
+    invalidPassword: string;
+    placeholderPassword: string;
+    confirmPassword: string;
+    invalidConfirmPassword: string;
+    placeholderConfirmPassword: string;
+    resetButton: string;
+  };
 }
 
 export interface GetAllOSResponse {
@@ -26,7 +53,7 @@ export interface GetAllOSResponse {
   }[];
 }
 
-export default function VMFormat({ vmID }: props) {
+export default function VMFormat({ vmID, translations: t }: props) {
   const {
     data: vmData,
     isLoading: vmIsLoading,
@@ -72,9 +99,9 @@ export default function VMFormat({ vmID }: props) {
           }),
         }),
         {
-          pending: "Requesting VM format...",
-          success: "VM formatting started successfully!",
-          error: "Failed to start VM formatting. Please try again.",
+          pending: t.toast.pending,
+          success: t.toast.success,
+          error: t.toast.error,
         },
       );
     },
@@ -86,12 +113,10 @@ export default function VMFormat({ vmID }: props) {
     .object({
       os: z.string(),
       version: z.string(),
-      hostname: z.string().min(3, "Hostname must be at least 3 characters"),
-      username: z.string().min(3, "Username must be at least 3 characters"),
-      password: z.string().min(8, "Password must be at least 8 characters"),
-      confirmPassword: z
-        .string()
-        .min(8, "Confirm Password must be at least 8 characters"),
+      hostname: z.string().min(3, t.invalidHostname),
+      username: z.string().min(3, t.invalidUsername),
+      password: z.string().min(8, t.invalidPassword),
+      confirmPassword: z.string().min(8, t.invalidConfirmPassword),
       publicKey: z.string(),
     })
     .superRefine((data, ctx) => {
@@ -100,21 +125,21 @@ export default function VMFormat({ vmID }: props) {
           ctx.addIssue({
             code: "custom",
             path: ["password"],
-            message: "Password must be at least 8 characters",
+            message: t.invalidPassword,
           });
         }
         if (data.confirmPassword.length < 8) {
           ctx.addIssue({
             code: "custom",
             path: ["confirmPassword"],
-            message: "Confirm Password must be at least 8 characters",
+            message: t.invalidConfirmPassword,
           });
         }
         if (data.password !== data.confirmPassword) {
           ctx.addIssue({
             code: "custom",
             path: ["confirmPassword"],
-            message: "Passwords do not match",
+            message: t.invalidConfirmPassword,
           });
         }
       } else {
@@ -122,7 +147,7 @@ export default function VMFormat({ vmID }: props) {
           ctx.addIssue({
             code: "custom",
             path: ["publicKey"],
-            message: "Public key is required",
+            message: t.publicKey,
           });
         }
       }
@@ -146,10 +171,10 @@ export default function VMFormat({ vmID }: props) {
         if (value.password !== value.confirmPassword) {
           form.setFieldMeta("confirmPassword", (meta) => ({
             ...meta,
-            error: "Passwords do not match",
+            error: t.invalidConfirmPassword,
             errorMap: {
               ...meta.errorMap,
-              custom: "Passwords do not match",
+              custom: t.invalidConfirmPassword,
             },
           }));
           return;
@@ -163,7 +188,7 @@ export default function VMFormat({ vmID }: props) {
 
       if (vmIsLoading) return;
       if (vmData?.status === "FORMATTING") {
-        alert("Your VM is currently being formatted. Please wait.");
+        toast.error(t.toast.already);
         return;
       }
       mutation.mutate(value);
@@ -185,7 +210,7 @@ export default function VMFormat({ vmID }: props) {
             </>
           )}
           <div className="flex flex-col gap-y-2">
-            <div className="text-xl">Choose your Image:</div>
+            <div className="text-xl">{t.chooseImage}</div>
             <div className="flex flex-col pl-3 gap-y-2">
               <div className="flex flex-row">
                 <div className="flex flex-row items-center">
@@ -193,7 +218,7 @@ export default function VMFormat({ vmID }: props) {
                     {(field) => (
                       <>
                         <field.SelectField
-                          labelText="Operative System:"
+                          labelText={t.inputOs}
                           inputName="os"
                           inputId="os"
                           options={
@@ -219,7 +244,7 @@ export default function VMFormat({ vmID }: props) {
                 <form.AppField name="version">
                   {(field) => (
                     <field.SelectField
-                      labelText="Operative System Version:"
+                      labelText={t.inputOsVersion}
                       inputName="version"
                       inputId="version"
                       options={
@@ -244,17 +269,16 @@ export default function VMFormat({ vmID }: props) {
           </div>
           <div className="flex flex-col gap-y-3">
             <div className="text-xl flex flex-col">
-              Your new credentials:
-              <div className="text-xs">
-                This action will format your virtual machine and erase all data.
-              </div>
+              <span>{t.yourCredentials}</span>
+              <div className="text-xs">{t.yourCredentialsSubtext}</div>
             </div>
 
             <div className="ml-2 flex flex-col gap-y-2">
               <form.AppField name="hostname">
                 {(field) => (
                   <field.InputField
-                    labelText={"Hostname"}
+                    labelText={t.hostname}
+                    placeholder={t.placeholderHostname}
                     inputType="text"
                     inputName="hostname"
                     inputId="hostname"
@@ -264,7 +288,8 @@ export default function VMFormat({ vmID }: props) {
               <form.AppField name="username">
                 {(field) => (
                   <field.InputField
-                    labelText={"Username"}
+                    labelText={t.username}
+                    placeholder={t.placeholderUsername}
                     inputType="text"
                     inputName="username"
                     inputId="username"
@@ -276,7 +301,7 @@ export default function VMFormat({ vmID }: props) {
                   className={`${selectedOption === "password" ? "bg-(--color-background-selected) cursor-not-allowed" : "bg-(--color-background-primary) cursor-pointer"} rounded-md shadow-lg p-2`}
                   onClick={() => setSelectedOption("password")}
                 >
-                  Password
+                  {t.password}
                 </div>
                 {/* {                <div
                   className={`${selectedOption === "publicKey" ? "bg-(--color-background-selected) cursor-not-allowed" : "bg-(--color-background-primary) cursor-pointer"} rounded-md shadow-lg p-2`}
@@ -290,7 +315,8 @@ export default function VMFormat({ vmID }: props) {
                   <form.AppField name="password">
                     {(field) => (
                       <field.InputField
-                        labelText={"Password"}
+                        labelText={t.password}
+                        placeholder={t.placeholderPassword}
                         inputType="password"
                         inputName="password"
                         inputId="password"
@@ -300,7 +326,8 @@ export default function VMFormat({ vmID }: props) {
                   <form.AppField name="confirmPassword">
                     {(field) => (
                       <field.InputField
-                        labelText={"Confirm Password"}
+                        labelText={t.confirmPassword}
+                        placeholder={t.placeholderConfirmPassword}
                         inputType="password"
                         inputName="confirmPassword"
                         inputId="confirmPassword"
@@ -312,7 +339,8 @@ export default function VMFormat({ vmID }: props) {
                 <form.AppField name="publicKey">
                   {(field) => (
                     <field.InputField
-                      labelText={"Public Key"}
+                      labelText={t.publicKey}
+                      placeholder={t.publicKey}
                       inputType="text"
                       inputName="publicKey"
                       inputId="publicKey"
@@ -321,7 +349,7 @@ export default function VMFormat({ vmID }: props) {
                 </form.AppField>
               )}
               <Button
-                text="Format"
+                text={t.resetButton}
                 disabled={
                   vmData?.status !== "OPERATIONAL" ||
                   vmData?.state === "unknown" ||

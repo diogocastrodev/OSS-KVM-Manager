@@ -44,7 +44,9 @@ interface props {
     graphs: {
       title: string;
       cpuTitle: string;
+      cpuLabel: string;
       memoryTitle: string;
+      memoryLabel: string;
     };
   };
 }
@@ -255,12 +257,16 @@ export default function VMDashboard({ vmID, translations }: props) {
           <div className="flex w-full flex-col md:flex-row gap-y-4 md:gap-x-4">
             <div className="border rounded-2xl w-full">
               <CPUChart
+                labelText={translations.graphs.cpuLabel}
+                title={translations.graphs.cpuTitle}
                 data={[10, 25, 40, 30, 50]}
                 labels={["10:00", "10:05", "10:10", "10:15", "10:20"]}
               />
             </div>
             <div className="border rounded-2xl w-full h-full">
               <MemoryChart
+                title={translations.graphs.memoryTitle}
+                labelText={translations.graphs.memoryLabel}
                 data={[350, 1024, 2040, 1536, 2010]}
                 labels={["10:00", "10:05", "10:10", "10:15", "10:20"]}
                 maxValue={data?.ram ? data.ram : 100}

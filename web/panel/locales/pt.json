@@ -69,6 +69,69 @@
         "operational": "Operacional",
         "not-operational": "Não Operacional"
       }
+    },
+    "main-admin": {
+      "server-status": "Estado dos Servidores",
+      "virtual-machines": "Máquinas Virtuais: ",
+      "state": {
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "maintenance": "Manutenção"
+      },
+      "status": {
+        "operational": "Operacional",
+        "not-operational": "Não Operacional",
+        "unknown": "Desconecido"
+      }
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "data": {
+      "title": "Dados do Perfil",
+      "name": "Nome",
+      "invalid-name": "Nome inválido",
+      "placeholder-name": "Introduza o seu nome",
+      "email": "Email",
+      "invalid-email": "Endereço de email inválido",
+      "placeholder-email": "Introduza o seu email",
+      "update-button": "Atualizar Perfil",
+      "toast": {
+        "success": "Perfil atualizado com sucesso",
+        "error": "Falha ao atualizar o perfil"
+      }
+    },
+    "password": {
+      "title": "Trocar Palavra-Passe",
+      "current-password": "Palavra-Passe Atual",
+      "invalid-current-password": "Palavra-Passe Atual Inválida",
+      "placeholder-current-password": "Introduza a sua palavra-passe atual",
+      "password": "Palavra-Passe",
+      "invalid-password": "Palavra-Passe Inválida",
+      "placeholder-password": "Introduza a sua palavra-passe",
+      "confirm-password": "Confirmar Palavra-Passe",
+      "invalid-confirm-password": "As palavras-passe não coincidem",
+      "placeholder-confirm-password": "Confirme a sua palavra-passe",
+      "update-button": "Atualizar Palavra-Passe",
+      "toast": {
+        "success": "Palavra-Passe atualizada com sucesso",
+        "error": "Falha ao atualizar a palavra-passe"
+      }
+    },
+    "devices": {
+      "title": "Sessões Ativas",
+      "platform": "Plataforma",
+      "created-at": "Criado Em",
+      "last-used": "Último Uso",
+      "actions": "Ações",
+      "remove-button": "Remover",
+      "remove-all-button": "Remover Todos os Dispositivos",
+      "toast": {
+        "remove-success": "Dispositivo removido com sucesso",
+        "remove-error": "Falha ao remover o dispositivo",
+        "remove-all-success": "Todos os dispositivos removidos com sucesso",
+        "remove-all-error": "Falha ao remover todos os dispositivos"
+      }
     }
   },
   "panel-vm": {
@@ -146,6 +209,462 @@
       "invalid-confirm-password": "As palavras-passe não coincidem",
       "placeholder-confirm-password": "Confirme a sua palavra-passe",
       "reset-button": "Formatar VM"
+    },
+    "subuser-page": {
+      "add": {
+        "toast": {
+          "success": "Sub Utilizador adicionado com sucesso",
+          "error": "Falha ao adicionar sub utilizador. Por favor, tente novamente."
+        },
+        "title": "Adicionar Sub Utilizador",
+        "email": "Email",
+        "invalid-email": "Endereço de email inválido",
+        "placeholder-email": "Introduza o email do sub utilizador",
+        "add-button": "Adicionar Sub Utilizador"
+      },
+      "role": "Função",
+      "role-error": "A função deve ser operador ou visualizador",
+      "roles": {
+        "viewer": "Visualizador",
+        "operator": "Operador",
+        "owner": "Proprietário"
+      },
+      "list": {
+        "title": "Sub Utilizadores",
+        "name": "Nome",
+        "email": "Email",
+        "role": "Função",
+        "actions": "Ações"
+      },
+      "update": {
+        "toast": {
+          "success": "Sub Utilizador atualizado com sucesso",
+          "error": "Falha ao atualizar sub utilizador. Por favor, tente novamente."
+        },
+        "button": "Atualizar",
+        "modal": {
+          "title": "Atualizar Sub Utilizador",
+          "button": "Atualizar Utilizador"
+        }
+      },
+      "remove": {
+        "button": "Remover",
+        "toast": {
+          "success": "Sub Utilizador removido com sucesso",
+          "error": "Falha ao remover sub utilizador. Por favor, tente novamente."
+        }
+      }
+    }
+  },
+  "admin": {
+    "users": {
+      "title": "Utilizadores",
+      "create": {
+        "title": "Criar Utilizador",
+        "toast": {
+          "success": "Utilizador criado com sucesso",
+          "error": "Falha ao criar utilizador. Por favor, tente novamente."
+        },
+        "email": "Email",
+        "invalid-email": "Endereço de email inválido",
+        "placeholder-email": "Introduza o email do utilizador",
+        "create-button": "Criar Utilizador"
+      },
+      "list": {
+        "title": "Lista de Utilizadores",
+        "search-placeholder": "Pesquisar por email ou nome",
+        "page": "Página",
+        "total": "Total",
+        "name": "Nome",
+        "email": "Email",
+        "role": "Função",
+        "stat": "Estado",
+        "actions": {
+          "title": "Ações",
+          "update": "Atualizar"
+        },
+        "roles": {
+          "admin": "Administrador",
+          "user": "Utilizador"
+        },
+        "status": {
+          "active": "Ativo",
+          "deactivated": "Desativado",
+          "pending": "Pendente"
+        }
+      },
+      "update": {
+        "title": "Atualizar Utilizador",
+        "name": "Nome",
+        "invalid-name": "Nome inválido",
+        "placeholder-name": "Introduza o nome do utilizador",
+        "email": "Email",
+        "invalid-email": "Endereço de email inválido",
+        "placeholder-email": "Introduza o email do utilizador",
+        "role": "Função",
+        "invalid-role": "A função deve ser administrador ou utilizador",
+        "status": "Estado",
+        "invalid-status": "O estado deve ser ativo, desativado ou pendente",
+        "update-button": "Atualizar Utilizador",
+        "fake-email-update": "(TMP) Confirmar email",
+        "deactivation-reason": "Motivo da Desativação",
+        "deactivation-reasons": {
+          "user-request": "Pedido do Utilizador",
+          "terms-of-service-violation": "Violação dos Termos de Serviço",
+          "other": "Outro"
+        },
+        "toast": {
+          "success": "Utilizador atualizado com sucesso",
+          "error": "Falha ao atualizar utilizador. Por favor, tente novamente.",
+          "success-email-update": "Email atualizado com sucesso (TMP)",
+          "error-email-update": "Falha ao atualizar email (TMP). Por favor, tente novamente."
+        }
+      }
+    },
+    "create-server": {
+      "title": "Criar Servidor",
+      "toast": {
+        "try-success": "Servidor encontrado com sucesso",
+        "try-error": "Falha ao encontrar o servidor. Por favor, verifique o endpoint e tente novamente.",
+        "create-success": "Servidor criado com sucesso",
+        "create-error": "Falha ao criar o servidor. Por favor, tente novamente."
+      },
+      "endpoint": {
+        "agent-endpoint": "Endpoint do Agente",
+        "invalid-agent-endpoint": "Endpoint do agente inválido",
+        "placeholder-agent-endpoint": "Introduza o endpoint do agente do servidor",
+        "try-finding": "Tentar Encontrar Servidor"
+      },
+      "data-found": {
+        "title": "Dados do Servidor Encontrados",
+        "cpus": "CPUs",
+        "vcpus": "vCPUs",
+        "memory": "Memória",
+        "disk": "Disco",
+        "failed": "Falha ao obter dados do servidor. Por favor, verifique o endpoint e tente novamente."
+      },
+      "general": {
+        "title": "Informação Geral",
+        "name": "Nome",
+        "invalid-name": "Nome inválido",
+        "placeholder-name": "Introduza o nome do servidor",
+        "public-id": "ID Público",
+        "invalid-public-id": "ID público inválido",
+        "placeholder-public-id": "Introduza o ID público do servidor"
+      },
+      "resources": {
+        "title": "Recursos",
+        "cpus": "CPUs",
+        "invalid-cpus": "Valor de CPUs inválido",
+        "placeholder-cpus": "Introduza o número de CPUs",
+        "vcpus": "vCPUs",
+        "invalid-vcpus": "Valor de vCPUs inválido",
+        "placeholder-vcpus": "Introduza o número de vCPUs",
+        "memory": "Memória (MB)",
+        "invalid-memory": "Valor de memória inválido",
+        "placeholder-memory": "Introduza a quantidade de memória em MB",
+        "disk": "Disco (GB)",
+        "invalid-disk": "Valor de disco inválido",
+        "placeholder-disk": "Introduza a quantidade de espaço em disco em GB",
+        "in-link": "Link de Entrada (Mbps)",
+        "invalid-in-link": "Valor de link de entrada inválido",
+        "placeholder-in-link": "Introduza a velocidade do link de entrada em Mbps",
+        "out-link": "Link de Saída (Mbps)",
+        "invalid-out-link": "Valor de link de saída inválido",
+        "placeholder-out-link": "Introduza a velocidade do link de saída em Mbps"
+      },
+      "max-resources": {
+        "title": "Recursos Máximos",
+        "vcpus": "vCPUs",
+        "invalid-vcpus": "Valor de vCPUs inválido",
+        "placeholder-vcpus": "Introduza o número máximo de vCPUs",
+        "memory": "Memória (MB)",
+        "invalid-memory": "Valor de memória inválido",
+        "placeholder-memory": "Introduza a quantidade máxima de memória em MB",
+        "disk": "Disco (GB)",
+        "invalid-disk": "Valor de disco inválido",
+        "placeholder-disk": "Introduza a quantidade máxima de espaço em disco em GB"
+      },
+      "network": {
+        "title": "Rede",
+        "vm-network": "Rede das VM",
+        "invalid-vm-network": "Rede de VM inválida",
+        "placeholder-vm-network": "Introduza a rede das VM",
+        "vm-network-mask": "Máscara da Rede das VM",
+        "invalid-vm-network-mask": "Máscara da rede das VM inválida",
+        "placeholder-vm-network-mask": "Introduza a máscara da rede das VM",
+        "vm-network-gateway": "Gateway da Rede das VM",
+        "invalid-vm-network-gateway": "Gateway da rede das VM inválido",
+        "placeholder-vm-network-gateway": "Introduza o gateway da rede das VM"
+      },
+      "button": "Criar Servidor"
+    },
+    "server-page": {
+      "nav": {
+        "dashboard": "Dashboard",
+        "virtual-machines": "Máquinas Virtuais",
+        "virtual-machines-subnav": {
+          "list-vms": "Lista de Máquinas Virtuais",
+          "create-vm": "Criar Máquina Virtual"
+        },
+        "settings": "Definições"
+      },
+      "dashboard": {
+        "title": "Dashboard do Servidor",
+        "status-msg": "O servidor está definido como",
+        "agent-msg": "O agente no servidor pode ser encontrado em",
+        "health-check": {
+          "msg": "Verifique se o servidor está ativo",
+          "button": "Verificar Saúde do Servidor",
+          "success": "Servidor está ativo",
+          "error": "Servidor não respondeu"
+        },
+        "resources": {
+          "title": "Recursos disponíveis do servidor",
+          "vcpus-title": "vCPUs",
+          "vcpus-label": "vCPUs Disponíveis",
+          "memory-title": "Memória",
+          "memory-label": "Memória Disponível",
+          "disk-title": "Disco",
+          "disk-label": "Disco Disponível"
+        },
+        "status": {
+          "active": "Ativo",
+          "maintenance": "Manutenção",
+          "disabled": "Desativado"
+        }
+      },
+      "list-vms": {
+        "title": "Lista de máquinas virtuais",
+        "name": "Nome",
+        "stat": "Estado",
+        "status": {
+          "operational": "Operacional",
+          "formatting": "Formatando",
+          "deleting": "Eliminando",
+          "failed": "Falhou"
+        },
+        "ips": "IPs",
+        "resources": {
+          "title": "Recursos",
+          "vCPU": "vCPU",
+          "memory": "RAM",
+          "disk": "Disco"
+        }
+      },
+      "create-vm": {
+        "title": "Criar máquina virtual",
+        "toast": {
+          "success": "Máquina virtual criada com sucesso",
+          "error": "Falha ao criar a máquina virtual. Por favor, tente novamente."
+        },
+        "server": {
+          "title": "Informação do Servidor",
+          "vcpu-available": "vCPUs Disponíveis",
+          "memory-available": "Memória Disponível (MB)",
+          "disk-available": "Disco Disponível (GB)",
+          "network-in-link": "Link de Entrada (Mbps)",
+          "network-out-link": "Link de Saída (Mbps)",
+          "machine-network-vms": "Rede das VMs",
+          "machine-network-gateway": "Gateway da Rede das VMs"
+        },
+        "general": {
+          "title": "Informação Geral",
+          "name": "Nome",
+          "invalid-name": "Nome inválido",
+          "placeholder-name": "Introduza o nome da máquina virtual",
+          "public-id": "ID Público",
+          "invalid-public-id": "ID público inválido",
+          "placeholder-public-id": "Introduza o ID público da máquina virtual"
+        },
+        "resources": {
+          "title": "Recursos",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Valor de vCPUs inválido",
+          "placeholder-vcpus": "Introduza o número de vCPUs",
+          "memory": "Memória (MB)",
+          "invalid-memory": "Valor de memória inválido",
+          "placeholder-memory": "Introduza a quantidade de memória em MB",
+          "disk": "Disco (GB)",
+          "invalid-disk": "Valor de disco inválido",
+          "placeholder-disk": "Introduza a quantidade de espaço em disco em GB"
+        },
+        "network": {
+          "title": "Rede",
+          "local-ip": "IP Local",
+          "invalid-local-ip": "IP local inválido",
+          "placeholder-local-ip": "Introduza o IP local da máquina virtual",
+          "net-in-avg": "Link de Entrada (Mbps)",
+          "invalid-net-in-avg": "Valor de link de entrada inválido",
+          "placeholder-net-in-avg": "Introduza a velocidade do link de entrada em Mbps",
+          "net-out-avg": "Link de Saída (Mbps)",
+          "invalid-net-out-avg": "Valor de link de saída inválido",
+          "placeholder-net-out-avg": "Introduza a velocidade do link de saída em Mbps",
+          "net-in-peak": "Link de Entrada Pico (Mbps)",
+          "invalid-net-in-peak": "Valor de link de entrada pico inválido",
+          "placeholder-net-in-peak": "Introduza a velocidade do link de entrada pico em Mbps",
+          "net-out-peak": "Link de Saída Pico (Mbps)",
+          "invalid-net-out-peak": "Valor de link de saída pico inválido",
+          "placeholder-net-out-peak": "Introduza a velocidade do link de saída pico em Mbps",
+          "net-in-burst": "Link de Entrada Burst (Mbps)",
+          "invalid-net-in-burst": "Valor de link de entrada burst inválido",
+          "placeholder-net-in-burst": "Introduza a velocidade do link de entrada burst em Mbps",
+          "net-out-burst": "Link de Saída Burst (Mbps)",
+          "invalid-net-out-burst": "Valor de link de saída burst inválido",
+          "placeholder-net-out-burst": "Introduza a velocidade do link de saída burst em Mbps"
+        },
+        "button": "Criar Máquina Virtual"
+      },
+      "settings": {
+        "title": "Atualizar Servidor",
+        "toast": {
+          "try-success": "Servidor encontrado com sucesso",
+          "try-error": "Falha ao encontrar o servidor. Por favor, verifique o endpoint e tente novamente.",
+          "update-success": "Servidor atualizado com sucesso",
+          "update-error": "Falha ao atualizar o servidor. Por favor, tente novamente.",
+          "delete-success": "Servidor eliminado com sucesso",
+          "delete-error": "Falha ao eliminar o servidor. Por favor, tente novamente."
+        },
+        "endpoint": {
+          "agent-endpoint": "Endpoint do Agente",
+          "invalid-agent-endpoint": "Endpoint do agente inválido",
+          "placeholder-agent-endpoint": "Introduza o endpoint do agente do servidor",
+          "try-finding": "Tentar Encontrar Servidor"
+        },
+        "data-found": {
+          "title": "Dados do Servidor Encontrados",
+          "cpus": "CPUs",
+          "vcpus": "vCPUs",
+          "memory": "Memória",
+          "disk": "Disco",
+          "failed": "Falha ao obter dados do servidor. Por favor, verifique o endpoint e tente novamente."
+        },
+        "general": {
+          "title": "Informação Geral",
+          "name": "Nome",
+          "invalid-name": "Nome inválido",
+          "placeholder-name": "Introduza o nome do servidor",
+          "public-id": "ID Público",
+          "invalid-public-id": "ID público inválido",
+          "placeholder-public-id": "Introduza o ID público do servidor"
+        },
+        "resources": {
+          "title": "Recursos",
+          "cpus": "CPUs",
+          "invalid-cpus": "Valor de CPUs inválido",
+          "placeholder-cpus": "Introduza o número de CPUs",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Valor de vCPUs inválido",
+          "placeholder-vcpus": "Introduza o número de vCPUs",
+          "memory": "Memória (MB)",
+          "invalid-memory": "Valor de memória inválido",
+          "placeholder-memory": "Introduza a quantidade de memória em MB",
+          "disk": "Disco (GB)",
+          "invalid-disk": "Valor de disco inválido",
+          "placeholder-disk": "Introduza a quantidade de espaço em disco em GB",
+          "in-link": "Link de Entrada (Mbps)",
+          "invalid-in-link": "Valor de link de entrada inválido",
+          "placeholder-in-link": "Introduza a velocidade do link de entrada em Mbps",
+          "out-link": "Link de Saída (Mbps)",
+          "invalid-out-link": "Valor de link de saída inválido",
+          "placeholder-out-link": "Introduza a velocidade do link de saída em Mbps"
+        },
+        "max-resources": {
+          "title": "Recursos Máximos",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Valor de vCPUs inválido",
+          "placeholder-vcpus": "Introduza o número máximo de vCPUs",
+          "memory": "Memória (MB)",
+          "invalid-memory": "Valor de memória inválido",
+          "placeholder-memory": "Introduza a quantidade máxima de memória em MB",
+          "disk": "Disco (GB)",
+          "invalid-disk": "Valor de disco inválido",
+          "placeholder-disk": "Introduza a quantidade máxima de espaço em disco em GB"
+        },
+        "network": {
+          "title": "Rede",
+          "vm-network": "Rede das VM",
+          "invalid-vm-network": "Rede de VM inválida",
+          "placeholder-vm-network": "Introduza a rede das VM",
+          "vm-network-mask": "Máscara da Rede das VM",
+          "invalid-vm-network-mask": "Máscara da rede das VM inválida",
+          "placeholder-vm-network-mask": "Introduza a máscara da rede das VM",
+          "vm-network-gateway": "Gateway da Rede das VM",
+          "invalid-vm-network-gateway": "Gateway da rede das VM inválido",
+          "placeholder-vm-network-gateway": "Introduza o gateway da rede das VM"
+        },
+        "button-update": "Atualizar Servidor",
+        "delete": {
+          "confirmation": "Tem a certeza que deseja eliminar este servidor? Esta ação é irreversível.",
+          "button": "Eliminar Servidor"
+        }
+      }
+    },
+    "vms-page": {
+      "settings": {
+        "title": "Atualizar Máquina Virtual",
+        "toast": {
+          "success": "Máquina virtual atualizada com sucesso",
+          "error": "Falha ao atualizar a máquina virtual. Por favor, tente novamente.",
+          "success-delete": "Máquina virtual eliminada com sucesso",
+          "error-delete": "Falha ao eliminar a máquina virtual. Por favor, tente novamente."
+        },
+        "server": {
+          "title": "Informação do Servidor",
+          "vcpu-available": "vCPUs Disponíveis",
+          "memory-available": "Memória Disponível (MB)",
+          "disk-available": "Disco Disponível (GB)",
+          "network-in-link": "Link de Entrada (Mbps)",
+          "network-out-link": "Link de Saída (Mbps)"
+        },
+        "general": {
+          "title": "Informação Geral",
+          "name": "Nome",
+          "invalid-name": "Nome inválido",
+          "placeholder-name": "Introduza o nome da máquina virtual",
+          "public-id": "ID Público",
+          "invalid-public-id": "ID público inválido",
+          "placeholder-public-id": "Introduza o ID público da máquina virtual"
+        },
+        "resources": {
+          "title": "Recursos",
+          "vcpus": "vCPUs",
+          "invalid-vcpus": "Valor de vCPUs inválido",
+          "placeholder-vcpus": "Introduza o número de vCPUs",
+          "memory": "Memória (MB)",
+          "invalid-memory": "Valor de memória inválido",
+          "placeholder-memory": "Introduza a quantidade de memória em MB",
+          "disk": "Disco (GB)",
+          "invalid-disk": "Valor de disco inválido",
+          "placeholder-disk": "Introduza a quantidade máxima de espaço em disco em GB"
+        },
+        "network": {
+          "title": "Rede",
+          "net-in-avg": "Link de Entrada (Mbps)",
+          "invalid-net-in-avg": "Valor de link de entrada inválido",
+          "placeholder-net-in-avg": "Introduza a velocidade do link de entrada em Mbps",
+          "net-out-avg": "Link de Saída (Mbps)",
+          "invalid-net-out-avg": "Valor de link de saída inválido",
+          "placeholder-net-out-avg": "Introduza a velocidade do link de saída em Mbps",
+          "net-in-peak": "Pico de Entrada (Mbps)",
+          "invalid-net-in-peak": "Valor de pico de entrada inválido",
+          "placeholder-net-in-peak": "Introduza a velocidade do pico de entrada em Mbps",
+          "net-out-peak": "Pico de Saída (Mbps)",
+          "invalid-net-out-peak": "Valor de pico de saída inválido",
+          "placeholder-net-out-peak": "Introduza a velocidade do pico de saída em Mbps",
+          "net-in-burst": "Rajada de Entrada (Mbps)",
+          "invalid-net-in-burst": "Valor de rajada de entrada inválido",
+          "placeholder-net-in-burst": "Introduza a velocidade da rajada de entrada em Mbps",
+          "net-out-burst": "Rajada de Saída (Mbps)",
+          "invalid-net-out-burst": "Valor de rajada de saída inválido",
+          "placeholder-net-out-burst": "Introduza a velocidade da rajada de saída em Mbps"
+        },
+        "button-update": "Atualizar Máquina Virtual",
+        "delete": {
+          "confirmation": "Tem a certeza de que deseja eliminar esta máquina virtual? Esta ação não pode ser desfeita.",
+          "button": "Eliminar Máquina Virtual"
+        }
+      }
     }
   }
 }

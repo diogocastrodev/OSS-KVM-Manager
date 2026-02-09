@@ -19,16 +19,100 @@ import { AdminServersResponse } from "../../../layout";
 
 interface props {
   serverId: number;
+  translations: {
+    title: string;
+    toast: {
+      trySuccess: string;
+      tryError: string;
+      updateSuccess: string;
+      updateError: string;
+      deleteSuccess: string;
+      deleteError: string;
+    };
+    endpoint: {
+      agentEndpoint: string;
+      invalidAgentEndpoint: string;
+      placeholderAgentEndpoint: string;
+      tryFinding: string;
+    };
+    dataFound: {
+      title: string;
+      cpus: string;
+      vcpus: string;
+      memory: string;
+      disk: string;
+      failed: string;
+    };
+    general: {
+      title: string;
+      name: string;
+      invalidName: string;
+      placeholderName: string;
+      publicId: string;
+      invalidPublicId: string;
+      placeholderPublicId: string;
+    };
+    resources: {
+      title: string;
+      cpus: string;
+      invalidCpus: string;
+      placeholderCpus: string;
+      vcpus: string;
+      invalidVcpus: string;
+      placeholderVcpus: string;
+      memory: string;
+      invalidMemory: string;
+      placeholderMemory: string;
+      disk: string;
+      invalidDisk: string;
+      placeholderDisk: string;
+      inLink: string;
+      invalidInLink: string;
+      placeholderInLink: string;
+      outLink: string;
+      invalidOutLink: string;
+      placeholderOutLink: string;
+    };
+    maxResources: {
+      title: string;
+      vcpus: string;
+      invalidVcpus: string;
+      placeholderVcpus: string;
+      memory: string;
+      invalidMemory: string;
+      placeholderMemory: string;
+      disk: string;
+      invalidDisk: string;
+      placeholderDisk: string;
+    };
+    network: {
+      title: string;
+      vmNetwork: string;
+      invalidVmNetwork: string;
+      placeholderVmNetwork: string;
+      vmNetworkMask: string;
+      invalidVmNetworkMask: string;
+      placeholderVmNetworkMask: string;
+      vmNetworkGateway: string;
+      invalidVmNetworkGateway: string;
+      placeholderVmNetworkGateway: string;
+    };
+    buttonUpdate: string;
+    delete: {
+      confirmation: string;
+      button: string;
+    };
+  };
 }
 
-export default function ServerSettings({ serverId }: props) {
+export default function ServerSettings({ serverId, translations: t }: props) {
   const router = useRouter();
   const { data, refetch: refetchServer } = useQuery({
     queryKey: qk.api.v1.admin.servers.getById(serverId),
     queryFn: async () =>
       await apiFetch(`/api/v1/admin/servers/${serverId}`).then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch server");
+          console.error("Failed to fetch server data");
         }
         return res.json() as Promise<ServerData>;
       }),
@@ -41,7 +125,7 @@ export default function ServerSettings({ serverId }: props) {
         "/api/v1/admin/servers?include_virtual_machines=true",
       ).then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch servers");
+          console.error("Failed to fetch servers data");
         }
         return res.json() as Promise<AdminServersResponse>;
       }),
@@ -86,10 +170,8 @@ export default function ServerSettings({ serverId }: props) {
       });
 
       if (!res.ok) {
-        toast.error(
-          "Failed to fetch server info. Please check the endpoint and try again.",
-        );
-        throw new Error("Failed to fetch server info");
+        toast.error(t.toast.tryError);
+        console.error("Failed to fetch server info");
       }
       return res.json() as Promise<TryInfoResponse>;
     },
@@ -111,9 +193,7 @@ export default function ServerSettings({ serverId }: props) {
           data.info.network.gateway,
         );
       }
-      toast.success(
-        "Server info fetched successfully. Please review the information and click Update Server to save.",
-      );
+      toast.success(t.toast.trySuccess);
     },
   });
 
@@ -142,14 +222,14 @@ export default function ServerSettings({ serverId }: props) {
       });
 
       if (!res.ok) {
-        toast.error("Failed to update server");
-        throw new Error("Failed to update server");
+        toast.error(t.toast.updateError);
+        console.error("Failed to update server");
       }
       return res.json();
     },
     onSuccess: () => {
       updateLayout();
-      toast.success("Server updated successfully");
+      toast.success(t.toast.updateSuccess);
       router.push(`/admin/server/${serverId}`);
     },
   });
@@ -157,61 +237,61 @@ export default function ServerSettings({ serverId }: props) {
   const updateServerSchema = z.object({
     publicId: z
       .string()
-      .regex(/^\d+$/, "publicId must be a number")
+      .regex(/^\d+$/, t.general.invalidPublicId)
       .transform(Number)
       .pipe(z.number().nonnegative()),
     name: z.string().min(1, {
-      message: "Name is required",
+      message: t.general.invalidName,
     }),
     server_endpoint: z
       .string()
       .regex(
         /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]):(?:6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{0,3}|0)$/,
-        "Invalid IP:PORT address format",
+        t.endpoint.invalidAgentEndpoint,
       ),
     cpus: z
       .string()
-      .regex(/^\d+$/, "cpus must be a number")
+      .regex(/^\d+$/, t.resources.invalidCpus)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
     vcpus: z
       .string()
-      .regex(/^\d+$/, "vcpus must be a number")
+      .regex(/^\d+$/, t.resources.invalidVcpus)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
     memory_mb: z
       .string()
-      .regex(/^\d+$/, "memory_mb must be a number")
+      .regex(/^\d+$/, t.resources.invalidMemory)
       .transform(Number)
       .pipe(z.number().nonnegative().min(256)),
     disk: z
       .string()
-      .regex(/^\d+$/, "disk must be a number")
+      .regex(/^\d+$/, t.resources.invalidDisk)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
     in_link_mbps: z
       .string()
-      .regex(/^\d+$/, "in_link_mbps must be a number")
+      .regex(/^\d+$/, t.resources.invalidInLink)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
     out_link_mbps: z
       .string()
-      .regex(/^\d+$/, "out_link_mbps must be a number")
+      .regex(/^\d+$/, t.resources.invalidOutLink)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
     vcpus_max: z
       .string()
-      .regex(/^\d+$/, "vcpus_max must be a number")
+      .regex(/^\d+$/, t.maxResources.invalidVcpus)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
     memory_mb_max: z
       .string()
-      .regex(/^\d+$/, "memory_mb_max must be a number")
+      .regex(/^\d+$/, t.maxResources.invalidMemory)
       .transform(Number)
       .pipe(z.number().nonnegative().min(256)),
     disk_max: z
       .string()
-      .regex(/^\d+$/, "disk_max must be a number")
+      .regex(/^\d+$/, t.maxResources.invalidDisk)
       .transform(Number)
       .pipe(z.number().nonnegative().min(1)),
     network: z.ipv4(),
@@ -219,13 +299,13 @@ export default function ServerSettings({ serverId }: props) {
       .string()
       .regex(
         /^(?:255\.(?:255\.(?:255\.(?:255|254|252|248|240|224|192|128|0)|(?:254|252|248|240|224|192|128|0)\.0)|(?:254|252|248|240|224|192|128|0)\.0\.0)|(?:254|252|248|240|224|192|128|0)\.0\.0\.0|0\.0\.0\.0)$/,
-        "Invalid network mask format for VMs network",
+        t.network.invalidVmNetworkMask,
       ),
     network_gateway: z
       .string()
       .regex(
         /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])$/,
-        "Invalid IP address format for VMs network",
+        t.network.invalidVmNetworkGateway,
       ),
   });
 
@@ -295,7 +375,7 @@ export default function ServerSettings({ serverId }: props) {
       const res = await apiFetch(`/api/v1/admin/servers/${serverId}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Failed to delete server");
+      if (!res.ok) console.error("Failed to delete server");
       return res.json();
     },
     onSuccess: () => {
@@ -307,7 +387,7 @@ export default function ServerSettings({ serverId }: props) {
   return (
     <>
       <div className="">
-        <div className="text-2xl pb-2">Update Server</div>
+        <div className="text-2xl pb-2">{t.title}</div>
         <updateServerForm.AppForm>
           <div className="flex flex-col gap-y-3">
             <updateServerForm.AppField name="server_endpoint">
@@ -316,8 +396,8 @@ export default function ServerSettings({ serverId }: props) {
                   inputId="server_endpoint"
                   inputName="server_endpoint"
                   inputType="text"
-                  labelText="Agent Endpoint:"
-                  placeholder="10.10.10.10:5000"
+                  labelText={t.endpoint.agentEndpoint}
+                  placeholder={t.endpoint.placeholderAgentEndpoint}
                 />
               )}
             </updateServerForm.AppField>
@@ -334,7 +414,7 @@ export default function ServerSettings({ serverId }: props) {
                   disabled: isPendingTryInfo,
                 }}
               >
-                Try to Find Server
+                {t.endpoint.tryFinding}
               </ButtonNoForm>
               {isPendingTryInfo && <Loader></Loader>}
             </div>
@@ -342,19 +422,27 @@ export default function ServerSettings({ serverId }: props) {
               <>
                 <Divider />
                 <div className="flex flex-col gap-y-2">
-                  <div>Server Found:</div>
-                  <div>CPUs: {dataTryInfo.info.cpus}</div>
-                  <div>vCPUs: {dataTryInfo.info.vcpus}</div>
+                  <div>{t.dataFound.title}</div>
+                  <div>
+                    {t.dataFound.cpus}: {dataTryInfo.info.cpus}
+                  </div>
+                  <div>
+                    {t.dataFound.vcpus}: {dataTryInfo.info.vcpus}
+                  </div>
                   <div className="flex flex-row gap-x-1">
                     <span className="">
-                      Memory: {Math.trunc(dataTryInfo.info.memory_mb / 1024)}
+                      {t.dataFound.memory}:{" "}
+                      {Math.trunc(dataTryInfo.info.memory_mb / 1024)}
                       GB
                     </span>
                     <span className="text-xs justify-self-end self-end">
                       ({Math.trunc(dataTryInfo.info.memory_mb)} MB)
                     </span>
                   </div>
-                  <div>Disk: {Math.trunc(dataTryInfo.info.disk / 1024)} GB</div>
+                  <div>
+                    {t.dataFound.disk}:{" "}
+                    {Math.trunc(dataTryInfo.info.disk / 1024)} GB
+                  </div>
                 </div>
               </>
             )}
@@ -362,7 +450,7 @@ export default function ServerSettings({ serverId }: props) {
               <div className="text-red-500">Failed to fetch server info</div>
             )}
             <Divider />
-            <div className="text-lg">General Information:</div>
+            <div className="text-lg">{t.general.title}</div>
             <div className="flex flex-row flex-wrap items-center gap-x-8">
               <updateServerForm.AppField name="name">
                 {(field) => (
@@ -370,7 +458,8 @@ export default function ServerSettings({ serverId }: props) {
                     inputId="name"
                     inputName="name"
                     inputType="text"
-                    labelText="Name:"
+                    labelText={t.general.name}
+                    placeholder={t.general.placeholderName}
                   />
                 )}
               </updateServerForm.AppField>
@@ -380,7 +469,8 @@ export default function ServerSettings({ serverId }: props) {
                     inputId="publicId"
                     inputName="publicId"
                     inputType="number"
-                    labelText="Public ID:"
+                    labelText={t.general.publicId}
+                    placeholder={t.general.placeholderPublicId}
                   />
                 )}
               </updateServerForm.AppField>
@@ -388,14 +478,15 @@ export default function ServerSettings({ serverId }: props) {
             <Divider />
             <div className="flex flex-row gap-x-8 gap-y-4 flex-wrap">
               <div className="flex flex-col gap-y-3">
-                <div className="text-lg">Server Resources:</div>
+                <div className="text-lg">{t.resources.title}</div>
                 <updateServerForm.AppField name="cpus">
                   {(field) => (
                     <field.InputField
                       inputId="cpus"
                       inputName="cpus"
                       inputType="number"
-                      labelText="CPUs:"
+                      labelText={t.resources.cpus}
+                      placeholder={t.resources.placeholderCpus}
                     />
                   )}
                 </updateServerForm.AppField>
@@ -405,7 +496,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="vcpus"
                       inputName="vcpus"
                       inputType="number"
-                      labelText="vCPUs:"
+                      labelText={t.resources.vcpus}
+                      placeholder={t.resources.placeholderVcpus}
                     />
                   )}
                 </updateServerForm.AppField>
@@ -415,7 +507,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="memory_mb"
                       inputName="memory_mb"
                       inputType="number"
-                      labelText="Memory (MB):"
+                      labelText={t.resources.memory}
+                      placeholder={t.resources.placeholderMemory}
                     />
                   )}
                 </updateServerForm.AppField>
@@ -425,7 +518,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="disk"
                       inputName="disk"
                       inputType="number"
-                      labelText="Disk (GB):"
+                      labelText={t.resources.disk}
+                      placeholder={t.resources.placeholderDisk}
                     />
                   )}
                 </updateServerForm.AppField>
@@ -435,7 +529,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="in_link_mbps"
                       inputName="in_link_mbps"
                       inputType="number"
-                      labelText="In Link (Mbps):"
+                      labelText={t.resources.inLink}
+                      placeholder={t.resources.placeholderInLink}
                     />
                   )}
                 </updateServerForm.AppField>
@@ -445,13 +540,14 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="out_link_mbps"
                       inputName="out_link_mbps"
                       inputType="number"
-                      labelText="Out Link (Mbps):"
+                      labelText={t.resources.outLink}
+                      placeholder={t.resources.placeholderOutLink}
                     />
                   )}
                 </updateServerForm.AppField>
               </div>
               <div className="flex flex-col gap-y-3">
-                <div className="text-lg">Maximum Server Resources:</div>
+                <div className="text-lg">{t.maxResources.title}</div>
                 <div className="h-15">{/* Spacer */}</div>
                 <updateServerForm.AppField name="vcpus_max">
                   {(field) => (
@@ -459,7 +555,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="vcpus_max"
                       inputName="vcpus_max"
                       inputType="number"
-                      labelText="Max vCPUs:"
+                      labelText={t.maxResources.vcpus}
+                      placeholder={t.maxResources.placeholderVcpus}
                     />
                   )}
                 </updateServerForm.AppField>
@@ -469,7 +566,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="memory_mb_max"
                       inputName="memory_mb_max"
                       inputType="number"
-                      labelText="Max Memory (MB):"
+                      labelText={t.maxResources.memory}
+                      placeholder={t.maxResources.placeholderMemory}
                     />
                   )}
                 </updateServerForm.AppField>
@@ -479,14 +577,15 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="disk_max"
                       inputName="disk_max"
                       inputType="number"
-                      labelText="Max Disk (GB):"
+                      labelText={t.maxResources.disk}
+                      placeholder={t.maxResources.placeholderDisk}
                     />
                   )}
                 </updateServerForm.AppField>
               </div>
             </div>
             <Divider />
-            <div className="text-xl">Network Information</div>
+            <div className="text-xl">{t.network.title}</div>
             <div className="flex flex-row gap-x-8 gap-y-3 flex-wrap">
               <updateServerForm.AppField name="network">
                 {(field) => {
@@ -495,7 +594,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="network"
                       inputName="network"
                       inputType="text"
-                      labelText="VM Network:"
+                      labelText={t.network.vmNetwork}
+                      placeholder={t.network.placeholderVmNetwork}
                       inputProps={{
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
                           const raw = e.target.value;
@@ -556,7 +656,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="network_mask"
                       inputName="network_mask"
                       inputType="text"
-                      labelText="VM Network Mask:"
+                      labelText={t.network.vmNetworkMask}
+                      placeholder={t.network.placeholderVmNetworkMask}
                     />
                   );
                 }}
@@ -568,7 +669,8 @@ export default function ServerSettings({ serverId }: props) {
                       inputId="network_gateway"
                       inputName="network_gateway"
                       inputType="text"
-                      labelText="VM Network Gateway:"
+                      labelText={t.network.vmNetworkGateway}
+                      placeholder={t.network.placeholderVmNetworkGateway}
                     />
                   );
                 }}
@@ -576,22 +678,17 @@ export default function ServerSettings({ serverId }: props) {
             </div>
             <Divider />
             <div className="flex flex-row gap-x-3">
-              <Button text="Update Server" />
+              <Button text={t.buttonUpdate} />
               <ButtonNoForm
                 button={{
                   onClick: () => {
-                    if (
-                      !confirm(
-                        "Are you sure you want to delete this server? This action cannot be undone. This will also delete all virtual machines on this server.",
-                      )
-                    )
-                      return;
+                    if (!confirm(t.delete.confirmation)) return;
 
                     deleteServerMutation.mutate();
                   },
                 }}
               >
-                Delete Server
+                {t.delete.button}
               </ButtonNoForm>
             </div>
             <div className="h-8"></div>

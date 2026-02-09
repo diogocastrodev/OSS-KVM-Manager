@@ -445,6 +445,8 @@ export const updateServer = async (
       "vcpus_available",
       "ram_available",
       "disk_available",
+      "agent_port",
+      "ipLocal",
     ])
     .where("publicId", "=", publicId)
     .executeTakeFirst();
@@ -481,6 +483,11 @@ export const updateServer = async (
   const new_vcpus_available = Number(req.body.vcpus_max) - vcpus_used;
   const new_ram_available = Number(req.body.memory_mb_max) - ram_used;
   const new_disk_available = Number(req.body.disk_max) - disk_used;
+  const server_endpoint_parts =
+    req.body.server_endpoint?.split(":") ||
+    `${server.ipLocal}:${server.agent_port}`.split(":");
+  const agent_port = server_endpoint_parts[1] || "80";
+  const server_ip = server_endpoint_parts[0] || req.body.server_endpoint;
 
   await db
     .updateTable("servers")
@@ -495,6 +502,8 @@ export const updateServer = async (
       vcpus_max: req.body.vcpus_max,
       ram_max: req.body.memory_mb_max,
       disk_max: req.body.disk_max,
+      ipLocal: server_ip,
+      agent_port: agent_port ? parseInt(agent_port, 10) : server.agent_port,
       vcpus_available: new_vcpus_available,
       ram_available: new_ram_available,
       disk_available: new_disk_available,

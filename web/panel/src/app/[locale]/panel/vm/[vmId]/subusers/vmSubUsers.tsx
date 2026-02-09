@@ -14,6 +14,51 @@ import { z } from "zod";
 
 interface props {
   vmID: string;
+  translations: {
+    add: {
+      toast: {
+        success: string;
+        error: string;
+      };
+      title: string;
+      email: string;
+      invalidEmail: string;
+      placeholderEmail: string;
+      addButton: string;
+    };
+    role: string;
+    roleError: string;
+    roles: {
+      viewer: string;
+      operator: string;
+      owner: string;
+    };
+    list: {
+      title: string;
+      name: string;
+      email: string;
+      role: string;
+      actions: string;
+    };
+    update: {
+      toast: {
+        success: string;
+        error: string;
+      };
+      button: string;
+      modal: {
+        title: string;
+        button: string;
+      };
+    };
+    remove: {
+      button: string;
+      toast: {
+        success: string;
+        error: string;
+      };
+    };
+  };
 }
 
 type Role = "operator" | "viewer";
@@ -30,7 +75,7 @@ export interface GetAllUsersResponse {
   subUserRole: Role;
 }
 
-export default function VMSubUsers({ vmID }: props) {
+export default function VMSubUsers({ vmID, translations: t }: props) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<GetAllUsersResponse | null>(
     null,
@@ -51,7 +96,7 @@ export default function VMSubUsers({ vmID }: props) {
   const createSubUserSchema = z.object({
     email: z.email({ message: "Invalid email address" }),
     role: z.enum(["operator", "viewer"], {
-      message: "Role must be operator or viewer",
+      message: t.roleError,
     }),
   });
 
@@ -66,13 +111,13 @@ export default function VMSubUsers({ vmID }: props) {
           role: data.role,
         }),
       }).then(() => {
-        toast.success("Sub user created successfully!");
+        toast.success(t.add.toast.success);
         refetchSubUsers();
       });
     },
     onError: (error) => {
       console.error("Error creating sub-user:", error);
-      toast.error("Failed to create sub user. Please try again.");
+      toast.error(t.add.toast.error);
     },
   });
 
@@ -95,7 +140,7 @@ export default function VMSubUsers({ vmID }: props) {
   const updateUserSchema = z.object({
     subUserId: z.string(),
     role: z.enum(["operator", "viewer"], {
-      message: "Role must be operator or viewer",
+      message: t.roleError,
     }),
   });
 
@@ -110,7 +155,7 @@ export default function VMSubUsers({ vmID }: props) {
           role: data.role,
         }),
       }).then(() => {
-        toast.success("Sub user updated successfully!");
+        toast.success(t.update.toast.success);
         refetchSubUsers();
       });
     },
@@ -139,7 +184,7 @@ export default function VMSubUsers({ vmID }: props) {
         method: "DELETE",
         body: JSON.stringify({ subUserId }),
       }).then(() => {
-        toast.success("Sub user deleted successfully!");
+        toast.success(t.remove.toast.success);
         refetchSubUsers();
       });
     },
@@ -150,7 +195,7 @@ export default function VMSubUsers({ vmID }: props) {
       <div className="flex flex-col gap-y-3">
         <createSubUserForm.AppForm>
           <div className="flex flex-col">
-            <div className="text-2xl">Add Sub User</div>
+            <div className="text-2xl">{t.add.title}</div>
             <div className="flex flex-col gap-y-4 mt-2 ml-2">
               <createSubUserForm.AppField name="email">
                 {(field) => (
@@ -158,7 +203,8 @@ export default function VMSubUsers({ vmID }: props) {
                     inputId="email"
                     inputType="text"
                     inputName="email"
-                    labelText="Email:"
+                    placeholder={t.add.placeholderEmail}
+                    labelText={t.add.email}
                   />
                 )}
               </createSubUserForm.AppField>
@@ -167,30 +213,30 @@ export default function VMSubUsers({ vmID }: props) {
                   <field.SelectField
                     inputId="role"
                     inputName="role"
-                    labelText="Role:"
+                    labelText={t.role}
                     options={[
-                      { value: "viewer", label: "Viewer" },
-                      { value: "operator", label: "Operator" },
+                      { value: "viewer", label: t.roles.viewer },
+                      { value: "operator", label: t.roles.operator },
                     ]}
                   />
                 )}
               </createSubUserForm.AppField>
               {/* <Button text="Add Sub User" /> */}
-              <Button text="Add Sub User" />
+              <Button text={t.add.addButton} />
             </div>
           </div>
         </createSubUserForm.AppForm>
         <Divider />
 
         <div className="flex flex-col w-full gap-y-3">
-          <div className="text-2xl">Sub Users</div>
+          <div className="text-2xl">{t.list.title}</div>
           <table className="w-full text-center rounded-md overflow-hidden">
             <thead className="bg-(--color-background-primary) h-10 rounded-t-lg">
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th className="w-64">Actions</th>
+                <th>{t.list.name}</th>
+                <th>{t.list.email}</th>
+                <th>{t.list.role}</th>
+                <th className="w-64">{t.list.actions}</th>
               </tr>
             </thead>
             <tbody className="">
@@ -214,7 +260,11 @@ export default function VMSubUsers({ vmID }: props) {
                     <td>{subUser.subUserName}</td>
                     <td>{subUser.subUserEmail}</td>
                     <td className="capitalize">
-                      {subUser.subUserRole.toLowerCase()}
+                      {
+                        t.roles[
+                          subUser.subUserRole.toLowerCase() as keyof typeof t.roles
+                        ]
+                      }
                     </td>
                     <td className="flex flex-row justify-center items-center gap-x-2 h-10">
                       <div
@@ -224,7 +274,7 @@ export default function VMSubUsers({ vmID }: props) {
                           setIsUpdateModalOpen(true);
                         }}
                       >
-                        Update
+                        {t.update.button}
                       </div>
                       <div
                         className="bg-(--color-button-delete) color-(--color-button-delete-foreground) hover:bg-(--color-button-delete-hover) hover:color-(--color-button-delete-foreground-hover) cursor-pointer px-2 py-1 rounded"
@@ -232,7 +282,7 @@ export default function VMSubUsers({ vmID }: props) {
                           deleteUser.mutateAsync(subUser.subUserId);
                         }}
                       >
-                        Delete
+                        {t.remove.button}
                       </div>
                     </td>
                   </tr>
@@ -244,7 +294,7 @@ export default function VMSubUsers({ vmID }: props) {
           isOpen={isUpdateModalOpen}
           onClose={() => setIsUpdateModalOpen(false)}
           data={{
-            title: "Update Sub User",
+            title: t.update.modal.title,
             content: editingUser ? (
               <div className="flex flex-col gap-y-2">
                 <updateUserForm.AppForm>
@@ -253,10 +303,10 @@ export default function VMSubUsers({ vmID }: props) {
                       <field.SelectField
                         inputId="role"
                         inputName="role"
-                        labelText="Role:"
+                        labelText={t.role}
                         options={[
-                          { value: "viewer", label: "Viewer" },
-                          { value: "operator", label: "Operator" },
+                          { value: "viewer", label: t.roles.viewer },
+                          { value: "operator", label: t.roles.operator },
                         ]}
                         selectedValue={editingUser.subUserRole.toLowerCase()}
                       />
@@ -264,7 +314,7 @@ export default function VMSubUsers({ vmID }: props) {
                   </updateUserForm.AppField>
                   <div className="flex flex-row justify-end">
                     <Button
-                      text="Update User"
+                      text={t.update.button}
                       className="bg-(--color-button-update) outline-0 border-0 color-(--color-button-update-foreground) hover:bg-(--color-button-update-hover) hover:color-(--color-button-update-foreground-hover) px-4 py-2 rounded"
                     />
                   </div>

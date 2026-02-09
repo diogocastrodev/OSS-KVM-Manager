@@ -10,6 +10,7 @@ import {
   QueryClient,
   useQuery,
 } from "@tanstack/react-query";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 export default async function PanelLayout({
@@ -22,6 +23,7 @@ export default async function PanelLayout({
   }>;
 }) {
   const { serverId } = await params;
+  const t = await getTranslations("admin.server-page.nav");
 
   const queryClient = new QueryClient();
 
@@ -40,7 +42,18 @@ export default async function PanelLayout({
     <>
       <div className="flex flex-col gap-y-5 h-full">
         <HydrationBoundary state={dehydrate(queryClient)}>
-          <VMNavbarAdminServer publicId={parseInt(serverId)} />
+          <VMNavbarAdminServer
+            publicId={parseInt(serverId)}
+            translations={{
+              dashboard: t("dashboard"),
+              virtualmachines: t("virtual-machines"),
+              virtualmachinessubnav: {
+                listvms: t("virtual-machines-subnav.list-vms"),
+                createvm: t("virtual-machines-subnav.create-vm"),
+              },
+              settings: t("settings"),
+            }}
+          />
           {children}
         </HydrationBoundary>
       </div>

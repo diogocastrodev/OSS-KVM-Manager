@@ -15,9 +15,72 @@ import z from "zod";
 
 interface props {
   serverId: string;
+  translations: {
+    title: string;
+    toast: {
+      success: string;
+      error: string;
+    };
+    server: {
+      title: string;
+      vcpuAvailable: string;
+      memoryAvailable: string;
+      diskAvailable: string;
+      networkInLink: string;
+      networkOutLink: string;
+      machineNetworkVms: string;
+      machineNetworkGateway: string;
+    };
+    general: {
+      title: string;
+      name: string;
+      invalidName: string;
+      placeholderName: string;
+      publicId: string;
+      invalidPublicId: string;
+      placeholderPublicId: string;
+    };
+    resources: {
+      title: string;
+      vcpus: string;
+      invalidVcpus: string;
+      placeholderVcpus: string;
+      memory: string;
+      invalidMemory: string;
+      placeholderMemory: string;
+      disk: string;
+      invalidDisk: string;
+      placeholderDisk: string;
+    };
+    network: {
+      title: string;
+      localIp: string;
+      invalidLocalIp: string;
+      placeholderLocalIp: string;
+      netInAvg: string;
+      invalidNetInAvg: string;
+      placeholderNetInAvg: string;
+      netOutAvg: string;
+      invalidNetOutAvg: string;
+      placeholderNetOutAvg: string;
+      netInPeak: string;
+      invalidNetInPeak: string;
+      placeholderNetInPeak: string;
+      netOutPeak: string;
+      invalidNetOutPeak: string;
+      placeholderNetOutPeak: string;
+      netInBurst: string;
+      invalidNetInBurst: string;
+      placeholderNetInBurst: string;
+      netOutBurst: string;
+      invalidNetOutBurst: string;
+      placeholderNetOutBurst: string;
+    };
+    button: string;
+  };
 }
 
-export default function CreateVM({ serverId }: props) {
+export default function CreateVM({ serverId, translations: t }: props) {
   const router = useRouter();
   const { data, isLoading } = useQuery({
     queryKey: [qk.api.v1.admin.servers.getById(parseInt(serverId))],
@@ -36,7 +99,7 @@ export default function CreateVM({ serverId }: props) {
         "/api/v1/admin/servers?include_virtual_machines=true",
       ).then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch servers");
+          console.error("Failed to fetch servers data");
         }
         return res.json() as Promise<AdminServersResponse>;
       }),
@@ -71,11 +134,11 @@ export default function CreateVM({ serverId }: props) {
         }),
       });
       if (!d.ok) {
-        toast.error("Failed to create VM. Please try again.");
-        throw new Error("Failed to create VM");
+        toast.error(t.toast.error);
+        console.error("Failed to create VM", await d.text());
       }
       updateLayout();
-      toast.success("VM created successfully!");
+      toast.success(t.toast.success);
       const createdVM = (await d.json()) as { publicId: number; name: string };
       router.push(`/admin/vm/${createdVM.publicId}`);
       return createdVM;
@@ -137,18 +200,28 @@ export default function CreateVM({ serverId }: props) {
   return (
     <>
       <div className="flex flex-col gap-y-3">
-        <div className="text-2xl">Create a new virtual machine</div>
+        <div className="text-2xl">{t.title}</div>
         <div className="flex flex-col gap-y-3">
-          <div className="text-xl">Server Information:</div>
+          <div className="text-xl">{t.server.title}</div>
           <div className="flex flex-col gap-y-1">
-            <span>vCPU available: {data?.vcpus_available}</span>
-            <span>RAM available: {data?.ram_available} MB</span>
-            <span>Disk available: {data?.disk_available} GB</span>
-            <span>Network In Link: {data?.in_link} Mbps</span>
-            <span>Network Out Link: {data?.out_link} Mbps</span>
+            <span>
+              {t.server.vcpuAvailable}: {data?.vcpus_available}
+            </span>
+            <span>
+              {t.server.memoryAvailable}: {data?.ram_available} MB
+            </span>
+            <span>
+              {t.server.diskAvailable}: {data?.disk_available} GB
+            </span>
+            <span>
+              {t.server.networkInLink}: {data?.in_link} Mbps
+            </span>
+            <span>
+              {t.server.networkOutLink}: {data?.out_link} Mbps
+            </span>
             {data?.vms_network && (
               <span>
-                Machine Network for VMs:
+                {t.server.machineNetworkVms}:
                 <span className="pl-1">
                   {data?.vms_network}/
                   {data &&
@@ -159,7 +232,7 @@ export default function CreateVM({ serverId }: props) {
             )}
             {data?.vms_gateway && (
               <span>
-                Machine Gateway for VMs:
+                {t.server.machineNetworkGateway}:
                 <span className="pl-1">{data?.vms_gateway}</span>
               </span>
             )}
@@ -168,7 +241,7 @@ export default function CreateVM({ serverId }: props) {
         <Divider />
         <createVMForm.AppForm>
           <div className="flex flex-col gap-y-3">
-            <div className="text-xl">General Information:</div>
+            <div className="text-xl">{t.general.name}</div>
             <div className="flex flex-row gap-x-3 flex-wrap gap-y-3">
               <createVMForm.AppField name="name">
                 {(field) => (
@@ -176,7 +249,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="name"
                     inputName="name"
                     inputType="text"
-                    labelText="Name:"
+                    labelText={t.general.name}
+                    placeholder={t.general.placeholderName}
                   />
                 )}
               </createVMForm.AppField>
@@ -186,13 +260,14 @@ export default function CreateVM({ serverId }: props) {
                     inputId="publicId"
                     inputName="publicId"
                     inputType="number"
-                    labelText="Public ID:"
+                    labelText={t.general.publicId}
+                    placeholder={t.general.placeholderPublicId}
                   />
                 )}
               </createVMForm.AppField>
             </div>
             <Divider />
-            <div className="text-xl">Resource Allocation:</div>
+            <div className="text-xl">{t.resources.title}</div>
             <div className="flex flex-row gap-x-3 flex-wrap gap-y-3">
               <createVMForm.AppField name="vcpus">
                 {(field) => (
@@ -200,7 +275,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="vcpus"
                     inputName="vcpus"
                     inputType="number"
-                    labelText="vCPUs:"
+                    labelText={t.resources.vcpus}
+                    placeholder={t.resources.placeholderVcpus}
                     inputProps={{
                       min: 1,
                       max: data ? data.vcpus_available : undefined,
@@ -214,7 +290,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="memory_mib"
                     inputName="memory_mib"
                     inputType="number"
-                    labelText="Memory (MB):"
+                    labelText={t.resources.memory}
+                    placeholder={t.resources.placeholderMemory}
                     inputProps={{
                       min: 512,
                       max: data ? data.ram_available : undefined,
@@ -228,7 +305,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="disk_gb"
                     inputName="disk_gb"
                     inputType="number"
-                    labelText="Disk (GB):"
+                    labelText={t.resources.disk}
+                    placeholder={t.resources.placeholderDisk}
                     inputProps={{
                       min: 1,
                       max: data ? data.disk_available : undefined,
@@ -238,7 +316,7 @@ export default function CreateVM({ serverId }: props) {
               </createVMForm.AppField>
             </div>
             <Divider />
-            <div className="text-xl">Network Configuration:</div>
+            <div className="text-xl">{t.network.title}</div>
             <div className="flex flex-row gap-x-3 flex-wrap gap-y-3">
               <createVMForm.AppField name="ip_local">
                 {(field) => (
@@ -246,7 +324,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="ip_local"
                     inputName="ip_local"
                     inputType="text"
-                    labelText="Local IP:"
+                    labelText={t.network.localIp}
+                    placeholder={t.network.placeholderLocalIp}
                   />
                 )}
               </createVMForm.AppField>
@@ -258,7 +337,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="network_in_avg_mbps"
                     inputName="network_in_avg_mbps"
                     inputType="number"
-                    labelText="Network In Avg (Mbps):"
+                    labelText={t.network.netInAvg}
+                    placeholder={t.network.placeholderNetInAvg}
                     inputProps={{
                       min: 1,
                       max: data ? data.in_link : undefined,
@@ -272,7 +352,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="network_in_peak_mbps"
                     inputName="network_in_peak_mbps"
                     inputType="number"
-                    labelText="Network In Peak (Mbps):"
+                    labelText={t.network.netInPeak}
+                    placeholder={t.network.placeholderNetInPeak}
                     inputProps={{
                       min: 1,
                       max: data ? data.in_link : undefined,
@@ -286,7 +367,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="network_in_burst_mbps"
                     inputName="network_in_burst_mbps"
                     inputType="number"
-                    labelText="Network In Burst (Mbps):"
+                    labelText={t.network.netInBurst}
+                    placeholder={t.network.placeholderNetInBurst}
                     inputProps={{
                       min: 1,
                       max: data ? data.in_link : undefined,
@@ -302,7 +384,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="network_out_avg_mbps"
                     inputName="network_out_avg_mbps"
                     inputType="number"
-                    labelText="Network Out Avg (Mbps):"
+                    labelText={t.network.netOutAvg}
+                    placeholder={t.network.placeholderNetOutAvg}
                     inputProps={{
                       min: 1,
                       max: data ? data.out_link : undefined,
@@ -316,7 +399,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="network_out_peak_mbps"
                     inputName="network_out_peak_mbps"
                     inputType="number"
-                    labelText="Network Out Peak (Mbps):"
+                    labelText={t.network.netOutPeak}
+                    placeholder={t.network.placeholderNetOutPeak}
                     inputProps={{
                       min: 1,
                       max: data ? data.out_link : undefined,
@@ -330,7 +414,8 @@ export default function CreateVM({ serverId }: props) {
                     inputId="network_out_burst_mbps"
                     inputName="network_out_burst_mbps"
                     inputType="number"
-                    labelText="Network Out Burst (Mbps):"
+                    labelText={t.network.netOutBurst}
+                    placeholder={t.network.placeholderNetOutBurst}
                     inputProps={{
                       min: 1,
                       max: data ? data.out_link : undefined,
@@ -340,7 +425,7 @@ export default function CreateVM({ serverId }: props) {
               </createVMForm.AppField>
             </div>
             <Divider />
-            <Button text="Create VM" />
+            <Button text={t.button} />
           </div>
         </createVMForm.AppForm>
         <div className="my-4"></div>

@@ -17,13 +17,30 @@ export interface AdminServerHealthResponse {
   }[];
 }
 
-export default function AdminPage() {
+interface props {
+  translations: {
+    serverStatus: string;
+    virtualMachines: string;
+    state: {
+      active: string;
+      inactive: string;
+      maintenance: string;
+    };
+    status: {
+      operational: string;
+      notOperational: string;
+      unknown: string;
+    };
+  };
+}
+
+export default function AdminPage({ translations: t }: props) {
   const { data } = useQuery({
     queryKey: [qk.api.v1.admin.servers.allHealth()],
     queryFn: async () => {
       const res = await apiFetch("/api/v1/admin/servers/health");
       if (!res.ok) {
-        throw new Error("Failed to fetch server health");
+        console.error("Failed to fetch server health data");
       }
       return res.json() as Promise<AdminServerHealthResponse>;
     },
@@ -32,7 +49,7 @@ export default function AdminPage() {
   return (
     <>
       <div className="flex flex-col gap-y-3">
-        <div className="text-2xl">Server Status:</div>
+        <div className="text-2xl">{t.serverStatus}</div>
         <div className="flex flex-wrap gap-3">
           {data &&
             data.servers.map((server) => (
@@ -53,7 +70,7 @@ export default function AdminPage() {
                     </span>
                   </div>
                   <div className="text-sm pt-1">
-                    Virtual Machines: {server.vmsCount}
+                    {t.virtualMachines} {server.vmsCount}
                   </div>
                   <div className="mt-auto text-sm text-(--color-foreground-secondary) flex flex-row items-center gap-x-1">
                     <div className="flex flex-col">
@@ -65,10 +82,10 @@ export default function AdminPage() {
                         )}
                         <span>
                           {server.status === "ACTIVE"
-                            ? "Active"
+                            ? t.state.active
                             : server.status === "MAINTENANCE"
-                              ? "Maintenance Mode"
-                              : "Disabled"}
+                              ? t.state.maintenance
+                              : t.state.inactive}
                         </span>
                       </div>
                       <div className="flex flex-row gap-x-1 items-center">
@@ -79,9 +96,9 @@ export default function AdminPage() {
                         )}
                         <span>
                           {server.health === "HEALTHY"
-                            ? "Operational"
+                            ? t.status.operational
                             : server.health === "UNHEALTHY"
-                              ? "Not Operational"
+                              ? t.status.notOperational
                               : "Unknown"}
                         </span>
                       </div>

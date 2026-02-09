@@ -17,9 +17,73 @@ import { AdminServersResponse } from "../../../layout";
 
 interface props {
   vmId: string;
+  translations: {
+    title: string;
+    toast: {
+      success: string;
+      error: string;
+      successDelete: string;
+      errorDelete: string;
+    };
+    server: {
+      title: string;
+      vcpuAvailable: string;
+      memoryAvailable: string;
+      diskAvailable: string;
+      networkInLink: string;
+      networkOutLink: string;
+    };
+    general: {
+      title: string;
+      name: string;
+      invalidName: string;
+      placeholderName: string;
+      publicId: string;
+      invalidPublicId: string;
+      placeholderPublicId: string;
+    };
+    resources: {
+      title: string;
+      vcpus: string;
+      invalidVcpus: string;
+      placeholderVcpus: string;
+      memory: string;
+      invalidMemory: string;
+      placeholderMemory: string;
+      disk: string;
+      invalidDisk: string;
+      placeholderDisk: string;
+    };
+    network: {
+      title: string;
+      netInAvg: string;
+      invalidNetInAvg: string;
+      placeholderNetInAvg: string;
+      netOutAvg: string;
+      invalidNetOutAvg: string;
+      placeholderNetOutAvg: string;
+      netInPeak: string;
+      invalidNetInPeak: string;
+      placeholderNetInPeak: string;
+      netOutPeak: string;
+      invalidNetOutPeak: string;
+      placeholderNetOutPeak: string;
+      netInBurst: string;
+      invalidNetInBurst: string;
+      placeholderNetInBurst: string;
+      netOutBurst: string;
+      invalidNetOutBurst: string;
+      placeholderNetOutBurst: string;
+    };
+    buttonUpdate: string;
+    delete: {
+      confirmation: string;
+      button: string;
+    };
+  };
 }
 
-export default function VMsSettings({ vmId }: props) {
+export default function VMsSettings({ vmId, translations: t }: props) {
   const router = useRouter();
 
   const { refetch } = useQuery({
@@ -29,7 +93,7 @@ export default function VMsSettings({ vmId }: props) {
         "/api/v1/admin/servers?include_virtual_machines=true",
       ).then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch servers");
+          console.error("Failed to fetch servers data");
         }
         return res.json() as Promise<AdminServersResponse>;
       }),
@@ -49,8 +113,7 @@ export default function VMsSettings({ vmId }: props) {
     queryFn: async () => {
       const d = await apiFetch(`/api/v1/admin/vms/${vmId}?include_server=true`);
       if (!d.ok) {
-        toast.error("Failed to fetch VM data. Please try again.");
-        throw new Error("Failed to fetch VM data");
+        console.error("Failed to fetch VM data");
       }
       return d.json() as Promise<AdminGetVMByIDResponse>;
     },
@@ -115,12 +178,12 @@ export default function VMsSettings({ vmId }: props) {
         }),
       });
       if (!d.ok) {
-        toast.error("Failed to update VM. Please try again.");
-        throw new Error("Failed to update VM");
+        toast.error(t.toast.error);
+        console.error("Failed to update VM");
       }
       refetch();
       refetchVM();
-      toast.success("VM updated successfully!");
+      toast.success(t.toast.success);
       const updatedVM = (await d.json()) as { publicId: number; name: string };
       router.push(`/admin/vm/${updatedVM.publicId}`);
       return updatedVM;
@@ -179,34 +242,37 @@ export default function VMsSettings({ vmId }: props) {
   return (
     <>
       <div className="flex flex-col gap-y-3">
-        <div className="text-2xl">Update virtual machine</div>
+        <div className="text-2xl">{t.title}</div>
 
         <div className="flex flex-col gap-y-3">
-          <div className="text-xl">Server Information:</div>
+          <div className="text-xl">{t.server.title}</div>
           <div className="flex flex-col gap-y-1">
             <span>
-              vCPU available: {data?.include_server.serversVcpusAvailable}
+              {t.server.vcpuAvailable}:{" "}
+              {data?.include_server.serversVcpusAvailable}
             </span>
             <span>
-              RAM available: {data?.include_server.serversRamAvailable} MB
+              {t.server.memoryAvailable}:{" "}
+              {data?.include_server.serversRamAvailable} MB
             </span>
             <span>
-              Disk available: {data?.include_server.serversDiskAvailable} GB
+              {t.server.diskAvailable}:{" "}
+              {data?.include_server.serversDiskAvailable} GB
             </span>
             <span>
-              Network In Link: {data?.include_server.serversInLinkSpeedMbps}{" "}
-              Mbps
+              {t.server.networkInLink}:{" "}
+              {data?.include_server.serversInLinkSpeedMbps} Mbps
             </span>
             <span>
-              Network Out Link: {data?.include_server.serversOutLinkSpeedMbps}{" "}
-              Mbps
+              {t.server.networkOutLink}:{" "}
+              {data?.include_server.serversOutLinkSpeedMbps} Mbps
             </span>
           </div>
         </div>
         <Divider />
         <updateVMForm.AppForm>
           <div className="flex flex-col gap-y-3">
-            <div className="text-xl">General Information:</div>
+            <div className="text-xl">{t.general.title}</div>
             <div className="flex flex-row gap-x-3 flex-wrap gap-y-3">
               <updateVMForm.AppField name="name">
                 {(field) => (
@@ -214,7 +280,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="name"
                     inputName="name"
                     inputType="text"
-                    labelText="Name:"
+                    labelText={t.general.name}
+                    placeholder={t.general.placeholderName}
                   />
                 )}
               </updateVMForm.AppField>
@@ -224,13 +291,14 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="publicId"
                     inputName="publicId"
                     inputType="number"
-                    labelText="Public ID:"
+                    labelText={t.general.publicId}
+                    placeholder={t.general.placeholderPublicId}
                   />
                 )}
               </updateVMForm.AppField>
             </div>
             <Divider />
-            <div className="text-xl">Resource Allocation:</div>
+            <div className="text-xl">{t.resources.title}</div>
             <div className="flex flex-row gap-x-3 flex-wrap gap-y-3">
               <updateVMForm.AppField name="vcpus">
                 {(field) => (
@@ -238,7 +306,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="vcpus"
                     inputName="vcpus"
                     inputType="number"
-                    labelText="vCPUs:"
+                    labelText={t.resources.vcpus}
+                    placeholder={t.resources.placeholderVcpus}
                     inputProps={{
                       min: 1,
                       max: data
@@ -254,7 +323,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="memory_mib"
                     inputName="memory_mib"
                     inputType="number"
-                    labelText="Memory (MB):"
+                    labelText={t.resources.memory}
+                    placeholder={t.resources.placeholderMemory}
                     inputProps={{
                       min: 512,
                       max: data
@@ -270,7 +340,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="disk_gb"
                     inputName="disk_gb"
                     inputType="number"
-                    labelText="Disk (GB):"
+                    labelText={t.resources.disk}
+                    placeholder={t.resources.placeholderDisk}
                     inputProps={{
                       min: 1,
                       max: data
@@ -282,7 +353,7 @@ export default function VMsSettings({ vmId }: props) {
               </updateVMForm.AppField>
             </div>
             <Divider />
-            <div className="text-xl">Network Configuration:</div>
+            <div className="text-xl">{t.network.title}</div>
             {/* <div className="flex flex-row gap-x-3 flex-wrap gap-y-3">
               <updateVMForm.AppField name="ip_local">
                 {(field) => (
@@ -302,7 +373,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="network_in_avg_mbps"
                     inputName="network_in_avg_mbps"
                     inputType="number"
-                    labelText="Network In Avg (Mbps):"
+                    labelText={t.network.netInAvg}
+                    placeholder={t.network.placeholderNetInAvg}
                     inputProps={{
                       min: 1,
                       max: data
@@ -318,7 +390,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="network_in_peak_mbps"
                     inputName="network_in_peak_mbps"
                     inputType="number"
-                    labelText="Network In Peak (Mbps):"
+                    labelText={t.network.netInPeak}
+                    placeholder={t.network.placeholderNetInPeak}
                     inputProps={{
                       min: 1,
                       max: data
@@ -334,7 +407,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="network_in_burst_mbps"
                     inputName="network_in_burst_mbps"
                     inputType="number"
-                    labelText="Network In Burst (Mbps):"
+                    labelText={t.network.netInBurst}
+                    placeholder={t.network.placeholderNetInBurst}
                     inputProps={{
                       min: 1,
                       max: data
@@ -352,7 +426,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="network_out_avg_mbps"
                     inputName="network_out_avg_mbps"
                     inputType="number"
-                    labelText="Network Out Avg (Mbps):"
+                    labelText={t.network.netOutAvg}
+                    placeholder={t.network.placeholderNetOutAvg}
                     inputProps={{
                       min: 1,
                       max: data
@@ -368,7 +443,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="network_out_peak_mbps"
                     inputName="network_out_peak_mbps"
                     inputType="number"
-                    labelText="Network Out Peak (Mbps):"
+                    labelText={t.network.netOutPeak}
+                    placeholder={t.network.placeholderNetOutPeak}
                     inputProps={{
                       min: 1,
                       max: data
@@ -384,7 +460,8 @@ export default function VMsSettings({ vmId }: props) {
                     inputId="network_out_burst_mbps"
                     inputName="network_out_burst_mbps"
                     inputType="number"
-                    labelText="Network Out Burst (Mbps):"
+                    labelText={t.network.netOutBurst}
+                    placeholder={t.network.placeholderNetOutBurst}
                     inputProps={{
                       min: 1,
                       max: data
@@ -397,31 +474,27 @@ export default function VMsSettings({ vmId }: props) {
             </div>
             <Divider />
             <div className="flex flex-row flex-wrap gap-x-3">
-              <Button text="Update VM" />
+              <Button text={t.buttonUpdate} />
               <ButtonNoForm
                 button={{
                   onClick: async () => {
-                    if (
-                      !confirm(
-                        "Are you sure you want to delete this VM? This action cannot be undone.",
-                      )
-                    ) {
+                    if (!confirm(t.delete.confirmation)) {
                       return;
                     }
                     const a = await apiFetch(`/api/v1/admin/vms/${vmId}`, {
                       method: "DELETE",
                     });
                     if (!a.ok) {
-                      toast.error("Failed to delete VM. Please try again.");
+                      toast.error(t.toast.errorDelete);
                       return;
                     }
                     refetch();
-                    toast.success("VM deleted successfully!");
+                    toast.success(t.toast.successDelete);
                     router.push("/admin");
                   },
                 }}
               >
-                Delete VM
+                {t.delete.button}
               </ButtonNoForm>
             </div>
           </div>

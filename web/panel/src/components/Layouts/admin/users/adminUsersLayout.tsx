@@ -42,7 +42,74 @@ export interface GetAllUsersResponse {
   total: number;
 }
 
-export default function AdminUsersLayout() {
+interface props {
+  translations: {
+    title: string;
+    create: {
+      title: string;
+      toast: {
+        success: string;
+        error: string;
+      };
+      email: string;
+      invalidEmail: string;
+      placeholderEmail: string;
+      createButton: string;
+    };
+    list: {
+      title: string;
+      searchPlaceholder: string;
+      page: string;
+      total: string;
+      name: string;
+      email: string;
+      role: string;
+      stat: string;
+      actions: {
+        title: string;
+        update: string;
+      };
+      roles: {
+        admin: string;
+        user: string;
+      };
+      status: {
+        active: string;
+        deactivated: string;
+        pending: string;
+      };
+    };
+    update: {
+      title: string;
+      name: string;
+      invalidName: string;
+      placeholderName: string;
+      email: string;
+      invalidEmail: string;
+      placeholderEmail: string;
+      role: string;
+      invalidRole: string;
+      status: string;
+      invalidStatus: string;
+      updateButton: string;
+      confirmEmailVerificationButton: string;
+      deactivationReason: string;
+      deactivationReasons: {
+        userRequest: string;
+        termsOfServiceViolation: string;
+        other: string;
+      };
+      toast: {
+        success: string;
+        error: string;
+        successEmailVerification: string;
+        errorEmailVerification: string;
+      };
+    };
+  };
+}
+
+export default function AdminUsersLayout({ translations: t }: props) {
   const [editingUser, setEditingUser] = useState<
     GetAllUsersResponse["users"][0] | null
   >(null);
@@ -91,17 +158,17 @@ export default function AdminUsersLayout() {
       });
 
       if (!res.ok) {
-        toast("Failed to create user", {
+        toast(t.create.toast.error, {
           type: "error",
         });
-        throw new Error("Failed to create user");
+        console.error("Failed to create user");
       }
 
       return res.json();
     },
     onSuccess: () => {
       refetch();
-      toast("User created successfully", {
+      toast(t.create.toast.success, {
         type: "success",
       });
     },
@@ -149,17 +216,17 @@ export default function AdminUsersLayout() {
       });
 
       if (!res.ok) {
-        toast("Failed to update user", {
+        toast(t.update.toast.error, {
           type: "error",
         });
-        throw new Error("Failed to update user");
+        console.error("Failed to update user");
       }
 
       return res.json();
     },
     onSuccess: () => {
       refetch();
-      toast("User updated successfully", {
+      toast(t.update.toast.success, {
         type: "success",
       });
       setIsUpdateModalOpen(false);
@@ -207,16 +274,16 @@ export default function AdminUsersLayout() {
       );
 
       if (!res.ok) {
-        toast("Failed to force email verification", {
+        toast(t.update.toast.errorEmailVerification, {
           type: "error",
         });
-        throw new Error("Failed to force email verification");
+        console.error("Failed to force email verification");
       }
 
       return res.json();
     },
     onSuccess: () => {
-      toast("Email verification forced successfully", {
+      toast(t.update.toast.successEmailVerification, {
         type: "success",
       });
       refetch();
@@ -226,8 +293,8 @@ export default function AdminUsersLayout() {
   return (
     <>
       <div className="flex flex-col gap-y-3">
-        <div className="text-2xl">Users</div>
-        <div className="text-xl">Create User</div>
+        <div className="text-2xl">{t.title}</div>
+        <div className="text-xl">{t.create.title}</div>
         <div className="flex flex-row ">
           <createForm.AppForm>
             <div className="flex flex-row items-end gap-x-3">
@@ -235,23 +302,24 @@ export default function AdminUsersLayout() {
                 {(field) => (
                   <field.InputField
                     inputId="email"
-                    labelText="Email"
+                    labelText={t.create.email}
+                    placeholder={t.create.placeholderEmail}
                     inputName="email"
                     inputType="text"
                   />
                 )}
               </createForm.AppField>
-              <Button text="Create User" />
+              <Button text={t.create.createButton} />
             </div>
           </createForm.AppForm>
         </div>
         <Divider />
-        <div className="text-xl">List of Users</div>
+        <div className="text-xl">{t.list.title}</div>
         <div className="flex flex-col gap-y-1">
           <div className="w-full flex flex-row items-center">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t.list.searchPlaceholder}
               className="px-2 w-64 py-1 focus:outline-1 focus:outline-(--color-button-outline-focus) outline-1 outline-(--color-button-outline) rounded"
               onChange={(e) => setSearch(e.target.value)}
               value={search}
@@ -262,7 +330,10 @@ export default function AdminUsersLayout() {
                   name=""
                   id=""
                   className="focus:outline-0"
-                  onChange={(e) => setLimit(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    setLimit(parseInt(e.target.value));
+                    setPage(1);
+                  }}
                   value={limit}
                 >
                   {/* <option value="2">2</option> */}
@@ -273,7 +344,7 @@ export default function AdminUsersLayout() {
                 </select>
               </div>
               <div className="w-24 flex flex-row items-center gap-x-1 ml-4 bg-(--color-background-primary) px-2 rounded">
-                Page:
+                {t.list.page}:
                 <input
                   type="number"
                   className="w-10 px-2 py-1 rounded focus:outline-(--color-background-selected)"
@@ -309,11 +380,11 @@ export default function AdminUsersLayout() {
           <table className="w-full text-center rounded-md overflow-hidden">
             <thead className="bg-(--color-background-primary) h-10 rounded-t-lg">
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th className="w-64">Actions</th>
+                <th>{t.list.name}</th>
+                <th>{t.list.email}</th>
+                <th>{t.list.role}</th>
+                <th>{t.list.stat}</th>
+                <th className="w-64">{t.list.actions.title}</th>
               </tr>
             </thead>
             <tbody className="">
@@ -336,9 +407,19 @@ export default function AdminUsersLayout() {
                   >
                     <td>{subUser.name}</td>
                     <td>{subUser.email}</td>
-                    <td className="capitalize">{subUser.role.toLowerCase()}</td>
                     <td className="capitalize">
-                      {subUser.status.toLowerCase()}
+                      {
+                        t.list.roles[
+                          subUser.role.toLowerCase() as keyof typeof t.list.roles
+                        ]
+                      }
+                    </td>
+                    <td className="capitalize">
+                      {
+                        t.list.status[
+                          subUser.status.toLowerCase() as keyof typeof t.list.status
+                        ]
+                      }
                     </td>
                     <td className="flex flex-row justify-center items-center gap-x-2 h-10">
                       <div
@@ -356,7 +437,7 @@ export default function AdminUsersLayout() {
                           setIsUpdateModalOpen(true);
                         }}
                       >
-                        Update
+                        {t.list.actions.update}
                       </div>
                     </td>
                   </tr>
@@ -366,7 +447,7 @@ export default function AdminUsersLayout() {
           <div className="ml-auto pt-2 pr-1">
             {!isLoading && data && data.users.length > 0 && (
               <div>
-                Total: {data.users.length} / {data.total}
+                {t.list.total}: {data.users.length} / {data.total}
               </div>
             )}
           </div>
@@ -375,7 +456,7 @@ export default function AdminUsersLayout() {
           isOpen={isUpdateModalOpen}
           onClose={() => setIsUpdateModalOpen(false)}
           data={{
-            title: "Update User",
+            title: t.update.title,
             content: editingUser ? (
               <updateForm.AppForm>
                 <div className="flex flex-col gap-y-2">
@@ -383,7 +464,8 @@ export default function AdminUsersLayout() {
                     {(field) => (
                       <field.InputField
                         inputId="name"
-                        labelText="Name"
+                        labelText={t.update.name}
+                        placeholder={t.update.placeholderName}
                         inputName="name"
                         inputType="text"
                       />
@@ -393,7 +475,8 @@ export default function AdminUsersLayout() {
                     {(field) => (
                       <field.InputField
                         inputId="email"
-                        labelText="Email"
+                        labelText={t.update.email}
+                        placeholder={t.update.placeholderEmail}
                         inputName="email"
                         inputType="text"
                       />
@@ -403,15 +486,15 @@ export default function AdminUsersLayout() {
                     {(field) => (
                       <field.SelectField
                         inputId="role"
-                        labelText="Role"
+                        labelText={t.update.role}
                         inputName="role"
                         options={[
                           {
-                            label: "User",
+                            label: t.list.roles.user,
                             value: "USER",
                           },
                           {
-                            label: "Admin",
+                            label: t.list.roles.admin,
                             value: "ADMIN",
                           },
                         ]}
@@ -427,11 +510,19 @@ export default function AdminUsersLayout() {
 
                         const options =
                           originalWasPending && status === "PENDING"
-                            ? [{ label: "Pending", value: "PENDING" as const }]
-                            : [
-                                { label: "Active", value: "ACTIVE" as const },
+                            ? [
                                 {
-                                  label: "Deactivated",
+                                  label: t.list.status.pending,
+                                  value: "PENDING" as const,
+                                },
+                              ]
+                            : [
+                                {
+                                  label: t.list.status.active,
+                                  value: "ACTIVE" as const,
+                                },
+                                {
+                                  label: t.list.status.deactivated,
                                   value: "DEACTIVATED" as const,
                                 },
                               ];
@@ -440,7 +531,7 @@ export default function AdminUsersLayout() {
                             <div className="flex flex-row gap-x-3">
                               <statusField.SelectField
                                 inputId="status"
-                                labelText="Status"
+                                labelText={t.update.status}
                                 inputName="status"
                                 options={options}
                               />
@@ -464,7 +555,7 @@ export default function AdminUsersLayout() {
                                       },
                                     }}
                                   >
-                                    Fake Confirm Email
+                                    {t.update.confirmEmailVerificationButton}
                                   </ButtonNoForm>
                                 </div>
                               )}
@@ -477,18 +568,26 @@ export default function AdminUsersLayout() {
                                   {(field) => (
                                     <field.SelectField
                                       inputId="deactivationReason"
-                                      labelText="Deactivation Reason"
+                                      labelText={t.update.deactivationReason}
                                       inputName="deactivationReason"
                                       options={[
                                         {
-                                          label: "User Request",
+                                          label:
+                                            t.update.deactivationReasons
+                                              .userRequest,
                                           value: "USER_REQUEST",
                                         },
                                         {
-                                          label: "Terms of Service Violation",
+                                          label:
+                                            t.update.deactivationReasons
+                                              .termsOfServiceViolation,
                                           value: "TERMS_OF_SERVICE_VIOLATION",
                                         },
-                                        { label: "Other", value: "OTHER" },
+                                        {
+                                          label:
+                                            t.update.deactivationReasons.other,
+                                          value: "OTHER",
+                                        },
                                       ]}
                                     />
                                   )}
@@ -509,22 +608,30 @@ export default function AdminUsersLayout() {
                         {(field) => (
                           <field.SelectField
                             inputId="deactivationReason"
-                            labelText="Deactivation Reason"
+                            labelText={t.update.deactivationReason}
                             inputName="deactivationReason"
                             options={[
-                              { label: "User Request", value: "USER_REQUEST" },
                               {
-                                label: "Terms of Service Violation",
+                                label: t.update.deactivationReasons.userRequest,
+                                value: "USER_REQUEST",
+                              },
+                              {
+                                label:
+                                  t.update.deactivationReasons
+                                    .termsOfServiceViolation,
                                 value: "TERMS_OF_SERVICE_VIOLATION",
                               },
-                              { label: "Other", value: "OTHER" },
+                              {
+                                label: t.update.deactivationReasons.other,
+                                value: "OTHER",
+                              },
                             ]}
                           />
                         )}
                       </updateForm.AppField>
                     </>
                   )}
-                  <Button text="Update User" />
+                  <Button text={t.update.updateButton} />
                 </div>
               </updateForm.AppForm>
             ) : null,

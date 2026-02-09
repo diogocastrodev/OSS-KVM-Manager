@@ -21,7 +21,59 @@ export interface ProfilePageData {
   }[];
 }
 
-export default function ProfilePage() {
+interface props {
+  translations: {
+    title: string;
+    data: {
+      title: string;
+      name: string;
+      invalidName: string;
+      placeholderName: string;
+      email: string;
+      invalidEmail: string;
+      placeholderEmail: string;
+      updateButton: string;
+      toast: {
+        success: string;
+        error: string;
+      };
+    };
+    password: {
+      title: string;
+      currentPassword: string;
+      invalidCurrentPassword: string;
+      placeholderCurrentPassword: string;
+      password: string;
+      invalidPassword: string;
+      placeholderPassword: string;
+      confirmPassword: string;
+      invalidConfirmPassword: string;
+      placeholderConfirmPassword: string;
+      updateButton: string;
+      toast: {
+        success: string;
+        error: string;
+      };
+    };
+    devices: {
+      title: string;
+      platform: string;
+      createdAt: string;
+      lastUsed: string;
+      actions: string;
+      removeButton: string;
+      removeAllButton: string;
+      toast: {
+        removeSuccess: string;
+        removeError: string;
+        removeAllSuccess: string;
+        removeAllError: string;
+      };
+    };
+  };
+}
+
+export default function ProfilePage({ translations: t }: props) {
   const { data, refetch: refetchProfile } = useQuery({
     queryKey: [qk.api.v1.user.profile()],
     queryFn: async () => {
@@ -44,8 +96,8 @@ export default function ProfilePage() {
   });
 
   const changeDataValidator = z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.email("Invalid email address"),
+    name: z.string().min(1, t.data.invalidName),
+    email: z.email(t.data.invalidEmail),
   });
 
   const changeDataForm = useAppForm({
@@ -59,12 +111,12 @@ export default function ProfilePage() {
     onSubmit: async ({ value }) => {
       await updateDataMutation.mutateAsync(value).then((res) => {
         if (!res.ok) {
-          toast("Failed to update profile", {
+          toast(t.data.toast.error, {
             type: "error",
           });
         } else {
           refetchProfile();
-          toast("Profile updated successfully", {
+          toast(t.data.toast.success, {
             type: "success",
           });
         }
@@ -89,14 +141,12 @@ export default function ProfilePage() {
 
   const changePasswordValidator = z
     .object({
-      currentPassword: z.string().min(1, "Current password is required"),
-      newPassword: z
-        .string()
-        .min(8, "New password must be at least 8 characters"),
-      confirmNewPassword: z.string().min(1, "Please confirm your new password"),
+      currentPassword: z.string().min(1, t.password.invalidCurrentPassword),
+      newPassword: z.string().min(8, t.password.invalidPassword),
+      confirmNewPassword: z.string().min(1, t.password.invalidConfirmPassword),
     })
     .refine((data) => data.newPassword === data.confirmNewPassword, {
-      message: "Passwords do not match",
+      message: t.password.toast.error,
     });
 
   const changePasswordForm = useAppForm({
@@ -116,12 +166,12 @@ export default function ProfilePage() {
         })
         .then((res) => {
           if (!res.ok) {
-            toast("Failed to update password", {
+            toast(t.password.toast.error, {
               type: "error",
             });
           } else {
             changePasswordForm.reset();
-            toast("Password updated successfully", {
+            toast(t.password.toast.success, {
               type: "success",
             });
           }
@@ -134,12 +184,12 @@ export default function ProfilePage() {
       method: "DELETE",
     }).then((res) => {
       if (!res.ok) {
-        toast("Failed to remove device", {
+        toast(t.devices.toast.removeError, {
           type: "error",
         });
       } else {
         refetchProfile();
-        toast("Device removed successfully", {
+        toast(t.devices.toast.removeSuccess, {
           type: "success",
         });
       }
@@ -151,12 +201,12 @@ export default function ProfilePage() {
       method: "DELETE",
     }).then((res) => {
       if (!res.ok) {
-        toast("Failed to remove all devices", {
+        toast(t.devices.toast.removeAllError, {
           type: "error",
         });
       } else {
         refetchProfile();
-        toast("All devices removed successfully", {
+        toast(t.devices.toast.removeAllSuccess, {
           type: "success",
         });
       }
@@ -166,15 +216,16 @@ export default function ProfilePage() {
   return (
     <>
       <div className="flex flex-col gap-y-2 p-4">
-        <div className="text-2xl font-bold">Profile</div>
+        <div className="text-2xl font-bold">{t.title}</div>
         <div className="flex flex-col gap-y-2">
-          <div className="text-xl">Your Data:</div>
+          <div className="text-xl">{t.data.title}</div>
           <changeDataForm.AppForm>
             <div className="flex flex-col gap-y-3">
               <changeDataForm.AppField name="name">
                 {(field) => (
                   <field.InputField
-                    labelText="Name"
+                    labelText={t.data.name}
+                    placeholder={t.data.placeholderName}
                     inputId="name"
                     inputName="name"
                     inputType="text"
@@ -184,26 +235,28 @@ export default function ProfilePage() {
               <changeDataForm.AppField name="email">
                 {(field) => (
                   <field.InputField
-                    labelText="Email"
+                    labelText={t.data.email}
+                    placeholder={t.data.placeholderEmail}
                     inputId="email"
                     inputName="email"
                     inputType="text"
                   />
                 )}
               </changeDataForm.AppField>
-              <Button text="Update Data" />
+              <Button text={t.data.updateButton} />
             </div>
           </changeDataForm.AppForm>
         </div>
         <Divider />
         <div className="flex flex-col gap-y-2">
-          <div className="text-xl">Change Password:</div>
+          <div className="text-xl">{t.password.title}</div>
           <changePasswordForm.AppForm>
             <div className="flex flex-col gap-y-3">
               <changePasswordForm.AppField name="currentPassword">
                 {(field) => (
                   <field.InputField
-                    labelText="Current Password"
+                    labelText={t.password.currentPassword}
+                    placeholder={t.password.placeholderCurrentPassword}
                     inputId="currentPassword"
                     inputName="currentPassword"
                     inputType="password"
@@ -214,7 +267,8 @@ export default function ProfilePage() {
                 <changePasswordForm.AppField name="newPassword">
                   {(field) => (
                     <field.InputField
-                      labelText="New Password"
+                      labelText={t.password.password}
+                      placeholder={t.password.placeholderPassword}
                       inputId="newPassword"
                       inputName="newPassword"
                       inputType="password"
@@ -224,7 +278,8 @@ export default function ProfilePage() {
                 <changePasswordForm.AppField name="confirmNewPassword">
                   {(field) => (
                     <field.InputField
-                      labelText="Confirm New Password"
+                      labelText={t.password.confirmPassword}
+                      placeholder={t.password.placeholderConfirmPassword}
                       inputId="confirmNewPassword"
                       inputName="confirmNewPassword"
                       inputType="password"
@@ -232,22 +287,22 @@ export default function ProfilePage() {
                   )}
                 </changePasswordForm.AppField>
               </div>
-              <Button text="Update Password" />
+              <Button text={t.password.updateButton} />
             </div>
           </changePasswordForm.AppForm>
         </div>
         <Divider />
 
         <div className="flex flex-col gap-y-2">
-          <div className="text-xl">Your Devices:</div>
+          <div className="text-xl">{t.devices.title}</div>
           <div className="w-full">
             <table className="w-full text-center rounded-md overflow-hidden">
               <thead className="bg-(--color-background-primary) h-10 rounded-t-lg">
                 <tr>
-                  <th>Platform Name</th>
-                  <th>Created At</th>
-                  <th>Last Used</th>
-                  <th>Actions</th>
+                  <th>{t.devices.platform}</th>
+                  <th>{t.devices.createdAt}</th>
+                  <th>{t.devices.lastUsed}</th>
+                  <th>{t.devices.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,7 +333,7 @@ export default function ProfilePage() {
                           removeDevice(login.id);
                         }}
                       >
-                        Remove
+                        {t.devices.removeButton}
                       </div>
                     </td>
                   </tr>
@@ -292,7 +347,7 @@ export default function ProfilePage() {
                         removeAllDevices();
                       }}
                     >
-                      Remove All Devices
+                      {t.devices.removeAllButton}
                     </div>
                   </td>
                 </tr>

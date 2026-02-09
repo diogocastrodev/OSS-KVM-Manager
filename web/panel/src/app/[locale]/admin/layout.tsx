@@ -8,6 +8,7 @@ import { apiFetchServer } from "@/lib/apiFetchServer";
 import AdminLayout from "@components/Layouts/admin/adminLayout";
 import { Session } from "@/types/Session";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 export interface AdminServersResponse {
   servers: {
@@ -27,6 +28,7 @@ export default async function PanelLayoutPage({
   children: React.ReactNode;
 }) {
   const qc = new QueryClient();
+  const t = await getTranslations("panel.layout");
 
   await qc.fetchQuery({
     queryKey: qk.api.v1.user.session(),
@@ -51,7 +53,7 @@ export default async function PanelLayoutPage({
         "/api/v1/admin/servers?include_virtual_machines=true",
       ).then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch servers");
+          console.error("Failed to fetch servers data");
         }
         return res.json() as Promise<AdminServersResponse>;
       }),
@@ -60,7 +62,22 @@ export default async function PanelLayoutPage({
   return (
     <>
       <HydrationBoundary state={dehydrate(qc)}>
-        <AdminLayout>{children}</AdminLayout>
+        <AdminLayout
+          translations={{
+            layout: {
+              panel: t("panel"),
+              admin: t("admin"),
+              users: t("users"),
+              datacenters: t("datacenters"),
+              nav: {
+                profile: t("nav.profile"),
+                logout: t("nav.logout"),
+              },
+            },
+          }}
+        >
+          {children}
+        </AdminLayout>
       </HydrationBoundary>
     </>
   );

@@ -10,6 +10,24 @@ import { Fragment } from "react/jsx-runtime";
 
 interface props {
   serverId: number;
+  translations: {
+    title: string;
+    name: string;
+    stat: string;
+    status: {
+      operational: string;
+      formatting: string;
+      deleting: string;
+      failed: string;
+    };
+    ips: string;
+    resources: {
+      title: string;
+      vCPU: string;
+      memory: string;
+      disk: string;
+    };
+  };
 }
 
 type statusType = "operational" | "formatting" | "deleting" | "failed";
@@ -27,7 +45,7 @@ export type getVMsOfServerReplyBodyType = {
   }[];
 };
 
-export default function ServerVMs({ serverId }: props) {
+export default function ServerVMs({ serverId, translations: t }: props) {
   const { data, isLoading } = useQuery({
     queryKey: [qk.api.v1.admin.servers.getVMs(serverId)],
     queryFn: async () => {
@@ -38,23 +56,23 @@ export default function ServerVMs({ serverId }: props) {
   return (
     <>
       <div className="flex flex-col">
-        <div className="text-2xl">Virtual machines</div>
+        <div className="text-2xl">{t.title}</div>
         <Table
           head={[
             {
-              name: "Name",
+              name: t.name,
             },
             {
-              name: "Status",
+              name: t.stat,
             },
             {
-              name: "Resources",
+              name: t.resources.title,
               thProps: {
                 colSpan: 3,
               },
             },
             {
-              name: "IPs",
+              name: t.ips,
             },
           ]}
         >
@@ -68,10 +86,18 @@ export default function ServerVMs({ serverId }: props) {
                   {vm.name}
                 </a>
               </TableItem>
-              <TableItem capitalize={true}>{vm.status.toLowerCase()}</TableItem>
-              <TableItem>{vm.vcpus} vCPU</TableItem>
-              <TableItem>{vm.ram} GB RAM</TableItem>
-              <TableItem>{vm.disk} GB Storage</TableItem>
+              <TableItem capitalize={true}>
+                {t.status[vm.status.toLowerCase() as statusType]}
+              </TableItem>
+              <TableItem>
+                {vm.vcpus} {t.resources.vCPU}
+              </TableItem>
+              <TableItem>
+                {vm.ram} MB {t.resources.memory}
+              </TableItem>
+              <TableItem>
+                {vm.disk} GB {t.resources.disk}
+              </TableItem>
               <TableItem>{vm.ipLocal}</TableItem>
             </TableRow>
           ))}
