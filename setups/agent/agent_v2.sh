@@ -40,9 +40,9 @@ AGENT_GROUP="${AGENT_GROUP:-agent}"
 AGENT_HOME="${AGENT_HOME:-/var/lib/agent}"
 
 # --- Updater install ---
-UPDATER_URL="${UPDATER_URL:-https://raw.githubusercontent.com/diogocastrodev/OSS-KVM-Manager/main/setups/agent/update-agent.sh}"
+UPDATER_URL="${UPDATER_URL:-https://raw.githubusercontent.com/diogocastrodev/OSS-KVM-Manager/main/setups/agent/agent_update.sh}"
 UPDATER_BIN_DIR="${UPDATER_BIN_DIR:-/opt/oss-kvm-agent}"
-UPDATER_BIN_PATH="${UPDATER_BIN_PATH:-/opt/oss-kvm-agent/update-agent-only.sh}"
+UPDATER_BIN_PATH="${UPDATER_BIN_PATH:-/opt/oss-kvm-agent/agent_update-only.sh}"
 UPDATER_SYMLINK="${UPDATER_SYMLINK:-/usr/local/sbin/oss-kvm-agent-update}"
 
 # What the updater should checkout (agent-only by default)

@@ -177,9 +177,9 @@ export default function AdminCreatePage({ translations: t }: props) {
       vcpus_max: number;
       memory_mb_max: number;
       disk_max: number;
-      vm_network: string;
-      vm_network_mask: string;
-      vm_network_gateway: string;
+      vms_network: string;
+      vms_network_mask: string;
+      vms_network_gateway: string;
     }) => {
       const res = await apiFetch("/api/v1/admin/servers", {
         method: "POST",
@@ -313,9 +313,9 @@ export default function AdminCreatePage({ translations: t }: props) {
         vcpus_max: parseInt(value.vcpus_max),
         memory_mb_max: parseInt(value.memory_mb_max),
         disk_max: parseInt(value.disk_max),
-        vm_network: value.network,
-        vm_network_mask: value.network_mask,
-        vm_network_gateway: value.network_gateway,
+        vms_network: value.network,
+        vms_network_mask: value.network_mask,
+        vms_network_gateway: value.network_gateway,
       });
     },
   });

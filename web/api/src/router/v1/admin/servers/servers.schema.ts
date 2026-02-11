@@ -195,13 +195,7 @@ export const createServerRequestBody = z.object({
   memory_mb_max: z.number().min(128, "Memory Max must be at least 128 MB"),
   disk_max: z.number().min(1, "Disk Max must be at least 1 GB"),
   // Network
-  vms_network: z
-    .string()
-    .regex(
-      /^(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-4])\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])$/,
-      "Invalid IP address format for VMs network",
-    )
-    .optional(),
+  vms_network: z.ipv4().optional(),
   vms_network_mask: z
     .string()
     .regex(
